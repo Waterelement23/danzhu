@@ -1,0 +1,41 @@
+{
+  "name": "danzhu-marble-duel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,web \"tsx watch src/server/index.ts\" \"vite --host 0.0.0.0\"",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:web": "vite --host 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build && esbuild src/server/index.ts --platform=node --format=esm --packages=external --bundle --outfile=dist/server/index.js",
+    "start": "node dist/server/index.js",
+    "test": "vitest run",
+    "test:browser": "node scripts/browser-smoke.mjs",
+    "format": "prettier --write src tests scripts *.ts *.json README.md"
+  },
+  "dependencies": {
+    "@colyseus/core": "0.18.11",
+    "@colyseus/sdk": "0.18.2",
+    "@colyseus/ws-transport": "0.18.2",
+    "@dimforge/rapier3d-compat": "0.20.0",
+    "express": "5.2.1",
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@playwright/cli": "0.1.19",
+    "@types/express": "5.0.6",
+    "@types/node": "26.4.1",
+    "@types/three": "0.185.4",
+    "concurrently": "10.0.5",
+    "esbuild": "0.28.2",
+    "prettier": "3.9.6",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vite": "8.2.2",
+    "vitest": "5.0.0"
+  }
+}
