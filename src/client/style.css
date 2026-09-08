@@ -1508,3 +1508,13 @@ main:has(.controls:not([hidden])) .board-card {
 .result-card {
   background: rgba(255, 254, 246, 0.86);
 }
+
+.environment-error {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 8px 12px;
+  background: #fff9e6e6;
+  color: #775b30;
+  font-size: 13px;
+}

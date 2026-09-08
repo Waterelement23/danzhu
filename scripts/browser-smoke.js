@@ -2,6 +2,9 @@ async (page) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('http://localhost:5173/');
+  await page.waitForFunction(
+    () => document.querySelector('#scene')?.getAttribute('data-environment') === 'ready',
+  );
   await page.getByRole('button', { name: '本机双人练习', exact: false }).click();
   await page.locator('#fine-aim summary').click();
   await page.locator('#serve-position').evaluate((e) => {

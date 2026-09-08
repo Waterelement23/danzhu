@@ -4,3 +4,5 @@ output
 .playwright-cli
 src/shared/rock-shape.ts
 package-lock.json
+
+src/shared/generated/

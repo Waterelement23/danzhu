@@ -74,4 +74,17 @@ npm start
 - [技术设计](docs/superpowers/specs/2026-09-07-marble-duel-technical-design.md)
 - [实施记录](docs/superpowers/plans/2026-09-07-initial-prototype.md)
 
-首版是一张程序化土地地图。水泥/沙地只作为物理测试对照，不是当前可选地图；Blender MCP 精细资产流程仍保留在技术文档中，本版未使用 Blender。弹珠大小、地形起伏与阻力仍需玩家试玩调校；未做大规模并发压测或实机手机性能认证。
+当前是一张通过 Blender MCP 制作的土地院落地图。水泥/沙地只作为物理测试对照，不是当前可选地图。弹珠大小、地形起伏与阻力仍需玩家试玩调校；未做大规模并发压测或实机手机性能认证。
+
+## Blender 资产与物理表面
+
+已安装用户级 Blender MCP 插件，验证 Blender 5.1.2 / 插件 1.6 / 协议 5。玩家和服务器无需 Blender；开发者重新建模时才需要启动插件连接。安装说明来自 [Blender MCP 项目](https://github.com/ahujasid/blender-mcp)。
+
+- 可编辑源文件：`assets/blender/refined-courtyard.blend`。
+- 浏览器环境模型：`public/models/refined-courtyard.glb`，约 3.8 MB、13 个合并网格、51,308 个三角面。
+- 比赛表面：`src/shared/generated/court.json`，192 分段、37,249 个顶点、73,728 个三角面。显示与 Rapier 共用；地面高度按同一三角形插值。
+- 37 块固定石子使用 Blender 导出的同一凸多面体及落点，显示与凸包碰撞一致。浅沟约 16mm 深、88mm 宽，分支裂缝约 7–9mm 深；粗颗粒起伏最高约 2.2mm。这些都是实际几何，没有只改变视觉的凹凸贴图。
+- 粒状土壤目前表现为固定表面起伏，石子也固定；尚未模拟松散砂粒被推走或泥土变形。
+- 场外木平台、玻璃房、栅栏、座椅、植物为环境装饰；已清除伸入比赛区的装饰叶片。
+
+复现步骤及资产检查见 [Blender 建模说明](assets/blender/README.md)。物理专项测试对照去除浅沟、颗粒或小石子后的弹珠轨迹，确认这些几何细节实际参与接触。

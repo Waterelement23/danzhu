@@ -1,0 +1,13 @@
+{
+  "blender": "5.1.2",
+  "addon": "blender-mcp 1.6 protocol 5",
+  "environmentMeshes": 13,
+  "environmentTriangles": 51308,
+  "glbBytes": 3810088,
+  "courtVertices": 37249,
+  "courtTriangles": 73728,
+  "physicalStones": 37,
+  "units": "metres",
+  "axes": "game x,y-up,z; Blender x,-z,y; glTF Y-up",
+  "seed": 260908
+}

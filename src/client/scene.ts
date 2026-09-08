@@ -1,6 +1,16 @@
-import { addCourtyard } from './courtyard';
+import { loadCourtyard, disposeCourtyard } from './courtyard';
 import * as THREE from 'three';
-import { CONFIG, SERVE_RANGE, SERVE_Z, ROCKS, makeTerrain, terrainHeight } from '../shared/map';
+import {
+  CONFIG,
+  SERVE_RANGE,
+  SERVE_Z,
+  ROCKS,
+  ROCK_VERTICES,
+  ROCK_INDICES,
+  TERRAIN_DATA,
+  makeTerrain,
+  terrainHeight,
+} from '../shared/map';
 import type { BallState, GameSnapshot } from '../shared/types';
 
 type Direction = { x: number; z: number };
@@ -87,26 +97,27 @@ export class MarbleScene {
     sun.shadow.radius = 4;
     this.scene.add(sun);
     this.buildGround();
-    addCourtyard(this.scene);
-    // Fit all courtyard casters in light space, not just the playable three-metre square.
-    this.scene.updateMatrixWorld(true);
-    sun.shadow.updateMatrices(sun);
-    const shadowBounds = new THREE.Box3();
-    this.scene.traverse((object) => {
-      if ((object as THREE.Mesh).isMesh && object.castShadow) {
-        const bounds = new THREE.Box3().setFromObject(object);
-        bounds.applyMatrix4(sun.shadow.camera.matrixWorldInverse);
-        shadowBounds.union(bounds);
-      }
-    });
-    const shadowCamera = sun.shadow.camera;
-    shadowCamera.left = Math.floor(shadowBounds.min.x - 0.5);
-    shadowCamera.right = Math.ceil(shadowBounds.max.x + 0.5);
-    shadowCamera.bottom = Math.floor(shadowBounds.min.y - 0.5);
-    shadowCamera.top = Math.ceil(shadowBounds.max.y + 0.5);
-    shadowCamera.near = Math.max(0.1, -shadowBounds.max.z - 1);
-    shadowCamera.far = -shadowBounds.min.z + 2;
-    shadowCamera.updateProjectionMatrix();
+    this.fitShadow(sun);
+    this.container.dataset.environment = 'loading';
+    void loadCourtyard()
+      .then((group) => {
+        if (this.disposed) {
+          disposeCourtyard(group);
+          return;
+        }
+        this.scene.add(group);
+        this.fitShadow(sun);
+        this.container.dataset.environment = 'ready';
+      })
+      .catch((error: unknown) => {
+        if (this.disposed) return;
+        this.container.dataset.environment = 'error';
+        const message = document.createElement('p');
+        message.className = 'environment-error';
+        message.textContent = '院落模型加载失败，请刷新重试。';
+        this.container.append(message);
+        console.error('Courtyard asset failed', error);
+      });
     for (let p = 0; p < 2; p++) {
       const ball = this.makeMarble(p);
       ball.visible = false;
@@ -156,163 +167,56 @@ export class MarbleScene {
     this.resize();
   }
 
+  private fitShadow(sun: THREE.DirectionalLight) {
+    // Fit all courtyard casters in light space, not just the playable three-metre square.
+    this.scene.updateMatrixWorld(true);
+    sun.shadow.updateMatrices(sun);
+    const shadowBounds = new THREE.Box3();
+    this.scene.traverse((object) => {
+      if ((object as THREE.Mesh).isMesh && object.castShadow) {
+        const bounds = new THREE.Box3().setFromObject(object);
+        bounds.applyMatrix4(sun.shadow.camera.matrixWorldInverse);
+        shadowBounds.union(bounds);
+      }
+    });
+    const shadowCamera = sun.shadow.camera;
+    shadowCamera.left = Math.floor(shadowBounds.min.x - 0.5);
+    shadowCamera.right = Math.ceil(shadowBounds.max.x + 0.5);
+    shadowCamera.bottom = Math.floor(shadowBounds.min.y - 0.5);
+    shadowCamera.top = Math.ceil(shadowBounds.max.y + 0.5);
+    shadowCamera.near = Math.max(0.1, -shadowBounds.max.z - 1);
+    shadowCamera.far = -shadowBounds.min.z + 2;
+    shadowCamera.updateProjectionMatrix();
+  }
+
   private buildGround() {
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 512;
-    const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = '#bca586';
-    ctx.fillRect(0, 0, 512, 512);
-    let seed = 713;
-    const random = () => {
-      seed = (seed * 1664525 + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
-    for (let i = 0; i < 30000; i++) {
-      const bright = random() > 0.5;
-      ctx.fillStyle = bright
-        ? `rgba(255,244,219,${random() * 0.22})`
-        : `rgba(86,63,43,${random() * 0.14})`;
-      ctx.fillRect(random() * 512, random() * 512, random() * 1.7 + 0.3, random() * 1.7 + 0.3);
-    }
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(3, 3);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
-    this.textures.push(texture);
     const data = makeTerrain();
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(data.vertices, 3));
     geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
-    const uv = new Float32Array((data.vertices.length / 3) * 2);
-    for (let i = 0; i < data.vertices.length / 3; i++) {
-      uv[i * 2] = data.vertices[i * 3] / 3.44 + 0.5;
-      uv[i * 2 + 1] = data.vertices[i * 3 + 2] / 3.44 + 0.5;
-    }
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    geometry.computeVertexNormals();
-    // Earth colour follows the real mesh height and slope; it adds no fake bumps.
-    const colors = new Float32Array(data.vertices.length);
-    const normals = geometry.getAttribute('normal');
-    const baseSoil = new THREE.Color(0xffffff);
-    const moundSoil = new THREE.Color(0xc3a57b);
-    for (let i = 0; i < data.vertices.length / 3; i++) {
-      const rise = Math.max(0, data.vertices[i * 3 + 1] - 0.018) / 0.14;
-      const slope = Math.sqrt(Math.max(0, 1 - normals.getY(i) ** 2));
-      const shade = baseSoil.clone().lerp(moundSoil, Math.min(1, slope * 1.5));
-      shade.lerp(new THREE.Color(0xfff0ce), Math.max(0, (rise - 0.45) / 0.55) * 0.55);
-      colors.set([shade.r, shade.g, shade.b], i * 3);
-    }
+    const colors = new Float32Array(TERRAIN_DATA.colors.flatMap((c) => c.slice(0, 3)));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.computeVertexNormals();
     const soil = new THREE.Mesh(
       geometry,
-      new THREE.MeshStandardMaterial({
-        map: texture,
-        roughness: 1,
-        color: 0xf2dec1,
-        vertexColors: true,
-      }),
+      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }),
     );
     soil.receiveShadow = soil.castShadow = true;
     this.scene.add(soil);
-    // Surroundings are decorative and stay outside the playable boundary.
-    const yardTexture = texture.clone();
-    yardTexture.repeat.set(24, 24);
-    this.textures.push(yardTexture);
-    const yard = new THREE.Mesh(
-      new THREE.PlaneGeometry(28, 28),
-      new THREE.MeshStandardMaterial({ map: yardTexture, color: 0xf2dec1, roughness: 1 }),
-    );
-    yard.rotation.x = -Math.PI / 2;
-    yard.position.y = -0.006;
-    yard.receiveShadow = true;
-    this.scene.add(yard);
-
-    // Seeded, low-growing plants and gravel frame the worn earth without hiding the chalk.
-    const grass = new THREE.InstancedMesh(
-      new THREE.ConeGeometry(0.025, 0.14, 3),
-      new THREE.MeshStandardMaterial({ color: 0x7e8650, roughness: 1, flatShading: true }),
-      480,
-    );
-    const gravel = new THREE.InstancedMesh(
-      new THREE.IcosahedronGeometry(1, 0),
-      new THREE.MeshStandardMaterial({ color: 0x9f957f, roughness: 1 }),
-      130,
-    );
-    const transform = new THREE.Object3D();
-    for (let i = 0; i < 480; i++) {
-      const side = i % 2 ? 1 : -1;
-      const cluster = Math.floor(i / 12);
-      const x =
-        side * (2.1 + (cluster % 5) * 0.5 + Math.sin(cluster * 2.7) * 0.2) +
-        (random() - 0.5) * 0.28;
-      const z =
-        -2.9 +
-        (Math.floor(cluster / 5) % 8) * 0.82 +
-        Math.cos(cluster * 1.7) * 0.25 +
-        (random() - 0.5) * 0.35;
-      const size = 0.45 + random() * 0.8;
-      transform.position.set(x, size * 0.065, z);
-      transform.rotation.set((random() - 0.5) * 0.35, random() * Math.PI, (random() - 0.5) * 0.4);
-      transform.scale.set(size, size, size);
-      transform.updateMatrix();
-      grass.setMatrixAt(i, transform.matrix);
-      grass.setColorAt(
-        i,
-        new THREE.Color().setHSL(0.17 + random() * 0.06, 0.22, 0.27 + random() * 0.15),
-      );
-    }
-    for (let i = 0; i < 130; i++) {
-      const x = (i % 2 ? 1 : -1) * (1.9 + random() * 3.5);
-      const z = (random() - 0.5) * 7;
-      const size = 0.012 + random() * 0.055;
-      transform.position.set(x, size * 0.25, z);
-      transform.rotation.set(0, random() * 6, 0);
-      transform.scale.set(size, size * 0.45, size * 0.8);
-      transform.updateMatrix();
-      gravel.setMatrixAt(i, transform.matrix);
-    }
-    grass.castShadow = gravel.castShadow = true;
-    grass.receiveShadow = gravel.receiveShadow = true;
-    this.scene.add(grass, gravel);
-    // Irregular paving stones suggest the courtyard path along its outer sides.
-    const pavingMaterial = new THREE.MeshStandardMaterial({ color: 0xa5a395, roughness: 1 });
-    const pavingGeometry = new THREE.BoxGeometry(0.43, 0.045, 0.62);
-    for (let i = 0; i < 18; i++) {
-      const stone = new THREE.Mesh(pavingGeometry, pavingMaterial);
-      stone.position.set(
-        (i % 2 ? 1 : -1) * (3.2 + random() * 0.08),
-        0.008,
-        -3 + Math.floor(i / 2) * 0.72,
-      );
-      stone.rotation.y = (random() - 0.5) * 0.1;
-      stone.receiveShadow = stone.castShadow = true;
-      this.scene.add(stone);
-    }
+    const stoneGeometry = new THREE.BufferGeometry();
+    stoneGeometry.setAttribute('position', new THREE.BufferAttribute(ROCK_VERTICES, 3));
+    stoneGeometry.setIndex(new THREE.BufferAttribute(ROCK_INDICES, 1));
+    stoneGeometry.computeVertexNormals();
+    const stoneMaterial = new THREE.MeshStandardMaterial({
+      color: 0x858676,
+      roughness: 1,
+      flatShading: true,
+    });
     for (const rock of ROCKS) {
-      const mesh = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(rock.radius, 1),
-        new THREE.MeshStandardMaterial({ color: 0x999589, roughness: 0.94, flatShading: true }),
-      );
-      mesh.position.set(rock.x, terrainHeight(rock.x, rock.z), rock.z);
-      mesh.scale.y = rock.height / rock.radius;
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      this.scene.add(mesh);
-    }
-    const pebbleGeometry = new THREE.IcosahedronGeometry(1, 0);
-    const pebbleMaterial = new THREE.MeshStandardMaterial({ color: 0xaa997f, roughness: 1 });
-    for (let i = 0; i < 55; i++) {
-      const edge = 1.56 + random() * 0.13,
-        along = (random() - 0.5) * 3.3;
-      const x = i % 2 ? along : edge * (i % 4 ? 1 : -1),
-        z = i % 2 ? edge * (i % 4 === 1 ? 1 : -1) : along;
-      const mesh = new THREE.Mesh(pebbleGeometry, pebbleMaterial),
-        size = 0.007 + random() * 0.012;
-      mesh.position.set(x, terrainHeight(x, z), z);
-      mesh.scale.set(size, size * 0.5, size * 0.8);
-      mesh.rotation.y = random() * 6;
-      mesh.castShadow = true;
+      const mesh = new THREE.Mesh(stoneGeometry, stoneMaterial);
+      mesh.scale.set(rock.radius, rock.height, rock.radius);
+      mesh.position.set(rock.x, rock.y, rock.z);
+      mesh.castShadow = mesh.receiveShadow = true;
       this.scene.add(mesh);
     }
     // The shared serving line is chalk, with small endpoint ticks.

@@ -1,6 +1,6 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { CONFIG, ROCKS, makeTerrain, terrainHeight, groundNormal, SERVE_Z } from './map';
-import { ROCK_VERTICES } from './rock-shape';
+import { ROCK_VERTICES } from './map';
 import type { BallState, Player, Result, Vec3 } from './types';
 let initialization: Promise<void> | undefined;
 export function initPhysics() {
@@ -69,10 +69,7 @@ export class MarblePhysics {
         const desc = RAPIER.ColliderDesc.convexHull(vertices);
         if (desc)
           this.world.createCollider(
-            desc
-              .setTranslation(rock.x, terrainHeight(rock.x, rock.z), rock.z)
-              .setFriction(0.45)
-              .setRestitution(0.5),
+            desc.setTranslation(rock.x, rock.y, rock.z).setFriction(0.45).setRestitution(0.5),
           );
       }
     }

@@ -10,3 +10,6 @@ playwright-report/
 
 .playwright-cli/
 output/playwright/
+
+*.blend1
+*.blend2
