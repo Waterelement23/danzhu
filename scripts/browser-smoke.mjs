@@ -35,6 +35,11 @@ try {
     readFileSync('scripts/reconnect-check.js', 'utf8').trim().replace(/;$/, ''),
   ]);
   if (!/"passed"\s*:\s*true/.test(recovery)) throw new Error('Recovery check failed');
+  const guide = run([
+    'run-code',
+    readFileSync('scripts/serve-guide-check.js', 'utf8').trim().replace(/;$/, ''),
+  ]);
+  if (!/"passed"\s*:\s*true/.test(guide)) throw new Error('Serve guide check failed');
 } finally {
   run(['close']);
 }

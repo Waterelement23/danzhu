@@ -1,5 +1,5 @@
 import RAPIER from '@dimforge/rapier3d-compat';
-import { CONFIG, ROCKS, makeTerrain, terrainHeight, groundNormal, SERVE_Z } from './map';
+import { CONFIG, ROCKS, makeTerrain, terrainHeight, groundNormal, SERVE_Z, shotSpeed } from './map';
 import { ROCK_VERTICES } from './map';
 import type { BallState, Player, Result, Vec3 } from './types';
 let initialization: Promise<void> | undefined;
@@ -44,7 +44,7 @@ export class MarblePhysics {
   private flat: boolean;
   constructor(options: { flat?: boolean; restitution?: number } = {}) {
     this.flat = !!options.flat;
-    this.world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+    this.world = new RAPIER.World({ x: 0, y: -CONFIG.gravity, z: 0 });
     this.world.integrationParameters.maxCcdSubsteps = 4;
     if (this.flat)
       this.world.createCollider(
@@ -132,7 +132,7 @@ export class MarblePhysics {
     const tangent = { x: direction.x - n.x * dot, y: -n.y * dot, z: direction.z - n.z * dot };
     const norm = length(tangent);
     if (norm < 0.00001) return false;
-    const speed = CONFIG.minSpeed + power * (CONFIG.maxSpeed - CONFIG.minSpeed);
+    const speed = shotSpeed(power);
     body.wakeUp();
     body.applyImpulse(
       {

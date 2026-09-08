@@ -7,6 +7,7 @@ export const CONFIG = {
   mass: 0.012,
   serveHeight: 0.8,
   dt: 1 / 120,
+  gravity: 9.81,
   maxSpeed: 4.4,
   minSpeed: 0.22,
   aimSeconds: 30,
@@ -68,3 +69,6 @@ export function groundNormal(x: number, z: number) {
   const n = Math.hypot(dx, 1, dz);
   return { x: -dx / n, y: 1 / n, z: -dz / n };
 }
+
+export const shotSpeed = (power: number) =>
+  CONFIG.minSpeed + power * (CONFIG.maxSpeed - CONFIG.minSpeed);

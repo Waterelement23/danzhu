@@ -1,3 +1,4 @@
+import { ServeGuide } from './serve-guide';
 import { makeDoorReflection } from './glazing';
 import { makeMarble, captureCourtyardReflection } from './marble';
 import { loadCourtyard, disposeCourtyard, disposeMaterialTextures } from './courtyard';
@@ -40,7 +41,7 @@ export class MarbleScene {
   }
   private readonly preview = new THREE.Group();
   private readonly halo: THREE.Mesh;
-  private readonly heightLine: THREE.Line;
+  private readonly serveGuide: ServeGuide;
   private readonly aim = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, -1),
     new THREE.Vector3(),
@@ -153,18 +154,6 @@ export class MarbleScene {
     );
     this.halo.rotation.x = -Math.PI / 2;
     this.scene.add(this.halo);
-    this.heightLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0.8, 0)]),
-      new THREE.LineDashedMaterial({
-        color: 0x658788,
-        dashSize: 0.022,
-        gapSize: 0.025,
-        transparent: true,
-        opacity: 0.6,
-      }),
-    );
-    this.heightLine.computeLineDistances();
-    this.scene.add(this.heightLine);
     this.aim.visible = false;
     this.scene.add(this.aim);
     this.drawBoundary(this.boundary, CONFIG.half, false);
@@ -180,6 +169,7 @@ export class MarbleScene {
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(container);
     this.resize();
+    this.serveGuide = new ServeGuide(container);
   }
 
   private fitShadow(sun: THREE.DirectionalLight) {
@@ -426,9 +416,8 @@ export class MarbleScene {
     this.preview.children.forEach((child, p) => {
       child.visible = p === active;
     });
-    this.heightLine.visible = this.preview.visible && high;
-    this.heightLine.position.set(this.serveX, ground + 0.003, SERVE_Z);
-    this.halo.visible = this.preview.visible || (this.canAct && !!this.snapshot?.served[active]);
+    this.halo.visible =
+      (this.preview.visible && !high) || (this.canAct && !!this.snapshot?.served[active]);
     const origin = this.preview.visible ? this.preview.position : this.targets[active];
     this.halo.position.set(origin.x, terrainHeight(origin.x, origin.z) + 0.004, origin.z);
     (this.halo.material as THREE.MeshBasicMaterial).color.setHex(active ? AMBER : BLUE);
@@ -447,7 +436,10 @@ export class MarbleScene {
     this.aim.setDirection(this.aimDirection);
     this.aim.setLength(0.12 + this.power * 0.68, 0.07, 0.05);
     this.aim.setColor(active ? AMBER : BLUE);
-    this.aim.visible = this.canAct && this.power > 0.01;
+    this.aim.visible =
+      this.canAct &&
+      this.power > 0.01 &&
+      !(this.preview.visible && this.snapshot?.active === this.snapshot?.first);
   }
   clearAim() {
     const changed = this.dragging || this.power > 0;
@@ -571,11 +563,23 @@ export class MarbleScene {
     this.sampleFrames();
     const scale = 1 + Math.sin(this.time * 2.8) * 0.045;
     this.halo.scale.setScalar(scale);
+    this.serveGuide.update(this.camera, this.container.clientWidth, this.container.clientHeight, {
+      visible:
+        this.preview.visible && (!this.snapshot || this.snapshot.active === this.snapshot.first),
+      canAim: this.canAct,
+      dragging: this.dragging,
+      origin: this.preview.position,
+      ground: this.halo.position,
+      direction: this.aimDirection,
+      power: this.power,
+      bound: this.snapshot?.boundary ?? CONFIG.half,
+    });
     this.renderer.render(this.scene, this.camera);
   }
   dispose() {
     this.disposed = true;
     this.resizeObserver.disconnect();
+    this.serveGuide.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.pointerDown);
     canvas.removeEventListener('pointermove', this.pointerMove);
