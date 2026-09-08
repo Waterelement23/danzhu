@@ -567,7 +567,6 @@ export class MarbleScene {
       visible:
         this.preview.visible && (!this.snapshot || this.snapshot.active === this.snapshot.first),
       canAim: this.canAct,
-      dragging: this.dragging,
       origin: this.preview.position,
       ground: this.halo.position,
       direction: this.aimDirection,

@@ -1519,16 +1519,15 @@ main:has(.controls:not([hidden])) .board-card {
   font-size: 13px;
 }
 
-/* High-serve annotations: pixels stay readable as the perspective camera resizes. */
+/* Thin, contrasting guides keep the terrain visible at every camera distance. */
 .serve-guide {
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  --guide: #087d99;
+  --guide: #303e91;
 }
-.serve-guide[hidden],
-.serve-guide [hidden] {
+.serve-guide[hidden] {
   display: none;
 }
 .serve-guide svg {
@@ -1541,76 +1540,25 @@ main:has(.controls:not([hidden])) .board-card {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.serve-guide .height-outline {
-  stroke: #fffdf3;
-  stroke-width: 7;
-}
 .serve-guide .height-path {
   stroke: var(--guide);
-  stroke-width: 3.5;
-  stroke-dasharray: 6 5;
-}
-.serve-guide .flight-outline {
-  stroke: #fffdf3;
-  stroke-width: 5.5;
-  opacity: 0.9;
-}
-.serve-guide .flight-path {
-  stroke: #bd781e;
-  stroke-width: 2.5;
-  stroke-dasharray: 8 5;
+  stroke-width: 1.75;
+  stroke-dasharray: 4 4;
 }
 .serve-guide .serve-foot {
-  fill: var(--guide);
-  stroke: #fffdf3;
-  stroke-width: 3;
+  stroke: var(--guide);
+  stroke-width: 1.5;
+}
+.serve-guide .flight-path {
+  stroke: #176578;
+  stroke-width: 1.25;
+  stroke-dasharray: 5 5;
 }
 .serve-guide .flight-end {
-  fill: #e5ad45;
-  stroke: #fffdf3;
-  stroke-width: 2.5;
+  stroke: #176578;
+  stroke-width: 1.25;
 }
-.serve-guide[data-prediction='out'] .flight-path {
-  stroke: #b83b32;
-}
+.serve-guide[data-prediction='out'] .flight-path,
 .serve-guide[data-prediction='out'] .flight-end {
-  fill: #b83b32;
-}
-.serve-guide span {
-  position: absolute;
-  white-space: nowrap;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: #fffdf2ed;
-  color: #39524b;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-  box-shadow: 0 1px 5px #3528151a;
-}
-.serve-guide .serve-height-label {
-  color: #096d85;
-  border-left: 3px solid var(--guide);
-}
-.serve-guide .serve-end-label {
-  color: #805014;
-  border-bottom: 2px solid #c58c2c;
-}
-.serve-guide[data-prediction='out'] .serve-end-label {
-  color: #a83028;
-  border-color: #b83b32;
-}
-.serve-guide .serve-drag-hint {
-  font-size: 12px;
-  font-weight: 400;
-  background: #fffdf2e6;
-}
-@media (max-width: 600px) {
-  .serve-guide span {
-    font-size: 11px;
-    padding: 3px 5px;
-  }
-  .serve-guide .serve-drag-hint {
-    font-size: 10px;
-  }
+  stroke: #b83b32;
 }
