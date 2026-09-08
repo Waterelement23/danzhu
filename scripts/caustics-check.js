@@ -14,6 +14,9 @@ async (page) => {
       {},
       { timeout: 60000 },
     );
+    const initialization = await page.evaluate(() => demo.caustics.world.stats);
+    if (initialization.nodes >= initialization.triangles * 2)
+      throw new Error('Optical index has excessive spatial subdivision');
     const ground = await page.evaluate(() => {
       place();
       closeView();
@@ -69,6 +72,7 @@ async (page) => {
         'height changes focus rather than a fixed glow',
         'WebGL materials compile without errors',
       ],
+      initialization,
       ground,
       airborne,
       timing,

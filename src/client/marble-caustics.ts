@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Octree } from 'three/addons/math/Octree.js';
+import { TriangleBVH } from './triangle-bvh';
 import { CONFIG, terrainHeight } from '../shared/map';
 import {
   GLASS_IOR,
@@ -11,56 +11,41 @@ import {
 
 /** Static triangle acceleration for actual ground, stones, buildings and foliage. */
 export class OpticalScene {
-  private tree = new Octree();
+  private tree: TriangleBVH;
+  readonly stats: TriangleBVH['stats'];
   constructor(root: THREE.Object3D, accept = (mesh: THREE.Mesh) => mesh.castShadow) {
+    const start = performance.now();
     root.updateWorldMatrix(true, true);
+    const meshes: THREE.Mesh[] = [];
+    let vertexCount = 0;
     root.traverse((object) => {
       if (!(object instanceof THREE.Mesh) || !accept(object)) return;
-      const geometry = object.geometry,
+      meshes.push(object);
+      vertexCount += object.geometry.index?.count ?? object.geometry.getAttribute('position').count;
+    });
+    const vertices = new Float32Array(vertexCount * 3),
+      point = new THREE.Vector3();
+    let offset = 0;
+    for (const mesh of meshes) {
+      const geometry = mesh.geometry,
         positions = geometry.getAttribute('position'),
         index = geometry.index;
-      for (let i = 0; i < (index?.count ?? positions.count); i += 3) {
-        const points = [0, 1, 2].map((j) =>
-          new THREE.Vector3()
-            .fromBufferAttribute(positions, index ? index.getX(i + j) : i + j)
-            .applyMatrix4(object.matrixWorld),
-        );
-        this.tree.addTriangle(new THREE.Triangle(points[0], points[1], points[2]));
+      for (let i = 0; i < (index?.count ?? positions.count); i++) {
+        point
+          .fromBufferAttribute(positions, index ? index.getX(i) : i)
+          .applyMatrix4(mesh.matrixWorld);
+        point.toArray(vertices, offset);
+        offset += 3;
       }
-    });
-    this.tree.build();
+    }
+    this.tree = new TriangleBVH(vertices);
+    this.stats = { ...this.tree.stats, buildMs: performance.now() - start };
   }
   intersect(ray: THREE.Ray, maxDistance = Infinity, anyHit = false) {
-    const point = new THREE.Vector3(),
-      boxPoint = new THREE.Vector3();
-    let nearest: { point: THREE.Vector3; normal: THREE.Vector3; distance: number } | undefined;
-    const visit = (node: Octree): boolean => {
-      if (!node.box || !ray.intersectBox(node.box, boxPoint)) return false;
-      if (
-        !node.box.containsPoint(ray.origin) &&
-        boxPoint.distanceTo(ray.origin) > (nearest?.distance ?? maxDistance)
-      )
-        return false;
-      for (const triangle of node.triangles) {
-        if (!ray.intersectTriangle(triangle.a, triangle.b, triangle.c, false, point)) continue;
-        const distance = point.distanceTo(ray.origin);
-        if (distance > 0.00001 && distance < (nearest?.distance ?? maxDistance)) {
-          nearest = {
-            point: point.clone(),
-            normal: triangle.getNormal(new THREE.Vector3()),
-            distance,
-          };
-          if (anyHit) return true;
-        }
-      }
-      for (const child of node.subTrees) if (visit(child) && anyHit) return true;
-      return false;
-    };
-    visit(this.tree);
-    return nearest;
+    return this.tree.intersect(ray, maxDistance, anyHit);
   }
   dispose() {
-    this.tree.clear();
+    this.tree.dispose();
   }
 }
 
