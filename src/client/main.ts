@@ -18,7 +18,7 @@ $('app').innerHTML = `
    <div id="scene" class="scene"></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
    <div class="board-bottom"><span><i class="live-dot"></i><span id="connection">准备好，把第一颗球弹出去。</span></span><span id="round-label">01 / 土地场</span></div>
-   <div id="result" class="result-overlay" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><button id="rematch" class="primary">再来一局 <span>↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
+   <div id="result" class="result-overlay" role="status" aria-live="polite" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><button id="rematch" class="primary">再来一局 <span>↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
   </section>
 
  </div>
@@ -177,7 +177,11 @@ function refresh() {
     $('player' + p).setAttribute('aria-label', [name, status].filter(Boolean).join('，'));
   }
   $('timer').textContent =
-    snapshot.phase === 'moving' ? '滚动中' : `${Math.ceil(snapshot.secondsLeft)}s`;
+    snapshot.phase === 'finished'
+      ? '已结束'
+      : snapshot.phase === 'moving'
+        ? '滚动中'
+        : `${Math.ceil(snapshot.secondsLeft)}s`;
   $('turn-eyebrow').textContent = onlineMode ? 'ONLINE DUEL' : 'LOCAL PRACTICE';
   let title = isFirst ? '站着，弹第一颗。' : isServing ? '贴地，瞄准入场。' : '看准，再弹一下。';
   let description = isFirst
@@ -185,7 +189,10 @@ function refresh() {
     : isServing
       ? '从发球线贴地弹入，可以直接击中对方获胜。'
       : '从弹珠停留的地方出手。地形会改变它的方向和速度。';
-  if (!connected) {
+  if (snapshot.phase === 'finished') {
+    title = '这一击，尘埃落定。';
+    description = '胜负已确定，继续看完弹珠的运动。';
+  } else if (!connected) {
     title = '等待恢复连接';
     description = '正在尝试恢复原来的席位，请稍候。';
   } else if (onlineMode && !presence?.started) {
@@ -245,7 +252,7 @@ const reasons: Record<Result['reason'], string> = {
 };
 function updateResult() {
   const r = snapshot.result;
-  const shown = mode !== 'lobby' && !!r && scene.presentationTime >= r.time;
+  const shown = mode !== 'lobby' && !!r && scene.presentationTime >= r.time + 1.8;
   $('result').hidden = !shown;
   if (!r || !shown) return;
   $('result-title').textContent =

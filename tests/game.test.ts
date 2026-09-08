@@ -122,3 +122,16 @@ it('new match rejects old match commands even at same turn number', () => {
   expect(g.snapshot().balls).toEqual([]);
   g.dispose();
 });
+it('keeps the decisive motion playing beyond two seconds without changing the result', () => {
+  const g = new MarbleGame(0);
+  g.shoot(0, shot(g, { power: 1 }));
+  finishMotion(g);
+  expect(g.snapshot().phase).toBe('finished');
+  const result = g.snapshot().result;
+  for (let i = 0; i < 264; i++) g.tick(1 / 120);
+  const before = g.snapshot().balls[0].position;
+  for (let i = 0; i < 12; i++) g.tick(1 / 120);
+  expect(g.snapshot().balls[0].position).not.toEqual(before);
+  expect(g.snapshot().result).toEqual(result);
+  g.dispose();
+});

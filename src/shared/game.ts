@@ -97,7 +97,7 @@ export class MarbleGame {
     if (!Number.isFinite(dt) || dt <= 0) return;
     this.state.time += dt;
     if (this.state.phase === 'finished') {
-      if (this.afterResult < 2) {
+      if (this.afterResult < 8 && !this.physics.settled()) {
         this.physics.step(Math.min(dt, CONFIG.dt), 100, this.state.active, { adjudicate: false });
         this.afterResult += dt;
       }
