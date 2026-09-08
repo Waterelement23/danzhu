@@ -1,6 +1,8 @@
 import { ServeGuide } from './serve-guide';
 import { makeDoorReflection } from './glazing';
 import { makeMarble, captureCourtyardReflection } from './marble';
+import { MarbleCaustics } from './marble-caustics';
+import { SUN_DIRECTION } from './glass-optics';
 import { loadCourtyard, disposeCourtyard, disposeMaterialTextures } from './courtyard';
 import * as THREE from 'three';
 import {
@@ -42,6 +44,7 @@ export class MarbleScene {
   private readonly preview = new THREE.Group();
   private readonly halo: THREE.Mesh;
   private readonly serveGuide: ServeGuide;
+  private readonly caustics: MarbleCaustics;
   private readonly aim = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, -1),
     new THREE.Vector3(),
@@ -92,7 +95,7 @@ export class MarbleScene {
     this.camera.lookAt(0, 0.05, 0);
     this.scene.add(new THREE.HemisphereLight(0xfff9e9, 0x958772, 1.15));
     const sun = new THREE.DirectionalLight(0xfff3d9, 3.5);
-    sun.position.set(-3, 5, 4);
+    sun.position.copy(SUN_DIRECTION).multiplyScalar(Math.sqrt(50));
     sun.castShadow = true;
     const shadowSize = Math.min(4096, this.renderer.capabilities.maxTextureSize);
     sun.shadow.mapSize.set(shadowSize, shadowSize);
@@ -123,6 +126,7 @@ export class MarbleScene {
         });
         this.doorReflection = makeDoorReflection();
         this.scene.add(this.doorReflection);
+        this.caustics.setScene(this.scene);
         this.container.dataset.environment = 'ready';
       })
       .catch((error: unknown) => {
@@ -170,6 +174,7 @@ export class MarbleScene {
     this.resizeObserver.observe(container);
     this.resize();
     this.serveGuide = new ServeGuide(container);
+    this.caustics = new MarbleCaustics(this.balls[0].children[0] as THREE.Mesh);
   }
 
   private fitShadow(sun: THREE.DirectionalLight) {
@@ -576,12 +581,25 @@ export class MarbleScene {
       power: this.power,
       bound: this.snapshot?.boundary ?? CONFIG.half,
     });
+    this.scene.updateMatrixWorld(true);
+    this.caustics.update(
+      [0, 1].map((player) =>
+        this.preview.visible && this.preview.children[player].visible
+          ? this.preview.children[player]
+          : this.balls[player].visible
+            ? this.balls[player]
+            : undefined,
+      ),
+      this.camera,
+      this.container.clientHeight,
+    );
     this.renderer.render(this.scene, this.camera);
   }
   dispose() {
     this.disposed = true;
     this.resizeObserver.disconnect();
     this.serveGuide.dispose();
+    this.caustics.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.pointerDown);
     canvas.removeEventListener('pointermove', this.pointerMove);

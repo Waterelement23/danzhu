@@ -1,0 +1,65 @@
+<!-- Development-only optical regression scene; not an application entry point. -->
+<!doctype html>
+<html>
+  <head>
+    <link rel="icon" href="data:," />
+    <style>
+      body {
+        margin: 0;
+      }
+      #scene {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+      .serve-guide {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="scene"></div>
+    <script type="module">
+      import { MarbleScene } from '/src/client/scene.ts';
+      import { terrainHeight, MAP_VERSION, PROTOCOL_VERSION, CONFIG } from '/src/shared/map.ts';
+      window.demo = new MarbleScene(document.querySelector('#scene'), () => {});
+      window.place = (x = 0, z = 0, height = CONFIG.radius, rotation = 0) => {
+        const s = {
+          mapVersion: MAP_VERSION,
+          protocolVersion: PROTOCOL_VERSION,
+          match: 1,
+          turn: 3,
+          round: 2,
+          active: 0,
+          first: 0,
+          phase: 'aiming',
+          served: [true, true],
+          balls: [
+            {
+              player: 0,
+              position: { x, y: terrainHeight(x, z) + height, z },
+              rotation: { x: 0, y: Math.sin(rotation / 2), z: 0, w: Math.cos(rotation / 2) },
+              velocity: { x: 0, y: 0, z: 0 },
+            },
+          ],
+          boundary: 1.5,
+          nextBoundary: 1.5,
+          secondsLeft: 30,
+          time: performance.now() / 1000,
+          result: null,
+        };
+        window.demo.update(s, false);
+        window.demo.bufferSnapshot(s, true);
+        window.demo.sampleFrames();
+        window.demo.render(0.016);
+      };
+      window.closeView = () => {
+        const c = window.demo.camera;
+        c.position.set(0.29, 0.26, 0.46);
+        c.lookAt(0.03, 0.045, -0.025);
+        c.updateProjectionMatrix();
+        window.demo.render(0.016);
+      };
+    </script>
+  </body>
+</html>

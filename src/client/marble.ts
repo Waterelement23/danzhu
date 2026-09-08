@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import ribbonData from './generated/marble-ribbon.json';
 import { CONFIG } from '../shared/map';
+import { GLASS_IOR, GLASS_ABSORPTION_DISTANCE, glassTint, SUN_DIRECTION } from './glass-optics';
 
 /** Blender-authored inner ribbon; the optical outer surface matches Rapier's sphere. */
 export function makeMarble(player: number) {
@@ -39,16 +40,16 @@ export function makeMarble(player: number) {
     metalness: 0,
     roughness: 0.025,
     transmission: 1,
-    ior: 1.52,
+    ior: GLASS_IOR,
     thickness: CONFIG.radius * 0.36,
-    attenuationColor: new THREE.Color(player ? '#e4c776' : '#8dd5c5'),
-    attenuationDistance: 0.1,
+    attenuationColor: glassTint(player),
+    attenuationDistance: GLASS_ABSORPTION_DISTANCE,
     envMapIntensity: 1.05,
   });
   const shell = new THREE.Mesh(new THREE.SphereGeometry(CONFIG.radius, 96, 64), glass);
   shell.name = 'transmissive-glass-shell';
-  shell.castShadow = true;
-  // Conventional shadow maps approximate the silhouette; no painted highlight or opaque core.
+  shell.castShadow = false;
+  // Direct-light occlusion and refracted flux are handled together by MarbleCaustics.
   group.add(shell);
   return group;
 }
@@ -65,7 +66,7 @@ export function captureCourtyardReflection(renderer: THREE.WebGLRenderer, scene:
     new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
-      uniforms: { sunDirection: { value: new THREE.Vector3(-3, 5, 4).normalize() } },
+      uniforms: { sunDirection: { value: SUN_DIRECTION } },
       vertexShader: `varying vec3 skyDirection;
       void main(){ skyDirection=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
       fragmentShader: `varying vec3 skyDirection; uniform vec3 sunDirection;

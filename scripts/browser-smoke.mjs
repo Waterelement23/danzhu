@@ -20,6 +20,11 @@ function run(args) {
 try {
   run(['open', 'http://localhost:5173/']);
   run(['resize', '1440', '1080']);
+  const caustics = run([
+    'run-code',
+    readFileSync('scripts/caustics-check.js', 'utf8').trim().replace(/;$/, ''),
+  ]);
+  if (!/"passed"\s*:\s*true/.test(caustics)) throw new Error('Caustics check failed');
   const layout = run([
     'run-code',
     readFileSync('scripts/layout-check.js', 'utf8').trim().replace(/;$/, ''),
