@@ -1380,3 +1380,122 @@ main:has(.controls:not([hidden])) .board-card {
     grid-column: 1 / -1;
   }
 }
+
+/* A quiet, single-row scoreboard inside the field header. */
+.board-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  padding-bottom: 12px;
+}
+.board-top > .players {
+  display: flex;
+  gap: 14px;
+  padding: 0;
+  justify-self: center;
+}
+.board-top > .mode-tag {
+  justify-self: end;
+}
+.board-top .player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 5px;
+}
+.board-top .player i {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.board-top .player span {
+  font: 12px monospace;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.board-top .versus {
+  font-size: 10px;
+}
+.board-top .player.active {
+  background: #e7eddf;
+}
+@media (max-width: 800px) {
+  .board-top .board-meta {
+    display: none;
+  }
+}
+@media (max-width: 720px) {
+  .board-top {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 5px;
+    padding: 12px 10px;
+  }
+  .board-top > div {
+    gap: 4px;
+  }
+  .board-top > .players {
+    gap: 5px;
+  }
+  .board-top strong {
+    font-size: 12px;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .board-top .terrain-dot {
+    display: none;
+  }
+  .board-top .player {
+    padding: 3px 2px;
+    gap: 3px;
+  }
+  .board-top .player i {
+    width: 12px;
+    height: 12px;
+  }
+  .board-top .player span {
+    font-size: 10px;
+  }
+  .board-top .versus {
+    font-size: 9px;
+  }
+  .board-top .mode-tag {
+    font-size: 10px;
+    padding: 4px 5px;
+  }
+}
+@media (max-width: 380px) {
+  .board-top {
+    padding-left: 7px;
+    padding-right: 7px;
+    gap: 3px;
+  }
+  .board-top strong {
+    font-size: 11px;
+  }
+  .board-top > .players {
+    gap: 3px;
+  }
+  .board-top .player span {
+    font-size: 9px;
+  }
+  .board-top .mode-tag {
+    font-size: 9px;
+  }
+}
+@media (max-width: 380px) {
+  .board-top strong {
+    font-size: 10px;
+  }
+  .board-top .player {
+    padding: 3px 0;
+    gap: 2px;
+  }
+  .board-top .player i {
+    width: 10px;
+    height: 10px;
+  }
+  .board-top .player span {
+    font-size: 8px;
+  }
+}

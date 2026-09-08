@@ -13,8 +13,8 @@ $('app').innerHTML = `
    <section id="controls" class="panel controls" hidden><div class="control-heading"><span id="turn-eyebrow" class="section-number">轮到你了</span><span id="timer" class="timer">30s</span></div><h2 id="turn-title">准备入场</h2><p id="turn-description" class="muted">从发球线弹入第一颗球。</p><div id="room-share" class="room-share" hidden><small>房间码 · 发给朋友</small><button id="copy-code" aria-label="复制房间码"></button></div><button id="ready" class="primary" hidden>我准备好了 <span>✓</span></button><div id="serve-control"><label for="serve-position">发球位置 <span id="serve-value">中间</span></label><input id="serve-position" type="range" min="-900" max="900" value="0"/><div class="range-captions"><span>左侧</span><span>沿发球线移动</span><span>右侧</span></div></div><div class="power-display"><label>击球力度 <span id="power-text">25%</span></label><div class="power-track"><i id="power-bar"></i></div><p>按住自己的弹珠，向后拖动蓄力<br>松手弹出 · Esc 取消</p></div><details id="fine-aim"><summary>精细瞄准 <span>＋</span></summary><div class="fine-settings"><label for="angle">方向 <span id="angle-value">0°</span></label><input id="angle" type="range" min="-180" max="180" value="0"/><label for="power">力度</label><input id="power" type="range" min="1" max="100" value="25"/><button id="shoot" class="secondary">按当前方向弹出 →</button></div></details><div class="shrink-info"><span>◎</span><span id="shrink-label">前 3 轮不缩圈</span></div><button id="leave" class="text-button leave">← 返回大厅</button></section>
  <div class="game-layout">
   <section class="board-card" aria-label="弹珠场地">
-   <div class="board-top"><div><span class="terrain-dot"></span><strong>老院子的土地</strong><span class="board-meta">缓坡 · 石块 · 真实弹跳</span></div><span id="mode-tag" class="mode-tag">练习 / 1V1 联网</span></div>
-   <div class="players" id="players"><div id="player0" class="player blue"><i></i><span id="name0">蓝色弹珠</span><small id="badge0">PLAYER 01</small></div><div class="versus">VS</div><div id="player1" class="player amber"><i></i><span id="name1">琥珀弹珠</span><small id="badge1">PLAYER 02</small></div></div>
+   <div class="board-top"><div><span class="terrain-dot"></span><strong>老院子的土地</strong><span class="board-meta">缓坡 · 石块 · 真实弹跳</span></div><div class="players" id="players"><div id="player0" class="player blue"><i></i><span id="name0">PLAYER 01</span></div><div class="versus">VS</div><div id="player1" class="player amber"><i></i><span id="name1">PLAYER 02</span></div></div><span id="mode-tag" class="mode-tag">练习 / 1V1 联网</span></div>
+
    <div id="scene" class="scene"></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
    <div class="board-bottom"><span><i class="live-dot"></i><span id="connection">准备好，把第一颗球弹出去。</span></span><span id="round-label">01 / 土地场</span></div>
@@ -164,15 +164,17 @@ function refresh() {
     : `第 ${String(snapshot.round).padStart(2, '0')} 轮 · 土地场`;
   for (const p of [0, 1] as const) {
     $('player' + p).classList.toggle('active', !isLobby && snapshot.active === p);
-    $('name' + p).textContent =
-      (p === 0 ? '蓝色弹珠' : '琥珀弹珠') + (onlineMode && presence?.player === p ? ' · 你' : '');
-    $('badge' + p).textContent = isLobby
-      ? `PLAYER 0${p + 1}`
+    const name = `PLAYER 0${p + 1}` + (onlineMode && presence?.player === p ? ' · 你' : '');
+    const status = isLobby
+      ? ''
       : onlineMode && !presence?.connected[p]
         ? '等待连接'
         : snapshot.active === p
           ? '当前回合'
           : '等待回合';
+    $('name' + p).textContent = name;
+    $('player' + p).title = status;
+    $('player' + p).setAttribute('aria-label', [name, status].filter(Boolean).join('，'));
   }
   $('timer').textContent =
     snapshot.phase === 'moving' ? '滚动中' : `${Math.ceil(snapshot.secondsLeft)}s`;
