@@ -1,9 +1,9 @@
 {
   "blender": "5.1.2",
   "addon": "blender-mcp 1.6 protocol 5",
-  "environmentMeshes": 13,
-  "environmentTriangles": 51308,
-  "glbBytes": 3810056,
+  "environmentMeshes": 16,
+  "environmentTriangles": 167568,
+  "glbBytes": 7580032,
   "courtVertices": 66049,
   "courtTriangles": 131072,
   "physicalStones": 142,

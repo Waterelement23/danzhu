@@ -1,5 +1,6 @@
+import { makeDoorReflection } from './glazing';
 import { makeMarble, captureCourtyardReflection } from './marble';
-import { loadCourtyard, disposeCourtyard } from './courtyard';
+import { loadCourtyard, disposeCourtyard, disposeMaterialTextures } from './courtyard';
 import * as THREE from 'three';
 import {
   CONFIG,
@@ -66,6 +67,7 @@ export class MarbleScene {
   private readonly aimDirection = new THREE.Vector3(0, 0, -1);
   private power = 0;
   private reflection?: THREE.WebGLRenderTarget;
+  private doorReflection?: ReturnType<typeof makeDoorReflection>;
   private disposed = false;
   private time = 0;
 
@@ -111,9 +113,15 @@ export class MarbleScene {
         this.reflection = captureCourtyardReflection(this.renderer, this.scene);
         // Apply the probe only to glass: preserve the established courtyard lighting.
         this.scene.traverse((object) => {
-          if (object instanceof THREE.Mesh && object.material instanceof THREE.MeshPhysicalMaterial)
+          if (
+            object instanceof THREE.Mesh &&
+            object.name === 'transmissive-glass-shell' &&
+            object.material instanceof THREE.MeshPhysicalMaterial
+          )
             object.material.envMap = this.reflection!.texture;
         });
+        this.doorReflection = makeDoorReflection();
+        this.scene.add(this.doorReflection);
         this.container.dataset.environment = 'ready';
       })
       .catch((error: unknown) => {
@@ -586,8 +594,10 @@ export class MarbleScene {
           materials.add(material);
     });
     geometries.forEach((geometry) => geometry.dispose());
+    disposeMaterialTextures(materials);
     materials.forEach((material) => material.dispose());
     this.reflection?.dispose();
+    this.doorReflection?.dispose();
     this.renderer.dispose();
     canvas.remove();
   }
