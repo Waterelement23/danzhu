@@ -73,7 +73,7 @@ export class MarbleScene {
     canvas.setAttribute('aria-label', '弹珠场地：从自己的弹珠向后拖动，松手击球');
     canvas.tabIndex = 0;
     container.appendChild(canvas);
-    this.camera.position.set(2.4, 5.5, 7.6);
+    this.camera.position.set(0, 8.29, 3);
     this.camera.lookAt(0, 0.05, 0);
     this.scene.add(new THREE.HemisphereLight(0xfff9e9, 0x958772, 2.6));
     const sun = new THREE.DirectionalLight(0xfff3d9, 3.5);
@@ -179,22 +179,74 @@ export class MarbleScene {
     );
     soil.receiveShadow = true;
     this.scene.add(soil);
-    const slab = new THREE.Mesh(
-      new THREE.BoxGeometry(3.44, 0.15, 3.44),
-      new THREE.MeshStandardMaterial({ color: 0xa88b69, roughness: 1 }),
+    // Surroundings are decorative and stay outside the playable boundary.
+    const yardTexture = texture.clone();
+    yardTexture.repeat.set(24, 24);
+    this.textures.push(yardTexture);
+    const yard = new THREE.Mesh(
+      new THREE.PlaneGeometry(28, 28),
+      new THREE.MeshStandardMaterial({ map: yardTexture, color: 0xf2dec1, roughness: 1 }),
     );
-    slab.position.y = -0.075;
-    slab.castShadow = true;
-    slab.receiveShadow = true;
-    this.scene.add(slab);
-    const shadow = new THREE.Mesh(
-      new THREE.PlaneGeometry(200, 200),
-      new THREE.ShadowMaterial({ opacity: 0.14 }),
+    yard.rotation.x = -Math.PI / 2;
+    yard.position.y = -0.006;
+    yard.receiveShadow = true;
+    this.scene.add(yard);
+
+    // Seeded, low-growing plants and gravel frame the worn earth without hiding the chalk.
+    const grass = new THREE.InstancedMesh(
+      new THREE.ConeGeometry(0.025, 0.14, 3),
+      new THREE.MeshStandardMaterial({ color: 0x7e8650, roughness: 1, flatShading: true }),
+      480,
     );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = -0.152;
-    shadow.receiveShadow = true;
-    this.scene.add(shadow);
+    const gravel = new THREE.InstancedMesh(
+      new THREE.IcosahedronGeometry(1, 0),
+      new THREE.MeshStandardMaterial({ color: 0x9f957f, roughness: 1 }),
+      130,
+    );
+    const transform = new THREE.Object3D();
+    for (let i = 0; i < 480; i++) {
+      const side = i % 2 ? 1 : -1;
+      const cluster = Math.floor(i / 12);
+      const x = side * (2.02 + (cluster % 5) * 0.5) + (random() - 0.5) * 0.28;
+      const z = -2.9 + (Math.floor(cluster / 5) % 8) * 0.82 + (random() - 0.5) * 0.35;
+      const size = 0.45 + random() * 0.8;
+      transform.position.set(x, size * 0.065, z);
+      transform.rotation.set((random() - 0.5) * 0.35, random() * Math.PI, (random() - 0.5) * 0.4);
+      transform.scale.set(size, size, size);
+      transform.updateMatrix();
+      grass.setMatrixAt(i, transform.matrix);
+      grass.setColorAt(
+        i,
+        new THREE.Color().setHSL(0.17 + random() * 0.06, 0.22, 0.27 + random() * 0.15),
+      );
+    }
+    for (let i = 0; i < 130; i++) {
+      const x = (i % 2 ? 1 : -1) * (1.9 + random() * 3.5);
+      const z = (random() - 0.5) * 7;
+      const size = 0.012 + random() * 0.055;
+      transform.position.set(x, size * 0.25, z);
+      transform.rotation.set(0, random() * 6, 0);
+      transform.scale.set(size, size * 0.45, size * 0.8);
+      transform.updateMatrix();
+      gravel.setMatrixAt(i, transform.matrix);
+    }
+    grass.castShadow = gravel.castShadow = true;
+    grass.receiveShadow = gravel.receiveShadow = true;
+    this.scene.add(grass, gravel);
+    // Irregular paving stones suggest the courtyard path along its outer sides.
+    const pavingMaterial = new THREE.MeshStandardMaterial({ color: 0xa5a395, roughness: 1 });
+    const pavingGeometry = new THREE.BoxGeometry(0.43, 0.045, 0.62);
+    for (let i = 0; i < 18; i++) {
+      const stone = new THREE.Mesh(pavingGeometry, pavingMaterial);
+      stone.position.set(
+        (i % 2 ? 1 : -1) * (3.2 + random() * 0.08),
+        0.008,
+        -3 + Math.floor(i / 2) * 0.72,
+      );
+      stone.rotation.y = (random() - 0.5) * 0.1;
+      stone.receiveShadow = stone.castShadow = true;
+      this.scene.add(stone);
+    }
     for (const rock of ROCKS) {
       const mesh = new THREE.Mesh(
         new THREE.IcosahedronGeometry(rock.radius, 1),
@@ -512,7 +564,7 @@ export class MarbleScene {
     const width = Math.max(1, this.container.clientWidth),
       height = Math.max(1, this.container.clientHeight),
       aspect = width / height;
-    const halfH = Math.max(1.45, 2.22 / aspect);
+    const halfH = Math.max(1.62, 1.72 / aspect);
     this.camera.left = -halfH * aspect;
     this.camera.right = halfH * aspect;
     this.camera.top = halfH;
