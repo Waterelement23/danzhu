@@ -1,3 +1,4 @@
+import { makeMarble, captureCourtyardReflection } from './marble';
 import { loadCourtyard, disposeCourtyard } from './courtyard';
 import * as THREE from 'three';
 import {
@@ -64,7 +65,7 @@ export class MarbleScene {
   private readonly scratch = new THREE.Vector3();
   private readonly aimDirection = new THREE.Vector3(0, 0, -1);
   private power = 0;
-  private readonly textures: THREE.Texture[] = [];
+  private reflection?: THREE.WebGLRenderTarget;
   private disposed = false;
   private time = 0;
 
@@ -107,6 +108,12 @@ export class MarbleScene {
         }
         this.scene.add(group);
         this.fitShadow(sun);
+        this.reflection = captureCourtyardReflection(this.renderer, this.scene);
+        // Apply the probe only to glass: preserve the established courtyard lighting.
+        this.scene.traverse((object) => {
+          if (object instanceof THREE.Mesh && object.material instanceof THREE.MeshPhysicalMaterial)
+            object.material.envMap = this.reflection!.texture;
+        });
         this.container.dataset.environment = 'ready';
       })
       .catch((error: unknown) => {
@@ -119,12 +126,12 @@ export class MarbleScene {
         console.error('Courtyard asset failed', error);
       });
     for (let p = 0; p < 2; p++) {
-      const ball = this.makeMarble(p);
+      const ball = makeMarble(p);
       ball.visible = false;
       this.balls.push(ball);
       this.scene.add(ball);
     }
-    this.preview.add(this.makeMarble(0), this.makeMarble(1));
+    this.preview.add(makeMarble(0), makeMarble(1));
     this.scene.add(this.preview, this.boundary, this.nextBoundary);
     this.halo = new THREE.Mesh(
       new THREE.RingGeometry(0.065, 0.079, 64),
@@ -225,70 +232,6 @@ export class MarbleScene {
     this.chalkSegment(serve, -SERVE_RANGE, SERVE_Z, SERVE_RANGE, SERVE_Z, 0.012, 0xffefd0, 0.94);
     for (const x of [-SERVE_RANGE, SERVE_RANGE])
       this.chalkSegment(serve, x, SERVE_Z - 0.035, x, SERVE_Z + 0.035, 0.01, 0xffefd0, 0.9);
-  }
-
-  private makeMarble(player: number) {
-    const group = new THREE.Group(),
-      color = player ? AMBER : BLUE;
-    const core = new THREE.Mesh(
-      new THREE.SphereGeometry(CONFIG.radius * 0.87, 32, 24),
-      new THREE.MeshPhysicalMaterial({
-        color,
-        roughness: 0.13,
-        metalness: 0.08,
-        clearcoat: 1,
-        clearcoatRoughness: 0.04,
-        transparent: true,
-        opacity: 0.82,
-      }),
-    );
-    group.add(core);
-    for (let j = 0; j < 3; j++) {
-      const points: THREE.Vector3[] = [];
-      for (let i = 0; i <= 36; i++) {
-        const t = i / 36,
-          a = t * Math.PI * 1.5 + (j * Math.PI * 2) / 3,
-          y = (t - 0.5) * CONFIG.radius * 1.6,
-          r = Math.sqrt(Math.max(0, (CONFIG.radius * 0.82) ** 2 - y * y));
-        points.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r));
-      }
-      const ribbon = new THREE.Mesh(
-        new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3(points),
-          36,
-          CONFIG.radius * 0.12,
-          6,
-          false,
-        ),
-        new THREE.MeshStandardMaterial({
-          color: j === 1 ? 0xfff8d9 : player ? 0xbf5924 : 0x0b587e,
-          roughness: 0.2,
-        }),
-      );
-      group.add(ribbon);
-    }
-    const shell = new THREE.Mesh(
-      new THREE.SphereGeometry(CONFIG.radius, 40, 28),
-      new THREE.MeshPhysicalMaterial({
-        color: player ? 0xffe5b6 : 0xc2f4ff,
-        transparent: true,
-        opacity: 0.35,
-        roughness: 0.04,
-        metalness: 0.12,
-        clearcoat: 1,
-        clearcoatRoughness: 0,
-        depthWrite: false,
-      }),
-    );
-    shell.castShadow = true;
-    group.add(shell);
-    const glint = new THREE.Mesh(
-      new THREE.SphereGeometry(CONFIG.radius * 0.18, 12, 8),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 }),
-    );
-    glint.position.set(-CONFIG.radius * 0.34, CONFIG.radius * 0.7, CONFIG.radius * 0.54);
-    group.add(glint);
-    return group;
   }
 
   private chalkSegment(
@@ -644,7 +587,7 @@ export class MarbleScene {
     });
     geometries.forEach((geometry) => geometry.dispose());
     materials.forEach((material) => material.dispose());
-    this.textures.forEach((texture) => texture.dispose());
+    this.reflection?.dispose();
     this.renderer.dispose();
     canvas.remove();
   }

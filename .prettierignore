@@ -6,3 +6,6 @@ src/shared/rock-shape.ts
 package-lock.json
 
 src/shared/generated/
+
+src/client/generated/
+assets/blender/terrain-components.json

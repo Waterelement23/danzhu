@@ -1,3 +1,4 @@
+import RAPIER from '@dimforge/rapier3d-compat';
 import { beforeAll, describe, it, expect } from 'vitest';
 import { MarblePhysics, initPhysics } from '../src/shared/physics';
 import { CONFIG, terrainHeight } from '../src/shared/map';
@@ -101,13 +102,23 @@ it('hard contact rebounds higher than soft contact', () => {
   };
   expect(rebound(0.55)).toBeGreaterThan(rebound(0.05) + 0.1);
 });
-it('gravity moves an unsupported resting-on-slope ball downhill', () => {
-  const p = new MarblePhysics(),
-    x = 0.3,
-    z = -0.48;
-  p.addBall(0, { x, y: terrainHeight(x, z) + CONFIG.radius + 0.002, z });
+it('gravity moves a resting ball down a known incline', () => {
+  const p = new MarblePhysics({ flat: true });
+  const colliders: RAPIER.Collider[] = [];
+  p.world.forEachCollider((c) => colliders.push(c));
+  colliders.forEach((c) => p.world.removeCollider(c, false));
+  // A 1:5 incline independent of artistic changes to the courtyard.
+  p.world.createCollider(
+    RAPIER.ColliderDesc.trimesh(
+      new Float32Array([-2, -0.4, -2, -2, -0.4, 2, 2, 0.4, -2, 2, 0.4, 2]),
+      new Uint32Array([0, 1, 2, 2, 1, 3]),
+    )
+      .setFriction(0.55)
+      .setRestitution(0.32),
+  );
+  p.addBall(0, { x: 0, y: CONFIG.radius * Math.sqrt(1.04) + 0.002, z: 0 });
   for (let i = 0; i < 180; i++) p.step(CONFIG.dt, 10, 0);
-  expect(p.states()[0].position.x).toBeLessThan(x - 0.015);
+  expect(p.states()[0].position.x).toBeLessThan(-0.05);
   p.dispose();
 });
 it('existing airborne ball cannot receive a ground strike', () => {

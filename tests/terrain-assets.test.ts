@@ -1,27 +1,10 @@
+import components from '../assets/blender/terrain-components.json';
 import { beforeAll, it, expect } from 'vitest';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { initPhysics, MarblePhysics } from '../src/shared/physics';
 import { CONFIG, makeTerrain, terrainHeight, ROCKS, TERRAIN_DATA } from '../src/shared/map';
 beforeAll(initPhysics);
-const fade = (v: number) => {
-  const t = Math.max(0, Math.min(1, (1.35 - Math.abs(v)) / 0.35));
-  return t * t * (3 - 2 * t);
-};
-function relief(x: number, z: number, kind: 'groove' | 'grain') {
-  const f = fade(x) * fade(z);
-  if (kind === 'grain')
-    return (
-      f *
-      0.0022 *
-      (0.5 + 0.5 * Math.sin(x * 127 + Math.sin(z * 47))) *
-      (0.5 + 0.5 * Math.cos(z * 113 - x * 17))
-    );
-  const path = -0.22 + 0.17 * Math.sin(z * 3.3);
-  return (
-    f * (-0.016 * Math.exp(-(((x - path) / 0.044) ** 2)) * Math.exp(-(((z + 0.12) / 0.84) ** 6)))
-  );
-}
-function fixture(remove?: 'groove' | 'grain') {
+function fixture(remove?: 'wear' | 'grain') {
   const p = new MarblePhysics();
   const colliders: RAPIER.Collider[] = [];
   p.world.forEachCollider((c) => colliders.push(c));
@@ -29,7 +12,7 @@ function fixture(remove?: 'groove' | 'grain') {
   const data = makeTerrain();
   if (remove)
     for (let i = 0; i < data.vertices.length; i += 3)
-      data.vertices[i + 1] -= relief(data.vertices[i], data.vertices[i + 2], remove);
+      data.vertices[i + 1] -= components[remove][i / 3];
   p.world.createCollider(
     RAPIER.ColliderDesc.trimesh(data.vertices, data.indices, RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES)
       .setFriction(0.55)
@@ -37,7 +20,7 @@ function fixture(remove?: 'groove' | 'grain') {
   );
   return p;
 }
-it('exported surface, ray contacts and spawn heights agree through groove and grain locations', () => {
+it('exported surface, ray contacts and spawn heights agree through worn pockets and grain locations', () => {
   const p = fixture();
   p.world.step();
   for (const [x, z] of [
@@ -52,16 +35,16 @@ it('exported surface, ray contacts and spawn heights agree through groove and gr
     expect(hit).not.toBeNull();
     expect(2 - hit.timeOfImpact).toBeCloseTo(terrainHeight(x, z), 5);
   }
-  expect(TERRAIN_DATA.heights).toHaveLength(193 * 193);
+  expect(TERRAIN_DATA.heights).toHaveLength(257 * 257);
   p.dispose();
 });
-for (const kind of ['groove', 'grain'] as const)
+for (const kind of ['wear', 'grain'] as const)
   it(`${kind} geometry changes a marble trajectory compared with removing just that relief`, () => {
     const states = [];
     for (const remove of [undefined, kind]) {
       const p = fixture(remove);
-      const x = kind === 'groove' ? -0.43 : 0.8,
-        z = kind === 'groove' ? 0 : -0.15;
+      const x = kind === 'wear' ? -0.43 : 0.8,
+        z = kind === 'wear' ? 0 : -0.15;
       p.addBall(
         0,
         { x, y: terrainHeight(x, z) + CONFIG.radius + 0.008, z },
@@ -76,7 +59,7 @@ for (const kind of ['groove', 'grain'] as const)
       states[0].y - states[1].y,
       states[0].z - states[1].z,
     );
-    expect(difference).toBeGreaterThan(kind === 'groove' ? 0.001 : 0.0001);
+    expect(difference).toBeGreaterThan(kind === 'wear' ? 0.001 : 0.0001);
   });
 it('a small exported stone deflects the ball compared with the same court without it', () => {
   const r = ROCKS[4],
