@@ -1152,3 +1152,231 @@ footer {
     display: none;
   }
 }
+
+/* The lobby belongs beside the title, leaving the entire row below for the game. */
+.intro {
+  gap: 24px;
+}
+.intro > div:first-child {
+  flex-shrink: 0;
+}
+.intro .lobby {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.lobby > .section-number,
+.lobby > h2,
+.lobby > .muted,
+.lobby > .join-label,
+.lobby > .divider {
+  display: none;
+}
+.lobby .primary,
+.lobby .secondary {
+  width: auto;
+  gap: 20px;
+  white-space: nowrap;
+}
+.lobby .join-form {
+  width: 220px;
+  height: 49px;
+  background: #fffef9;
+}
+.lobby .join-form input,
+.lobby .join-form input::placeholder {
+  font-size: 14px;
+}
+.lobby .join-form button {
+  flex-shrink: 0;
+  width: 42px;
+}
+.lobby .resume {
+  margin: 0;
+}
+.game-layout {
+  display: block;
+}
+.controls {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 14px;
+  padding: 14px 20px;
+}
+.controls .control-heading {
+  gap: 12px;
+}
+.controls h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.controls > .muted {
+  display: none;
+}
+.controls #serve-control,
+.controls .power-display {
+  width: 180px;
+}
+.controls label {
+  margin: 0 0 5px;
+  font-size: 14px;
+}
+.controls .range-captions,
+.controls .power-display p {
+  display: none;
+}
+.controls input[type='range'] {
+  margin: 8px 0;
+}
+.controls .power-track {
+  height: 7px;
+}
+.controls .room-share {
+  margin: 0;
+  padding: 5px 10px;
+}
+.controls .room-share button {
+  font-size: 17px;
+  letter-spacing: 2px;
+}
+.controls > .primary {
+  width: auto;
+  gap: 15px;
+}
+.controls .shrink-info {
+  margin: 0;
+}
+.controls .leave {
+  margin: 0 0 0 auto;
+  white-space: nowrap;
+}
+.controls details {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 150px;
+}
+.controls details[open] {
+  flex-basis: 100%;
+  display: grid;
+  grid-template-columns: 150px 110px minmax(100px, 1fr) 45px minmax(100px, 1fr) 220px;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  order: 2;
+}
+.controls details .secondary {
+  margin: 0;
+}
+main:has(.controls:not([hidden])) .board-card {
+  height: clamp(570px, calc(100svh - 275px), 1000px);
+}
+@media (max-width: 1100px) {
+  .intro {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .intro .lobby {
+    justify-content: flex-start;
+  }
+  .controls {
+    gap: 12px;
+  }
+  .controls details[open] {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+  .controls details[open] summary,
+  .controls details .secondary {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 720px) {
+  .intro .lobby {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .lobby .primary,
+  .lobby .secondary {
+    font-size: 14px;
+    padding: 12px;
+    gap: 8px;
+  }
+  .lobby .join-form {
+    width: 100%;
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .lobby .resume {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+  .controls {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .controls h2 {
+    font-size: 17px;
+  }
+  .controls .control-heading {
+    gap: 5px;
+  }
+  .controls .section-number {
+    font-size: 11px;
+  }
+  .controls #serve-control,
+  .controls .power-display {
+    width: 100%;
+  }
+  .controls details {
+    width: 100%;
+  }
+  .controls details[open] {
+    grid-column: 1 / -1;
+    order: 2;
+  }
+  .controls .shrink-info {
+    font-size: 12px;
+  }
+  .controls .leave {
+    margin-left: 0;
+    text-align: left;
+  }
+  main:has(.controls:not([hidden])) .board-card {
+    height: auto;
+  }
+}
+
+.controls details[open] {
+  display: block;
+}
+.controls details[open] summary {
+  max-width: 150px;
+  margin-bottom: 12px;
+}
+.fine-settings {
+  display: grid;
+  grid-template-columns: 110px minmax(100px, 1fr) 45px minmax(100px, 1fr) 220px;
+  align-items: center;
+  gap: 14px;
+}
+@media (max-width: 1100px) {
+  .fine-settings {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+  .fine-settings .secondary {
+    grid-column: 1 / -1;
+  }
+}
