@@ -1,4 +1,4 @@
-export const MAP_VERSION = 'courtyard-2';
+export const MAP_VERSION = 'courtyard-3';
 export const PROTOCOL_VERSION = 1;
 export const CONFIG = {
   half: 1.5,
@@ -22,13 +22,13 @@ export const ROCKS = [
   { x: 0.31, z: -0.88, radius: 0.075, height: 0.075 },
 ];
 export function terrainHeight(x: number, z: number): number {
-  const edge = Math.max(0, Math.min(1, (1.28 - Math.abs(z)) / 0.3));
-  const hill = (cx: number, cz: number) => Math.exp(-((x - cx) ** 2 / 0.11 + (z - cz) ** 2 / 0.18));
-  return (
-    0.018 +
-    edge *
-      (0.045 * (hill(0.52, -0.48) + hill(-0.52, 0.48)) + 0.006 * Math.cos(x * 5) * Math.cos(z * 4))
-  );
+  const fade = (v: number) => {
+    const t = Math.max(0, Math.min(1, (1.35 - Math.abs(v)) / 0.35));
+    return t * t * (3 - 2 * t);
+  };
+  const hill = (cx: number, cz: number) => Math.exp(-((x - cx) ** 2 / 0.18 + (z - cz) ** 2 / 0.27));
+  // Two readable soil mounds, with a smooth return to level ground at every boundary.
+  return 0.018 + fade(x) * fade(z) * 0.14 * (hill(0.52, -0.48) + hill(-0.52, 0.48));
 }
 export function makeTerrain(segments = 64, extent = CONFIG.half + 0.22) {
   const vertices: number[] = [],

@@ -76,9 +76,9 @@ export class MarbleScene {
     container.appendChild(canvas);
     this.camera.position.set(0, 5, 3);
     this.camera.lookAt(0, 0.05, 0);
-    this.scene.add(new THREE.HemisphereLight(0xfff9e9, 0x958772, 2.6));
+    this.scene.add(new THREE.HemisphereLight(0xfff9e9, 0x958772, 1.15));
     const sun = new THREE.DirectionalLight(0xfff3d9, 3.5);
-    sun.position.set(-3, 7, 4);
+    sun.position.set(-3, 5, 4);
     sun.castShadow = true;
     const shadowSize = Math.min(4096, this.renderer.capabilities.maxTextureSize);
     sun.shadow.mapSize.set(shadowSize, shadowSize);
@@ -191,11 +191,29 @@ export class MarbleScene {
     }
     geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geometry.computeVertexNormals();
+    // Earth colour follows the real mesh height and slope; it adds no fake bumps.
+    const colors = new Float32Array(data.vertices.length);
+    const normals = geometry.getAttribute('normal');
+    const baseSoil = new THREE.Color(0xffffff);
+    const moundSoil = new THREE.Color(0xc3a57b);
+    for (let i = 0; i < data.vertices.length / 3; i++) {
+      const rise = Math.max(0, data.vertices[i * 3 + 1] - 0.018) / 0.14;
+      const slope = Math.sqrt(Math.max(0, 1 - normals.getY(i) ** 2));
+      const shade = baseSoil.clone().lerp(moundSoil, Math.min(1, slope * 1.5));
+      shade.lerp(new THREE.Color(0xfff0ce), Math.max(0, (rise - 0.45) / 0.55) * 0.55);
+      colors.set([shade.r, shade.g, shade.b], i * 3);
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     const soil = new THREE.Mesh(
       geometry,
-      new THREE.MeshStandardMaterial({ map: texture, roughness: 1, color: 0xf2dec1 }),
+      new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: 1,
+        color: 0xf2dec1,
+        vertexColors: true,
+      }),
     );
-    soil.receiveShadow = true;
+    soil.receiveShadow = soil.castShadow = true;
     this.scene.add(soil);
     // Surroundings are decorative and stay outside the playable boundary.
     const yardTexture = texture.clone();
