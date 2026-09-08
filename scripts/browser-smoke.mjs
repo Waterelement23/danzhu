@@ -20,6 +20,11 @@ function run(args) {
 try {
   run(['open', 'http://localhost:5173/']);
   run(['resize', '1440', '1080']);
+  const layout = run([
+    'run-code',
+    readFileSync('scripts/layout-check.js', 'utf8').trim().replace(/;$/, ''),
+  ]);
+  if (!/"passed"\s*:\s*true/.test(layout)) throw new Error('Layout check failed');
   const result = run([
     'run-code',
     readFileSync('scripts/browser-smoke.js', 'utf8').trim().replace(/;$/, ''),

@@ -1278,9 +1278,6 @@ footer {
 .controls details .secondary {
   margin: 0;
 }
-main:has(.controls:not([hidden])) .board-card {
-  height: clamp(570px, calc(100svh - 275px), 1000px);
-}
 @media (max-width: 1100px) {
   .intro {
     flex-wrap: wrap;
@@ -1353,9 +1350,6 @@ main:has(.controls:not([hidden])) .board-card {
   .controls .leave {
     margin-left: 0;
     text-align: left;
-  }
-  main:has(.controls:not([hidden])) .board-card {
-    height: auto;
   }
 }
 
@@ -1561,4 +1555,45 @@ main:has(.controls:not([hidden])) .board-card {
 .serve-guide[data-prediction='out'] .flight-path,
 .serve-guide[data-prediction='out'] .flight-end {
   stroke: #b83b32;
+}
+
+/* Both modes occupy the same toolbar slot; switching never resizes the court.
+   The inactive panel participates in layout but has no focusable/accessible UI. */
+.session-panels {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.session-panels > .panel {
+  grid-area: 1 / 1;
+  align-self: center;
+  min-width: 0;
+}
+.session-panels > .panel[hidden] {
+  display: flex !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+.session-panels .controls {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+@media (max-width: 1100px) {
+  .session-panels {
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 720px) {
+  .session-panels > .panel[hidden] {
+    display: grid !important;
+  }
+}
+
+.session-panels #serve-control[hidden] {
+  display: block !important;
+  visibility: hidden;
+  pointer-events: none;
 }
