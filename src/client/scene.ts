@@ -80,17 +80,33 @@ export class MarbleScene {
     const sun = new THREE.DirectionalLight(0xfff3d9, 3.5);
     sun.position.set(-3, 7, 4);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -3;
-    sun.shadow.camera.right = 3;
-    sun.shadow.camera.top = 3;
-    sun.shadow.camera.bottom = -3;
-    sun.shadow.normalBias = 0.015;
+    const shadowSize = Math.min(4096, this.renderer.capabilities.maxTextureSize);
+    sun.shadow.mapSize.set(shadowSize, shadowSize);
+    sun.shadow.normalBias = 0.003;
     sun.shadow.bias = -0.00015;
     sun.shadow.radius = 4;
     this.scene.add(sun);
     this.buildGround();
     addCourtyard(this.scene);
+    // Fit all courtyard casters in light space, not just the playable three-metre square.
+    this.scene.updateMatrixWorld(true);
+    sun.shadow.updateMatrices(sun);
+    const shadowBounds = new THREE.Box3();
+    this.scene.traverse((object) => {
+      if ((object as THREE.Mesh).isMesh && object.castShadow) {
+        const bounds = new THREE.Box3().setFromObject(object);
+        bounds.applyMatrix4(sun.shadow.camera.matrixWorldInverse);
+        shadowBounds.union(bounds);
+      }
+    });
+    const shadowCamera = sun.shadow.camera;
+    shadowCamera.left = Math.floor(shadowBounds.min.x - 0.5);
+    shadowCamera.right = Math.ceil(shadowBounds.max.x + 0.5);
+    shadowCamera.bottom = Math.floor(shadowBounds.min.y - 0.5);
+    shadowCamera.top = Math.ceil(shadowBounds.max.y + 0.5);
+    shadowCamera.near = Math.max(0.1, -shadowBounds.max.z - 1);
+    shadowCamera.far = -shadowBounds.min.z + 2;
+    shadowCamera.updateProjectionMatrix();
     for (let p = 0; p < 2; p++) {
       const ball = this.makeMarble(p);
       ball.visible = false;
