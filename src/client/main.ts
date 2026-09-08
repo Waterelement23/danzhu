@@ -252,7 +252,7 @@ const reasons: Record<Result['reason'], string> = {
 };
 function updateResult() {
   const r = snapshot.result;
-  const shown = mode !== 'lobby' && !!r && scene.presentationTime >= r.time + 1.8;
+  const shown = mode !== 'lobby' && !!r && scene.presentationTime >= r.time + 3;
   $('result').hidden = !shown;
   if (!r || !shown) return;
   $('result-title').textContent =

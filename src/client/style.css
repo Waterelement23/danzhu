@@ -1500,86 +1500,11 @@ main:has(.controls:not([hidden])) .board-card {
   }
 }
 
-/* Results leave the decisive motion and the court visible. */
+/* Let the decisive action play before showing the original centered result card. */
 .result-overlay {
-  inset: auto 12px 8px;
   background: transparent;
   backdrop-filter: none;
-  pointer-events: none;
-  display: flex;
-  justify-content: center;
 }
 .result-card {
-  width: auto;
-  max-width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(255, 254, 246, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 10px;
-  box-shadow: 0 3px 14px #233b2c12;
-  text-align: left;
-  pointer-events: auto;
-}
-.result-card > .eyebrow {
-  display: none;
-}
-.result-card .result-ball {
-  width: 22px;
-  height: 22px;
-  margin: 0;
-  flex-shrink: 0;
-  box-shadow: none;
-}
-.result-card h2 {
-  font-size: 18px;
-  margin: 0;
-  white-space: nowrap;
-}
-.result-card p {
-  font-size: 13px;
-  margin: 0;
-  color: #54654b;
-  line-height: 1.5;
-  max-width: 320px;
-}
-.result-card .primary {
-  width: auto;
-  padding: 10px 14px;
-  font-size: 14px;
-  white-space: nowrap;
-}
-.result-card .text-button {
-  font-size: 13px;
-  margin: 0;
-  white-space: nowrap;
-}
-@media (max-width: 720px) {
-  .result-overlay {
-    left: 6px;
-    right: 6px;
-    bottom: 6px;
-  }
-  .result-card {
-    flex-wrap: wrap;
-    gap: 7px 10px;
-    padding: 10px 12px;
-  }
-  .result-card h2 {
-    font-size: 16px;
-  }
-  .result-card p {
-    flex: 1;
-    min-width: 120px;
-    font-size: 12px;
-  }
-  .result-card .primary {
-    padding: 8px 12px;
-  }
-}
-
-.board-card:has(.result-overlay:not([hidden])) .board-note {
-  visibility: hidden;
+  background: rgba(255, 254, 246, 0.86);
 }
