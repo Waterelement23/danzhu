@@ -1,0 +1,9 @@
+{
+  "shellRayChecks": 240,
+  "frontPlaneX": -2.58,
+  "opaqueWalls": 3,
+  "ceiling": true,
+  "solidFloor": true,
+  "indoorFloorTop": 0.204,
+  "scope": "one visible garden room; three walls and a framed glazed facade"
+}
