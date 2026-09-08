@@ -7,27 +7,32 @@ async (page) => {
   );
   await page.screenshot({ path: 'output/playwright/standing.png', fullPage: true });
   const rect = await page.locator('#scene canvas').boundingBox();
-  // Project the documented standing release position using the scene's fixed camera.
-  const origin = { x: 0, y: 0.818, z: 1.5 },
-    cam = { x: 0, y: 8.29, z: 3 },
-    target = { x: 0, y: 0.05, z: 0 };
-  const normalize = (v) => {
-      const l = Math.hypot(...v);
-      return v.map((n) => n / l);
-    },
-    cross = (a, b) => [
-      a[1] * b[2] - a[2] * b[1],
-      a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0],
-    ],
-    dot = (a, b) => a.reduce((s, n, i) => s + n * b[i], 0);
-  const z = normalize([cam.x - target.x, cam.y - target.y, cam.z - target.z]),
-    x = normalize(cross([0, 1, 0], z)),
-    y = cross(z, x),
-    rel = [origin.x - cam.x, origin.y - cam.y, origin.z - cam.z];
-  const halfH = Math.max(1.62, 1.72 / (rect.width / rect.height)),
-    px = rect.x + rect.width / 2 + (dot(rel, x) * rect.height) / (2 * halfH),
-    py = rect.y + rect.height / 2 - (dot(rel, y) * rect.height) / (2 * halfH);
+  // Independently project the standing serve through the documented perspective camera.
+  const projectServe = (rect) => {
+    const sin = Math.sin((58 * Math.PI) / 180),
+      cos = Math.cos((58 * Math.PI) / 180);
+    const tan = Math.tan((21 * Math.PI) / 180),
+      aspect = rect.width / rect.height;
+    let distance = 0;
+    for (const x of [-1.66, 1.66])
+      for (const z of [-1.66, 1.66])
+        for (const y of [0, 0.88]) {
+          const depth = (y - 0.05) * sin + z * cos;
+          const vertical = (y - 0.05) * cos - z * sin;
+          distance = Math.max(
+            distance,
+            depth + Math.abs(vertical) / (tan * 0.94),
+            depth + Math.abs(x) / (tan * aspect * 0.94),
+          );
+        }
+    const depth = distance - (0.818 - 0.05) * sin - 1.5 * cos;
+    const vertical = (0.818 - 0.05) * cos - 1.5 * sin;
+    return {
+      x: rect.x + rect.width / 2,
+      y: rect.y + rect.height / 2 - ((vertical / (depth * tan)) * rect.height) / 2,
+    };
+  };
+  const { x: px, y: py } = projectServe(rect);
   await page.mouse.move(px, py);
   await page.mouse.down();
   await page.mouse.move(px - 8, py + 25, { steps: 8 });
@@ -66,10 +71,8 @@ async (page) => {
     await touchPage.evaluate(
       () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
     );
-    const box = await touchPage.locator('#scene canvas').boundingBox(),
-      hh = Math.max(1.62, 1.72 / (box.width / box.height));
-    const tx = box.x + box.width / 2 + (dot(rel, x) * box.height) / (2 * hh),
-      ty = box.y + box.height / 2 - (dot(rel, y) * box.height) / (2 * hh);
+    const box = await touchPage.locator('#scene canvas').boundingBox();
+    const { x: tx, y: ty } = projectServe(box);
     const cdp = await mobile.newCDPSession(touchPage);
     await cdp.send('Input.dispatchTouchEvent', {
       type: 'touchStart',

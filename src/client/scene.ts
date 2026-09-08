@@ -1,3 +1,4 @@
+import { addCourtyard } from './courtyard';
 import * as THREE from 'three';
 import { CONFIG, SERVE_RANGE, SERVE_Z, ROCKS, makeTerrain, terrainHeight } from '../shared/map';
 import type { BallState, GameSnapshot } from '../shared/types';
@@ -12,7 +13,7 @@ export class MarbleScene {
   public onPower?: (power: number) => void;
   public onAim?: (direction: Direction, power: number) => void;
   private readonly scene = new THREE.Scene();
-  private readonly camera = new THREE.OrthographicCamera(-3, 3, 3, -3, 0.1, 40);
+  private readonly camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
   private readonly renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   private readonly resizeObserver: ResizeObserver;
   private readonly balls: THREE.Group[] = [];
@@ -73,7 +74,7 @@ export class MarbleScene {
     canvas.setAttribute('aria-label', '弹珠场地：从自己的弹珠向后拖动，松手击球');
     canvas.tabIndex = 0;
     container.appendChild(canvas);
-    this.camera.position.set(0, 8.29, 3);
+    this.camera.position.set(0, 5, 3);
     this.camera.lookAt(0, 0.05, 0);
     this.scene.add(new THREE.HemisphereLight(0xfff9e9, 0x958772, 2.6));
     const sun = new THREE.DirectionalLight(0xfff3d9, 3.5);
@@ -89,6 +90,7 @@ export class MarbleScene {
     sun.shadow.radius = 4;
     this.scene.add(sun);
     this.buildGround();
+    addCourtyard(this.scene);
     for (let p = 0; p < 2; p++) {
       const ball = this.makeMarble(p);
       ball.visible = false;
@@ -207,8 +209,14 @@ export class MarbleScene {
     for (let i = 0; i < 480; i++) {
       const side = i % 2 ? 1 : -1;
       const cluster = Math.floor(i / 12);
-      const x = side * (2.02 + (cluster % 5) * 0.5) + (random() - 0.5) * 0.28;
-      const z = -2.9 + (Math.floor(cluster / 5) % 8) * 0.82 + (random() - 0.5) * 0.35;
+      const x =
+        side * (2.1 + (cluster % 5) * 0.5 + Math.sin(cluster * 2.7) * 0.2) +
+        (random() - 0.5) * 0.28;
+      const z =
+        -2.9 +
+        (Math.floor(cluster / 5) % 8) * 0.82 +
+        Math.cos(cluster * 1.7) * 0.25 +
+        (random() - 0.5) * 0.35;
       const size = 0.45 + random() * 0.8;
       transform.position.set(x, size * 0.065, z);
       transform.rotation.set((random() - 0.5) * 0.35, random() * Math.PI, (random() - 0.5) * 0.4);
@@ -564,11 +572,26 @@ export class MarbleScene {
     const width = Math.max(1, this.container.clientWidth),
       height = Math.max(1, this.container.clientHeight),
       aspect = width / height;
-    const halfH = Math.max(1.62, 1.72 / aspect);
-    this.camera.left = -halfH * aspect;
-    this.camera.right = halfH * aspect;
-    this.camera.top = halfH;
-    this.camera.bottom = -halfH;
+    // Fit the actual 3D court envelope inside a symmetric 58-degree perspective view.
+    const tilt = THREE.MathUtils.degToRad(58),
+      sin = Math.sin(tilt),
+      cos = Math.cos(tilt);
+    const tan = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+    let distance = 0;
+    for (const x of [-1.66, 1.66])
+      for (const z of [-1.66, 1.66])
+        for (const y of [0, 0.88]) {
+          const depth = (y - 0.05) * sin + z * cos;
+          const vertical = (y - 0.05) * cos - z * sin;
+          distance = Math.max(
+            distance,
+            depth + Math.abs(vertical) / (tan * 0.94),
+            depth + Math.abs(x) / (tan * aspect * 0.94),
+          );
+        }
+    this.camera.aspect = aspect;
+    this.camera.position.set(0, 0.05 + distance * sin, distance * cos);
+    this.camera.lookAt(0, 0.05, 0);
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   };
