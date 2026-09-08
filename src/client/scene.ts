@@ -401,6 +401,7 @@ export class MarbleScene {
   setServeX(x: number) {
     this.serveX = THREE.MathUtils.clamp(x, -SERVE_RANGE, SERVE_RANGE);
     this.syncPreview();
+    if (this.power > 0) this.setAim(this.aimDirection, this.power);
   }
   private syncPreview() {
     const active = this.snapshot?.active ?? 0,
@@ -503,6 +504,8 @@ export class MarbleScene {
       return;
     if (!this.eventGround(event)) return;
     this.dragStart.copy(this.groundPoint);
+    // A new gesture starts at zero; a click must not launch a preset shot.
+    this.clearAim();
     this.dragging = true;
     this.pointerId = event.pointerId;
     this.renderer.domElement.setPointerCapture(event.pointerId);

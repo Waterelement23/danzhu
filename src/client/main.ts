@@ -237,8 +237,8 @@ function refresh() {
           ? '先手高位发球 · 拉住空中的弹珠向后拖动'
           : '按住自己的弹珠，向后拖动，松手弹出'
         : '看看地形，想好下一步。';
+  // Snapshot refreshes are not user aiming input.
   scene.update(snapshot, canAct());
-  if (canAct()) scene.setAim(direction, power);
   updateResult();
 }
 const reasons: Record<Result['reason'], string> = {
