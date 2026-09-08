@@ -83,7 +83,7 @@ a {
 .brand small {
   display: block;
   font-family: Arial, sans-serif;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 2.8px;
   margin-top: 3px;
@@ -94,7 +94,7 @@ a {
   gap: 38px;
 }
 .edition {
-  font-size: 11px;
+  font-size: 15px;
   letter-spacing: 2px;
   color: #949888;
 }
@@ -102,7 +102,7 @@ a {
   border: 0;
   background: none;
   padding: 8px 0;
-  font-size: 12px;
+  font-size: 16px;
   color: #546653;
 }
 .text-button span {
@@ -120,7 +120,7 @@ main {
   padding: 42px 0 34px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 2.4px;
   font-weight: 500;
   margin: 0 0 13px;
@@ -147,7 +147,7 @@ h1 > span {
   color: #b49660;
 }
 .intro-copy {
-  font-size: 12px;
+  font-size: 16px;
   color: #8c9286;
   letter-spacing: 0.6px;
   margin: 0;
@@ -155,7 +155,7 @@ h1 > span {
 .intro-stamp {
   color: #8c947c;
   font-family: monospace;
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 2px;
   text-align: center;
   transform: rotate(5deg);
@@ -176,7 +176,7 @@ h1 > span {
   margin: 4px 0;
 }
 .intro-stamp small {
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.8px;
 }
 .game-layout {
@@ -213,17 +213,17 @@ h1 > span {
   background: #bba57f;
 }
 .board-top strong {
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.5px;
 }
 .board-meta {
-  font-size: 9px;
+  font-size: 13px;
   color: #919681;
   margin-left: 4px;
 }
 .mode-tag {
-  font-size: 9px;
+  font-size: 13px;
   color: #788468;
   border: 1px solid #d9ddca;
   border-radius: 20px;
@@ -265,12 +265,12 @@ h1 > span {
   background: radial-gradient(circle at 30% 25%, #ffffe0, #e5c780 25%, #c99746 55%, #977740 90%);
 }
 .player span {
-  font-size: 11px;
+  font-size: 15px;
   letter-spacing: 0.3px;
 }
 .player small {
   font-family: monospace;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.7px;
   color: #969b8e;
   margin-top: 3px;
@@ -284,7 +284,7 @@ h1 > span {
 }
 .versus {
   font-family: Georgia, serif;
-  font-size: 11px;
+  font-size: 15px;
   color: #b1b3a2;
   font-style: italic;
 }
@@ -302,7 +302,7 @@ h1 > span {
   justify-content: center;
   align-items: center;
   gap: 9px;
-  font-size: 10px;
+  font-size: 14px;
   color: #8c927e;
   letter-spacing: 0.4px;
   padding: 0 12px 21px;
@@ -318,7 +318,7 @@ h1 > span {
   padding: 17px 24px;
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: 13px;
   color: #939880;
   letter-spacing: 0.4px;
   gap: 12px;
@@ -348,7 +348,7 @@ h1 > span {
 }
 .section-number {
   font-family: monospace, 'Noto Sans SC', sans-serif;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   color: #939c86;
 }
@@ -360,7 +360,7 @@ h2 {
   margin: 13px 0;
 }
 .muted {
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.9;
   color: #94998d;
 }
@@ -374,7 +374,7 @@ h2 {
   justify-content: space-between;
   align-items: center;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.7px;
   padding: 14px 15px;
@@ -402,7 +402,7 @@ h2 {
   background: #ecefdf;
 }
 .join-label {
-  font-size: 10px;
+  font-size: 14px;
   color: #989d90;
   margin: 21px 0 9px;
 }
@@ -420,14 +420,14 @@ h2 {
   background: none;
   padding: 11px 12px;
   font-family: monospace;
-  font-size: 12px;
+  font-size: 16px;
   color: #4b6553;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .join-form input::placeholder {
   font-family: 'Noto Sans SC', sans-serif;
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 0;
   color: #a2a693;
 }
@@ -444,7 +444,7 @@ h2 {
   align-items: center;
   gap: 10px;
   margin: 23px 0 16px;
-  font-size: 9px;
+  font-size: 13px;
   color: #a5aa9b;
 }
 .divider:before,
@@ -455,7 +455,7 @@ h2 {
   background: #e7e7de;
 }
 .resume {
-  font-size: 10px;
+  font-size: 14px;
   margin-top: 12px;
 }
 .field-notes {
@@ -470,7 +470,7 @@ h2 {
   margin-top: 15px;
 }
 .field-notes b {
-  font-size: 9px;
+  font-size: 13px;
   font-family: monospace;
   font-weight: 400;
   color: #a9ad94;
@@ -481,13 +481,13 @@ h2 {
 }
 .field-notes strong {
   display: block;
-  font-size: 11px;
+  font-size: 15px;
   color: #69765e;
   font-weight: 500;
   margin-bottom: 4px;
 }
 .field-notes p span {
-  font-size: 9px;
+  font-size: 13px;
   color: #9a9e8b;
   line-height: 1.7;
 }
@@ -498,7 +498,7 @@ h2 {
 }
 .timer {
   font-family: monospace;
-  font-size: 11px;
+  font-size: 15px;
   color: #78906a;
   background: #edf2e5;
   padding: 4px 7px;
@@ -520,7 +520,7 @@ h2 {
   flex-direction: column;
 }
 .room-share small {
-  font-size: 9px;
+  font-size: 13px;
   color: #8b967d;
 }
 .room-share button {
@@ -536,7 +536,7 @@ h2 {
 .controls label {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 14px;
   color: #78856b;
   margin: 15px 0 8px;
 }
@@ -554,7 +554,7 @@ input[type='range'] {
 .range-captions {
   display: flex;
   justify-content: space-between;
-  font-size: 8px;
+  font-size: 12px;
   color: #afb59e;
   margin-bottom: 20px;
 }
@@ -572,7 +572,7 @@ input[type='range'] {
   transition: width 0.08s;
 }
 .power-display p {
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.9;
   color: #a2aa94;
 }
@@ -585,7 +585,7 @@ details {
   padding-top: 12px;
 }
 summary {
-  font-size: 10px;
+  font-size: 14px;
   color: #7e8d71;
   cursor: pointer;
   display: flex;
@@ -605,7 +605,7 @@ details[open] summary span {
   background: #f4f3e8;
   padding: 9px;
   border-radius: 6px;
-  font-size: 9px;
+  font-size: 13px;
   color: #9a9c80;
   align-items: center;
 }
@@ -613,7 +613,7 @@ details[open] summary span {
   font-size: 15px;
 }
 .leave {
-  font-size: 9px;
+  font-size: 13px;
   color: #9da58f;
   margin-top: 12px;
 }
@@ -638,19 +638,19 @@ details[open] summary span {
 }
 .result-card .eyebrow {
   justify-content: center;
-  font-size: 9px;
+  font-size: 13px;
 }
 .result-card h2 {
   font-size: 25px;
 }
 .result-card p {
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.9;
   color: #8c9680;
   margin-bottom: 25px;
 }
 .result-card .text-button {
-  font-size: 10px;
+  font-size: 14px;
   margin-top: 12px;
 }
 .result-ball {
@@ -669,14 +669,14 @@ details[open] summary span {
 footer {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: 13px;
   color: #a5a995;
   padding: 28px 0 35px;
   letter-spacing: 1px;
 }
 footer span:last-child {
   font-family: monospace;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 .toast {
@@ -688,7 +688,7 @@ footer span:last-child {
   color: #fffdef;
   padding: 13px 20px;
   border-radius: 9px;
-  font-size: 12px;
+  font-size: 16px;
   box-shadow: 0 8px 25px #243b2530;
   z-index: 20;
   max-width: 90vw;
@@ -712,7 +712,7 @@ dialog h2 {
 }
 dialog ol {
   padding-left: 20px;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 2;
   color: #838d74;
 }
@@ -799,7 +799,7 @@ dialog strong {
     letter-spacing: 4px;
   }
   .brand small {
-    font-size: 6px;
+    font-size: 10px;
   }
   .edition {
     display: none;
@@ -808,7 +808,7 @@ dialog strong {
     gap: 0;
   }
   .text-button {
-    font-size: 11px;
+    font-size: 15px;
   }
   main {
     padding: 0 16px;
@@ -817,7 +817,7 @@ dialog strong {
     padding: 26px 3px 24px;
   }
   .eyebrow {
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 1.4px;
     margin-bottom: 10px;
   }
@@ -827,22 +827,22 @@ dialog strong {
     margin-bottom: 8px;
   }
   .intro-copy {
-    font-size: 10px;
+    font-size: 14px;
     max-width: 240px;
     line-height: 1.9;
   }
   .intro-stamp {
     width: 76px;
     height: 76px;
-    font-size: 8px;
+    font-size: 12px;
     margin-left: 10px;
   }
   .intro-stamp span {
-    font-size: 11px;
+    font-size: 15px;
     margin: 1px 0;
   }
   .intro-stamp small {
-    font-size: 4px;
+    font-size: 10px;
     letter-spacing: 0.1px;
   }
   .game-layout {
@@ -859,10 +859,10 @@ dialog strong {
     padding: 16px 15px 8px;
   }
   .board-top strong {
-    font-size: 10px;
+    font-size: 14px;
   }
   .mode-tag {
-    font-size: 8px;
+    font-size: 12px;
     padding: 4px 7px;
   }
   .players {
@@ -870,21 +870,21 @@ dialog strong {
     gap: 20px;
   }
   .player span {
-    font-size: 10px;
+    font-size: 14px;
   }
   .player small {
-    font-size: 7px;
+    font-size: 11px;
   }
   .scene {
     height: 340px;
   }
   .board-note {
-    font-size: 8px;
+    font-size: 12px;
     padding-bottom: 15px;
   }
   .board-bottom {
     padding: 13px 15px;
-    font-size: 8px;
+    font-size: 12px;
   }
   .side {
     width: 100%;
@@ -904,7 +904,7 @@ dialog strong {
   }
   .primary,
   .secondary {
-    font-size: 12px;
+    font-size: 16px;
     padding: 15px;
   }
   .field-notes {
@@ -917,14 +917,14 @@ dialog strong {
     font-size: 23px;
   }
   .controls label {
-    font-size: 11px;
+    font-size: 15px;
   }
   footer {
-    font-size: 8px;
+    font-size: 12px;
     padding: 22px 4px;
   }
   footer span:last-child {
-    font-size: 6px;
+    font-size: 10px;
     letter-spacing: 0.5px;
   }
   .result-card {
@@ -947,6 +947,208 @@ dialog strong {
     gap: 10px;
   }
   .board-bottom {
-    font-size: 7px;
+    font-size: 11px;
+  }
+}
+
+/* Keep the playfield prominent; secondary controls stay alongside it on wide screens. */
+.site-header,
+main {
+  max-width: 1840px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.site-header {
+  height: 64px;
+}
+.brand svg {
+  width: 32px;
+  height: 32px;
+}
+.brand > span {
+  font-size: 22px;
+}
+.brand small {
+  font-size: 10px;
+}
+.intro {
+  padding: 16px 0 18px;
+}
+.intro .eyebrow,
+.intro-stamp {
+  display: none;
+}
+h1 {
+  font-size: 30px;
+  margin-bottom: 3px;
+}
+.intro-copy {
+  font-size: 14px;
+}
+.game-layout {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+}
+.board-card {
+  height: clamp(620px, calc(100svh - 180px), 1000px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.board-top {
+  padding: 16px 22px 6px;
+}
+.board-top strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+.board-meta {
+  font-size: 13px;
+  color: #69745e;
+}
+.mode-tag {
+  font-size: 13px;
+}
+.players {
+  padding: 6px 12px 0;
+  gap: 24px;
+}
+.player {
+  grid-template-columns: 30px auto;
+  padding: 8px 12px;
+}
+.player i {
+  width: 26px;
+  height: 26px;
+}
+.player span {
+  font-size: 16px;
+}
+.player small {
+  font-size: 12px;
+  color: #687461;
+}
+.scene {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.board-note {
+  padding: 4px 16px 14px;
+  font-size: 15px;
+  color: #657157;
+}
+.board-bottom {
+  padding: 14px 22px;
+  font-size: 14px;
+  color: #657157;
+}
+.panel {
+  padding: 22px;
+}
+.muted,
+.power-display p {
+  color: #6f7b65;
+}
+.controls label,
+summary {
+  font-size: 15px;
+}
+.range-captions {
+  font-size: 12px;
+  color: #758067;
+}
+.field-notes {
+  display: none;
+}
+footer {
+  padding: 16px 0;
+}
+@media (max-width: 1100px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+  .board-card {
+    height: clamp(570px, calc(100svh - 175px), 900px);
+  }
+  .side {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .panel {
+    width: 100%;
+  }
+}
+@media (max-width: 720px) {
+  .site-header,
+  main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .site-header {
+    height: 58px;
+  }
+  .intro {
+    padding: 12px 2px;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  .intro-copy {
+    font-size: 13px;
+    max-width: none;
+  }
+  .game-layout {
+    display: flex;
+    gap: 14px;
+  }
+  .board-card {
+    height: auto;
+  }
+  .board-top {
+    padding: 13px 12px 4px;
+    gap: 8px;
+  }
+  .board-top strong {
+    font-size: 14px;
+  }
+  .mode-tag {
+    font-size: 12px;
+  }
+  .players {
+    gap: 10px;
+    padding-top: 4px;
+  }
+  .player {
+    padding: 7px 4px;
+    column-gap: 5px;
+  }
+  .player span {
+    font-size: 14px;
+  }
+  .player small {
+    font-size: 11px;
+  }
+  .scene {
+    flex: none;
+    height: clamp(315px, 92vw, 540px);
+  }
+  .board-note {
+    font-size: 13px;
+    padding: 0 10px 12px;
+  }
+  .board-bottom {
+    font-size: 12px;
+    padding: 12px;
+  }
+  .primary,
+  .secondary {
+    font-size: 15px;
+  }
+  .side {
+    display: flex;
+  }
+  footer span:last-child {
+    display: none;
   }
 }

@@ -25,7 +25,7 @@ async (page) => {
     x = normalize(cross([0, 1, 0], z)),
     y = cross(z, x),
     rel = [origin.x - cam.x, origin.y - cam.y, origin.z - cam.z];
-  const halfH = Math.max(1.6, 2.35 / (rect.width / rect.height)),
+  const halfH = Math.max(1.45, 2.22 / (rect.width / rect.height)),
     px = rect.x + rect.width / 2 + (dot(rel, x) * rect.height) / (2 * halfH),
     py = rect.y + rect.height / 2 - (dot(rel, y) * rect.height) / (2 * halfH);
   await page.mouse.move(px, py);
@@ -67,7 +67,7 @@ async (page) => {
       () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
     );
     const box = await touchPage.locator('#scene canvas').boundingBox(),
-      hh = Math.max(1.6, 2.35 / (box.width / box.height));
+      hh = Math.max(1.45, 2.22 / (box.width / box.height));
     const tx = box.x + box.width / 2 + (dot(rel, x) * box.height) / (2 * hh),
       ty = box.y + box.height / 2 - (dot(rel, y) * box.height) / (2 * hh);
     const cdp = await mobile.newCDPSession(touchPage);

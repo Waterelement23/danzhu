@@ -512,7 +512,7 @@ export class MarbleScene {
     const width = Math.max(1, this.container.clientWidth),
       height = Math.max(1, this.container.clientHeight),
       aspect = width / height;
-    const halfH = Math.max(1.6, 2.35 / aspect);
+    const halfH = Math.max(1.45, 2.22 / aspect);
     this.camera.left = -halfH * aspect;
     this.camera.right = halfH * aspect;
     this.camera.top = halfH;

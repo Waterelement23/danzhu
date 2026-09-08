@@ -93,7 +93,7 @@ it('hard contact rebounds higher than soft contact', () => {
     for (let i = 0; i < 180; i++) {
       p.step(CONFIG.dt, 10, 0);
       const b = p.states()[0];
-      if (b.position.y < 0.05) touched = true;
+      if (b.position.y < CONFIG.radius + 0.014) touched = true;
       if (touched) peak = Math.max(peak, b.position.y);
     }
     p.dispose();

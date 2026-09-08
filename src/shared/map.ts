@@ -1,8 +1,8 @@
-export const MAP_VERSION = 'courtyard-1';
+export const MAP_VERSION = 'courtyard-2';
 export const PROTOCOL_VERSION = 1;
 export const CONFIG = {
   half: 1.5,
-  radius: 0.036,
+  radius: 0.062,
   mass: 0.012,
   serveHeight: 0.8,
   dt: 1 / 120,
