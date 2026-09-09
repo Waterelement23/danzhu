@@ -99,9 +99,11 @@ export class MarbleScene {
     sun.castShadow = true;
     const shadowSize = Math.min(4096, this.renderer.capabilities.maxTextureSize);
     sun.shadow.mapSize.set(shadowSize, shadowSize);
-    sun.shadow.normalBias = 0.003;
-    sun.shadow.bias = -0.00015;
-    sun.shadow.radius = 4;
+    sun.shadow.normalBias = 0.005;
+    sun.shadow.bias = -0.0004;
+    // A wide PCF disk compares neighbouring depths on the same sloping surface,
+    // producing speckles that look like coarse fabric. Keep the filter local.
+    sun.shadow.radius = 1;
     this.scene.add(sun);
     this.buildGround();
     this.fitShadow(sun);

@@ -1,0 +1,11 @@
+{
+  "stones": 12,
+  "stoneTriangles": 23040,
+  "stoneBoundsPreserved": true,
+  "textureSize": 512,
+  "sharedImages": 7,
+  "fabricYarnSpacingMillimetres": 1.3020833333333333,
+  "stoneNormalStrength": 0.25,
+  "fabricNormalStrength": 0.45,
+  "gameplayGeometryChanged": false
+}

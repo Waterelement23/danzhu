@@ -10,8 +10,9 @@ export async function loadCourtyard(): Promise<THREE.Group> {
     const glazing = materials.some((m) => m.name.includes('Smoky reflective glass'));
     object.castShadow = !object.name.includes('Compacted') && !glazing;
     for (const material of materials) {
-      if (material instanceof THREE.MeshStandardMaterial && material.normalMap)
-        material.normalMap.anisotropy = 4;
+      if (material instanceof THREE.MeshStandardMaterial)
+        for (const texture of [material.map, material.normalMap, material.roughnessMap])
+          if (texture) texture.anisotropy = 4;
     }
     object.receiveShadow = true;
   });

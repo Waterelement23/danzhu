@@ -14,7 +14,7 @@ ns = bpy.app.driver_namespace.setdefault('danzhu_refined', {})
 exec(compile(open(ROOT + '/scripts/blender/01_surface.py').read(), '01_surface.py', 'exec'), ns)
 ```
 
-3. 顺序为 **01_surface → 02_architecture → 03_planting → 06_natural_surface → 07_glass_marble → 05_finalize → 08_rooted_planting → 09_soft_furnishings → 10_glazing → 11_visible_room → 12_deck_clearance → 04_export**。每步独立 MCP 调用，便于查看与修正。`05_finalize` 校准落点、地表颜色，清除越过赛场边缘的叶片；`04_export` 保存源文件、合并临时副本导出 GLB、记录面数清单，随后移除临时副本。
+3. 顺序为 **01_surface → 02_architecture → 03_planting → 06_natural_surface → 07_glass_marble → 05_finalize → 08_rooted_planting → 09_soft_furnishings → 10_glazing → 11_visible_room → 12_deck_clearance → 13_fine_materials → 12_deck_clearance（复查）→ 04_export**。每步独立 MCP 调用，便于查看与修正。`05_finalize` 校准落点、地表颜色，清除越过赛场边缘的叶片；`04_export` 保存源文件、合并临时副本导出 GLB、记录面数清单，随后移除临时副本。
 4. 执行 `npm test`、`npm run build`，启动 `npm run dev` 后执行 `npm run test:browser`。检查控制台无模型加载错误，在正常游戏镜头与手机宽度下复核。
 
 ## 物理约束
@@ -54,3 +54,13 @@ exec(compile(open(ROOT + '/scripts/blender/01_surface.py').read(), '01_surface.p
 `12_deck_clearance` 检查院外 12 块景观石/踏石与 77 个木板、底座构件。原场景存在 45 组表面相交，涉及 7 块踏石和 4 块景观石。踏石调整到平台外的泥土带，保留不规则轮廓，与平台留 3cm 间隙；四块大石周围的木板及底座以直线切口避让，并在石块完整包围范围之外留 4cm 余量。北侧大石略向平台内移动，避开第一块踏石。
 
 脚本通过世界坐标 BVH 检查石块与木构件表面相交，并检查木构件顶点是否进入石块包围范围，结果写入 `deck-clearance-manifest.json`。源场景保存执行标记，重复运行只复查，不会反复缩放踏石或切割。导出仍按材质合并为 19 个网格，GLB 约 8.16MB；场内共用的地形与碰撞石子数据没有改变。浏览器验证覆盖左右平台近景和正常游戏视角。
+
+## 景观石与布料细节
+
+`13_fine_materials` 将院外 12 块石头的硬棱面细化并平滑着色，添加小幅不规则形变。细化后按原世界包围盒约束外形，保留底部接地高度和上一阶段的木平台间隙；之后再次运行 `12_deck_clearance` 检查穿模。此阶段只处理院外景观石，场内地形及碰撞石子的共享几何未改动。
+
+石材采用 512px 可平铺的矿物颜色、微孔法线和粗糙度贴图，低对比度随机颗粒避免规则波纹；局部盒式 UV 避免球形 UV 在石头顶部收拢。坐垫和抱枕共用细织纹法线与粗糙度贴图，分别使用鼠尾草绿和米色的细纱颜色贴图，织纹间距约 1.3mm，保留现有填充曲面和缝边。七张贴图均打包入 GLB，不依赖浏览器无法导出的 Blender 程序节点。
+
+实际画面的粗糙斑点还来自过大的 PCF 阴影采样范围：邻近采样深度误遮挡了同一倾斜表面。客户端缩小采样半径并调整深度/法线偏移，消除大面积伪颗粒；材质贴图启用 4 倍各向异性过滤，减轻斜视时的闪烁。该调整使阴影边缘更清楚，仍保留实物接触阴影。
+
+最终环境约 200k 三角面、20 个材质合并网格，GLB 从 8.16MB 增至约 9.90MB。记录见 `fine-materials-manifest.json`；验证包括石材及织纹近景、正常桌面/手机镜头，以及现有浏览器透光和操作回归。新增细节带来一定下载体积增加，没有增加新的渲染通道。
