@@ -18,7 +18,7 @@ $('app').innerHTML = `
    <div id="scene" class="scene"></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
    <div class="board-bottom"><span><i class="live-dot"></i><span id="connection">准备好，把第一颗球弹出去。</span></span><span id="round-label">01 / 土地场</span></div>
-   <div id="result" class="result-overlay" role="status" aria-live="polite" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><button id="rematch" class="primary">再来一局 <span>↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
+   <div id="result" class="result-overlay" role="status" aria-live="polite" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><button id="rematch" class="primary"><span id="rematch-label">再来一局</span><span id="rematch-arrow" aria-hidden="true">↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
   </section>
 
  </div>
@@ -253,7 +253,7 @@ const reasons: Record<Result['reason'], string> = {
 };
 function updateResult() {
   const r = snapshot.result;
-  const shown = mode !== 'lobby' && !!r && scene.presentationTime >= r.time + 3;
+  const shown = mode !== 'lobby' && !!r && scene.presentationTime >= r.time + 1.8;
   $('result').hidden = !shown;
   if (!r || !shown) return;
   $('result-title').textContent =
@@ -261,7 +261,8 @@ function updateResult() {
   $('result-reason').textContent = reasons[r.reason];
   $('result-ball').className = 'result-ball ' + (r.winner === 1 ? 'gold' : '');
   const wait = mode === 'online' && presence?.rematch[presence.player];
-  $('rematch').textContent = wait ? '已邀请 · 等待对方' : '再来一局 ↗';
+  $('rematch-label').textContent = wait ? '已邀请 · 等待对方' : '再来一局';
+  $('rematch-arrow').hidden = !!wait;
   $<HTMLButtonElement>('rematch').disabled =
     !!wait || (mode === 'online' && !presence?.connected.every(Boolean));
 }
