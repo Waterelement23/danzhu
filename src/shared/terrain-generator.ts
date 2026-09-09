@@ -1,3 +1,5 @@
+/** Horizontal court and courtyard layout scale relative to the authored Blender asset. */
+export const COURT_SCALE = 1.1;
 export type TerrainRock = { x: number; y: number; z: number; radius: number; height: number };
 export type TerrainData = {
   seed: number;
@@ -72,7 +74,7 @@ export function generateTerrain(seed: number): TerrainData {
     z: (i < 2 ? -1 : 1) * between(0.25, 0.73),
     rx: between(0.38, 0.58),
     rz: between(0.34, 0.57),
-    height: between(0.15, 0.23),
+    height: between(0.065, 0.1),
   }));
   const hollows = Array.from({ length: 9 }, () => ({
     x: between(-1.15, 1.15),
@@ -133,5 +135,18 @@ export function generateTerrain(seed: number): TerrainData {
       }
     }
   }
-  return data;
+  return scaleTerrainLayout(data);
+}
+
+/** Preserve stone size and surface height while widening the court and all placement coordinates. */
+export function scaleTerrainLayout(data: TerrainData): TerrainData {
+  return {
+    ...data,
+    extent: data.extent * COURT_SCALE,
+    rocks: data.rocks.map((rock) => ({
+      ...rock,
+      x: rock.x * COURT_SCALE,
+      z: rock.z * COURT_SCALE,
+    })),
+  };
 }

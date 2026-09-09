@@ -14,8 +14,8 @@ async (page) => {
     const tan = Math.tan((21 * Math.PI) / 180),
       aspect = rect.width / rect.height;
     let distance = 0;
-    for (const x of [-1.66, 1.66])
-      for (const z of [-1.66, 1.66])
+    for (const x of [-1.81, 1.81])
+      for (const z of [-1.81, 1.81])
         for (const y of [0, 0.88]) {
           const depth = (y - 0.05) * sin + z * cos;
           const vertical = (y - 0.05) * cos - z * sin;
@@ -25,8 +25,8 @@ async (page) => {
             depth + Math.abs(x) / (tan * aspect * 0.94),
           );
         }
-    const depth = distance - (0.818 - 0.05) * sin - 1.5 * cos;
-    const vertical = (0.818 - 0.05) * cos - 1.5 * sin;
+    const depth = distance - (0.818 - 0.05) * sin - 1.65 * cos;
+    const vertical = (0.818 - 0.05) * cos - 1.65 * sin;
     return {
       x: rect.x + rect.width / 2,
       y: rect.y + rect.height / 2 - ((vertical / (depth * tan)) * rect.height) / 2,

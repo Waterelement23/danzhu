@@ -33,7 +33,7 @@ async (page) => {
       throw new Error('No converged transmitted light on the ground');
     await page.screenshot({ path: 'output/playwright/caustic-close.png' });
     const rotated = await page.evaluate(() => {
-      place(0, 0, 0.062, Math.PI / 2);
+      place(0, 0, undefined, Math.PI / 2);
       return demo.caustics.fields[0].texture.image.data.reduce(
         (sum, value, index) => (index % 4 === 1 ? sum + value * (index - 1) : sum),
         0,
@@ -55,7 +55,7 @@ async (page) => {
       demo.resize();
       const times = [];
       for (let i = 0; i < 20; i++) {
-        place(i * 0.001, 0, 0.062, i * 0.04);
+        place(i * 0.001, 0, undefined, i * 0.04);
         times.push(demo.caustics.stats.updateMs);
       }
       return {

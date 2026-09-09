@@ -8,6 +8,7 @@ import { loadCourtyard, disposeCourtyard, disposeMaterialTextures } from './cour
 import * as THREE from 'three';
 import {
   CONFIG,
+  COURT_SCALE,
   SERVE_RANGE,
   SERVE_Z,
   DEFAULT_TERRAIN,
@@ -120,6 +121,7 @@ export class MarbleScene {
           disposeCourtyard(group);
           return;
         }
+        group.scale.set(COURT_SCALE, 1, COURT_SCALE);
         this.scene.add(group);
         this.fitShadow(sun);
         this.reflection = captureCourtyardReflection(this.renderer, this.scene);
@@ -133,7 +135,10 @@ export class MarbleScene {
             object.material.envMap = this.reflection!.texture;
         });
         this.doorReflection = makeDoorReflection();
-        this.scene.add(this.doorReflection);
+        const glazing = new THREE.Group();
+        glazing.scale.set(COURT_SCALE, 1, COURT_SCALE);
+        glazing.add(this.doorReflection);
+        this.scene.add(glazing);
         this.caustics.setScene(this.scene, (x, z) => terrainHeight(x, z, this.terrain));
         this.container.dataset.environment = 'ready';
       })
@@ -155,7 +160,7 @@ export class MarbleScene {
     this.preview.add(makeMarble(0), makeMarble(1));
     this.scene.add(this.preview, this.boundary, this.nextBoundary);
     this.halo = new THREE.Mesh(
-      new THREE.RingGeometry(0.065, 0.079, 64),
+      new THREE.RingGeometry(CONFIG.radius * 1.05, CONFIG.radius * 1.27, 64),
       new THREE.MeshBasicMaterial({
         color: BLUE,
         transparent: true,
@@ -186,7 +191,7 @@ export class MarbleScene {
   }
 
   private fitShadow(sun: THREE.DirectionalLight) {
-    // Fit all courtyard casters in light space, not just the playable three-metre square.
+    // Fit all courtyard casters in light space, not just the playable court.
     this.scene.updateMatrixWorld(true);
     sun.shadow.updateMatrices(sun);
     const shadowBounds = new THREE.Box3();
@@ -515,8 +520,8 @@ export class MarbleScene {
       cos = Math.cos(tilt);
     const tan = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
     let distance = 0;
-    for (const x of [-1.66, 1.66])
-      for (const z of [-1.66, 1.66])
+    for (const x of [-CONFIG.half - 0.16, CONFIG.half + 0.16])
+      for (const z of [-CONFIG.half - 0.16, CONFIG.half + 0.16])
         for (const y of [0, 0.88]) {
           const depth = (y - 0.05) * sin + z * cos;
           const vertical = (y - 0.05) * cos - z * sin;

@@ -5,6 +5,8 @@ import {
   makeTerrain,
   terrainHeight,
   CONFIG,
+  COURT_SCALE,
+  SERVE_Z,
   validTerrainSeed,
 } from '../src/shared/map';
 import { initPhysics, MarblePhysics } from '../src/shared/physics';
@@ -34,13 +36,13 @@ it('many seeds have readable relief, finite geometry, separated stones and a lev
       min = Math.min(...t.heights),
       max = Math.max(...t.heights);
     expect(min).toBeGreaterThan(0);
-    expect(max - min).toBeGreaterThan(0.105);
-    expect(max).toBeLessThan(0.36);
-    for (const x of [-0.9, 0, 0.9]) expect(terrainHeight(x, 1.5, t)).toBeCloseTo(0.018, 6);
+    expect(max - min).toBeGreaterThan(0.04);
+    expect(max).toBeLessThan(0.17);
+    for (const x of [-0.9, 0, 0.9]) expect(terrainHeight(x, SERVE_Z, t)).toBeCloseTo(0.018, 6);
     expect(t.rocks.length).toBeGreaterThan(130);
     for (const r of t.rocks) {
-      expect(Math.abs(r.z) + r.radius).toBeLessThan(1.3);
-      expect(r.y).toBe(terrainHeight(r.x, r.z, t));
+      expect(Math.abs(r.z) + r.radius).toBeLessThan(1.3 * COURT_SCALE);
+      expect(r.y).toBeCloseTo(terrainHeight(r.x, r.z, t), 10);
     }
     for (let i = 0; i < t.rocks.length; i++)
       for (let j = 0; j < i; j++) {
@@ -95,7 +97,7 @@ it('predicted first contact uses the current seed and agrees with the first airb
     const terrain = createTerrain(seed),
       predictor = await ServePredictor.create(terrain),
       p = new MarblePhysics({ terrain });
-    const flight = predictor.predict(0.15, { x: 0, z: -1 }, 0.55, 1.5);
+    const flight = predictor.predict(0.15, { x: 0, z: -1 }, 0.55, CONFIG.half);
     p.serve(0, 0.15, true, { x: 0, z: -1 }, 0.55);
     const steps = Math.floor((flight.time - 0.03) / CONFIG.dt);
     for (let i = 0; i < steps; i++) p.step(CONFIG.dt, 10, 0);

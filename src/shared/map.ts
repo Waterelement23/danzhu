@@ -1,11 +1,18 @@
 import court from './generated/court.json';
-import { generateTerrain, sampleHeight, type TerrainData } from './terrain-generator';
+import {
+  generateTerrain,
+  sampleHeight,
+  scaleTerrainLayout,
+  COURT_SCALE,
+  type TerrainData,
+} from './terrain-generator';
 export { nextTerrainSeed, validTerrainSeed, type TerrainData } from './terrain-generator';
-export const MAP_VERSION = 'seeded-earth-1';
+export { COURT_SCALE } from './terrain-generator';
+export const MAP_VERSION = 'seeded-earth-2';
 export const PROTOCOL_VERSION = 2;
 export const CONFIG = {
-  half: 1.5,
-  radius: 0.062,
+  half: 1.5 * COURT_SCALE,
+  radius: 0.05,
   mass: 0.012,
   serveHeight: 0.8,
   dt: 1 / 120,
@@ -20,12 +27,12 @@ export const CONFIG = {
 export const SERVE_Z = CONFIG.half;
 export const SERVE_RANGE = CONFIG.half * 0.6;
 // Historical seed-0 fixture only. Active matches receive their own TerrainData.
-export const ROCKS = court.rocks;
-export const TERRAIN_DATA = court;
+export const DEFAULT_TERRAIN: TerrainData = scaleTerrainLayout({ ...court, seed: 0 });
+export const ROCKS = DEFAULT_TERRAIN.rocks;
+export const TERRAIN_DATA = DEFAULT_TERRAIN;
 export const ROCK_VERTICES = new Float32Array(court.stoneVertices.flat());
 export const ROCK_INDICES = new Uint32Array(court.stoneIndices);
 
-export const DEFAULT_TERRAIN: TerrainData = { ...court, seed: 0 };
 export function createTerrain(seed: number): TerrainData {
   return seed === 0 ? DEFAULT_TERRAIN : generateTerrain(seed);
 }

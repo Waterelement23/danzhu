@@ -8,14 +8,17 @@ describe('real rigid body physics', () => {
     const p = new MarblePhysics();
     expect(p.states()).toEqual([]);
     p.serve(0, 0, true, { x: 0, z: -1 }, 0.4);
-    expect(p.states()[0].position.y).toBeCloseTo(terrainHeight(0, 1.5) + 0.8);
+    expect(p.states()[0].position.y).toBeCloseTo(terrainHeight(0, CONFIG.half) + 0.8);
     expect(p.states()[0].velocity.y).toBe(0);
     p.dispose();
   });
   it('ground serve starts one radius above ground', () => {
     const p = new MarblePhysics();
     p.serve(1, 0.4, false, { x: 0, z: -1 }, 0.2);
-    expect(p.states()[0].position.y).toBeCloseTo(terrainHeight(0.4, 1.5) + CONFIG.radius, 3);
+    expect(p.states()[0].position.y).toBeCloseTo(
+      terrainHeight(0.4, CONFIG.half) + CONFIG.radius,
+      3,
+    );
     p.dispose();
   });
   it('high release falls under gravity and bounces', () => {

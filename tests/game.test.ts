@@ -1,6 +1,7 @@
 import { beforeAll, it, expect } from 'vitest';
 import { initPhysics } from '../src/shared/physics';
 import { MarbleGame } from '../src/shared/game';
+import { CONFIG } from '../src/shared/map';
 import type { Shot } from '../src/shared/types';
 beforeAll(initPhysics);
 const shot = (g: MarbleGame, patch: Partial<Shot> = {}): Shot => ({
@@ -90,11 +91,11 @@ it('shrinks only after both turns of round four and while settled', () => {
     expect(
       g.shoot(s.active, shot(g, { power: 0.1, serveX: s.active === 0 ? 0.65 : -0.65 })).ok,
     ).toBe(true);
-    expect(g.snapshot().boundary).toBe(1.5);
+    expect(g.snapshot().boundary).toBe(CONFIG.half);
     finishMotion(g);
-    if (n < 7) expect(g.snapshot().boundary).toBe(1.5);
+    if (n < 7) expect(g.snapshot().boundary).toBe(CONFIG.half);
   }
-  expect(g.snapshot().boundary).toBeCloseTo(1.38);
+  expect(g.snapshot().boundary).toBeCloseTo(CONFIG.half * 0.92);
   expect(g.snapshot().round).toBe(5);
   expect(g.snapshot().phase).toBe('shrinking');
   g.dispose();
