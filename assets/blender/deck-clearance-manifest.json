@@ -1,0 +1,241 @@
+{
+  "stonesChecked": 12,
+  "timberObjectsChecked": 77,
+  "intersectionsBefore": [
+    [
+      "Garden stepping stone",
+      "Cedar deck board.003"
+    ],
+    [
+      "Garden stepping stone",
+      "Cedar deck board.004"
+    ],
+    [
+      "Garden stepping stone",
+      "Room walkway support"
+    ],
+    [
+      "Garden stepping stone.001",
+      "Cedar deck board.006"
+    ],
+    [
+      "Garden stepping stone.001",
+      "Cedar deck board.007"
+    ],
+    [
+      "Garden stepping stone.001",
+      "Room walkway support"
+    ],
+    [
+      "Garden stepping stone.002",
+      "Cedar deck board.009"
+    ],
+    [
+      "Garden stepping stone.002",
+      "Cedar deck board.010"
+    ],
+    [
+      "Garden stepping stone.002",
+      "Room walkway support"
+    ],
+    [
+      "Garden stepping stone.003",
+      "Cedar deck board.013"
+    ],
+    [
+      "Garden stepping stone.003",
+      "Cedar deck board.014"
+    ],
+    [
+      "Garden stepping stone.003",
+      "Room walkway support"
+    ],
+    [
+      "Garden stepping stone.004",
+      "Cedar deck board.016"
+    ],
+    [
+      "Garden stepping stone.004",
+      "Cedar deck board.017"
+    ],
+    [
+      "Garden stepping stone.004",
+      "Room walkway support"
+    ],
+    [
+      "Garden stepping stone.005",
+      "Cedar deck board.019"
+    ],
+    [
+      "Garden stepping stone.005",
+      "Cedar deck board.020"
+    ],
+    [
+      "Garden stepping stone.005",
+      "Room walkway support"
+    ],
+    [
+      "Garden stepping stone.006",
+      "Cedar deck board.023"
+    ],
+    [
+      "Garden stepping stone.006",
+      "Cedar deck board.024"
+    ],
+    [
+      "Garden stepping stone.006",
+      "Room walkway support"
+    ],
+    [
+      "Garden stepping stone.006",
+      "Room front deck support"
+    ],
+    [
+      "Garden edge boulder",
+      "Cedar deck board.023"
+    ],
+    [
+      "Garden edge boulder",
+      "Cedar deck board.024"
+    ],
+    [
+      "Garden edge boulder",
+      "Cedar deck board.025"
+    ],
+    [
+      "Garden edge boulder",
+      "Cedar deck board.026"
+    ],
+    [
+      "Garden edge boulder",
+      "Room walkway support"
+    ],
+    [
+      "Garden edge boulder",
+      "Room front deck support"
+    ],
+    [
+      "Garden edge boulder.001",
+      "Deck dark subframe.001"
+    ],
+    [
+      "Garden edge boulder.001",
+      "Cedar deck board.034"
+    ],
+    [
+      "Garden edge boulder.001",
+      "Cedar deck board.035"
+    ],
+    [
+      "Garden edge boulder.001",
+      "Cedar deck board.036"
+    ],
+    [
+      "Garden edge boulder.001",
+      "Cedar deck board.037"
+    ],
+    [
+      "Garden edge boulder.001",
+      "Cedar deck board.038"
+    ],
+    [
+      "Garden edge boulder.002",
+      "Deck dark subframe.001"
+    ],
+    [
+      "Garden edge boulder.002",
+      "Cedar deck board.057"
+    ],
+    [
+      "Garden edge boulder.002",
+      "Cedar deck board.058"
+    ],
+    [
+      "Garden edge boulder.002",
+      "Cedar deck board.059"
+    ],
+    [
+      "Garden edge boulder.002",
+      "Entry timber board"
+    ],
+    [
+      "Garden edge boulder.002",
+      "Entry timber board.001"
+    ],
+    [
+      "Garden edge boulder.002",
+      "Entry timber board.002"
+    ],
+    [
+      "Garden edge boulder.003",
+      "Cedar deck board.002"
+    ],
+    [
+      "Garden edge boulder.003",
+      "Cedar deck board.003"
+    ],
+    [
+      "Garden edge boulder.003",
+      "Cedar deck board.004"
+    ],
+    [
+      "Garden edge boulder.003",
+      "Room walkway support"
+    ]
+  ],
+  "intersectionsAfter": [],
+  "timberVerticesInsideStoneBounds": [],
+  "steppingStoneDeckGapMetres": 0.03,
+  "pockets": [
+    {
+      "stone": "Garden edge boulder",
+      "clearanceMetres": 0.04,
+      "trimmedTimber": [
+        "Cedar deck board.023",
+        "Cedar deck board.024",
+        "Cedar deck board.025",
+        "Cedar deck board.026",
+        "Entry timber board",
+        "Room walkway support",
+        "Room front deck support"
+      ]
+    },
+    {
+      "stone": "Garden edge boulder.001",
+      "clearanceMetres": 0.04,
+      "trimmedTimber": [
+        "Deck dark subframe.001",
+        "Cedar deck board.034",
+        "Cedar deck board.035",
+        "Cedar deck board.036",
+        "Cedar deck board.037",
+        "Cedar deck board.038"
+      ]
+    },
+    {
+      "stone": "Garden edge boulder.002",
+      "clearanceMetres": 0.04,
+      "trimmedTimber": [
+        "Deck dark subframe.001",
+        "Cedar deck board.057",
+        "Cedar deck board.058",
+        "Cedar deck board.059",
+        "Cedar deck board.060",
+        "Entry timber board",
+        "Entry timber board.001",
+        "Entry timber board.002"
+      ]
+    },
+    {
+      "stone": "Garden edge boulder.003",
+      "clearanceMetres": 0.04,
+      "trimmedTimber": [
+        "Cedar deck board.001",
+        "Cedar deck board.002",
+        "Cedar deck board.003",
+        "Cedar deck board.004",
+        "Room walkway support"
+      ]
+    }
+  ]
+}

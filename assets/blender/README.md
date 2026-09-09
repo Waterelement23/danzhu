@@ -14,7 +14,7 @@ ns = bpy.app.driver_namespace.setdefault('danzhu_refined', {})
 exec(compile(open(ROOT + '/scripts/blender/01_surface.py').read(), '01_surface.py', 'exec'), ns)
 ```
 
-3. 顺序为 **01_surface → 02_architecture → 03_planting → 06_natural_surface → 07_glass_marble → 05_finalize → 08_rooted_planting → 09_soft_furnishings → 10_glazing → 11_visible_room → 04_export**。每步独立 MCP 调用，便于查看与修正。`05_finalize` 校准落点、地表颜色，清除越过赛场边缘的叶片；`04_export` 保存源文件、合并临时副本导出 GLB、记录面数清单，随后移除临时副本。
+3. 顺序为 **01_surface → 02_architecture → 03_planting → 06_natural_surface → 07_glass_marble → 05_finalize → 08_rooted_planting → 09_soft_furnishings → 10_glazing → 11_visible_room → 12_deck_clearance → 04_export**。每步独立 MCP 调用，便于查看与修正。`05_finalize` 校准落点、地表颜色，清除越过赛场边缘的叶片；`04_export` 保存源文件、合并临时副本导出 GLB、记录面数清单，随后移除临时副本。
 4. 执行 `npm test`、`npm run build`，启动 `npm run dev` 后执行 `npm run test:browser`。检查控制台无模型加载错误，在正常游戏镜头与手机宽度下复核。
 
 ## 物理约束
@@ -48,3 +48,9 @@ exec(compile(open(ROOT + '/scripts/blender/01_surface.py').read(), '01_surface.p
 室内只制作透过玻璃可见的长凳、矮柜、踢脚线与简单墙饰。`room-manifest.json` 记录 240 条从室内朝六个方向的外壳射线检查，并单独检查外部木板不穿入房间。检查不会用家具掩盖墙体漏洞。玻璃位置保持不变，继续使用与同一平面对应的实时倒影。
 
 此阶段仅制作一间可见的小房间，未扩展到不可见的其他房间或楼层；GLB 约 8.17MB、19 个材质合并网格。视觉验证涵盖正常游戏镜头、房屋转角、透过玻璃观察室内，以及手机宽度。
+
+## 石块与木平台的接触修订
+
+`12_deck_clearance` 检查院外 12 块景观石/踏石与 77 个木板、底座构件。原场景存在 45 组表面相交，涉及 7 块踏石和 4 块景观石。踏石调整到平台外的泥土带，保留不规则轮廓，与平台留 3cm 间隙；四块大石周围的木板及底座以直线切口避让，并在石块完整包围范围之外留 4cm 余量。北侧大石略向平台内移动，避开第一块踏石。
+
+脚本通过世界坐标 BVH 检查石块与木构件表面相交，并检查木构件顶点是否进入石块包围范围，结果写入 `deck-clearance-manifest.json`。源场景保存执行标记，重复运行只复查，不会反复缩放踏石或切割。导出仍按材质合并为 19 个网格，GLB 约 8.16MB；场内共用的地形与碰撞石子数据没有改变。浏览器验证覆盖左右平台近景和正常游戏视角。
