@@ -74,9 +74,11 @@ npm start
 - [技术设计](docs/superpowers/specs/2026-09-07-marble-duel-technical-design.md)
 - [实施记录](docs/superpowers/plans/2026-09-07-initial-prototype.md)
 
-当前是一张通过 Blender MCP 制作的土地院落地图。水泥/沙地只作为物理测试对照，不是当前可选地图。弹珠大小、地形起伏与阻力仍需玩家试玩调校；未做大规模并发压测或实机手机性能认证。
+当前院落由 Blender MCP 制作，场内土地每局按同一权威种子重新生成起伏、浅凹、粗粒和石子。双方地图一致，再来一局换图，重连保留原图。水泥/沙地只作为物理测试对照，不是当前可选地图。弹珠大小、地形起伏与阻力仍需玩家试玩调校；未做大规模并发压测或实机手机性能认证。
 
 ## Blender 资产与物理表面
+
+当前院外环境继续使用 Blender GLB；正式对局的场内碰撞与渲染由 `src/shared/terrain-generator.ts` 生成。以下固定地形记录属于早期资产，保留为种子 0 的回归测试夹具。当前随机生成与同步规则见技术设计文档的“每局随机场地实施”。
 
 已安装用户级 Blender MCP 插件，验证 Blender 5.1.2 / 插件 1.6 / 协议 5。玩家和服务器无需 Blender；开发者重新建模时才需要启动插件连接。安装说明来自 [Blender MCP 项目](https://github.com/ahujasid/blender-mcp)。
 

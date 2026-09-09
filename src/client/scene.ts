@@ -1,3 +1,4 @@
+import { makeSoilMaterial } from './soil-material';
 import { ServeGuide } from './serve-guide';
 import { makeDoorReflection } from './glazing';
 import { makeMarble, captureCourtyardReflection } from './marble';
@@ -9,10 +10,11 @@ import {
   CONFIG,
   SERVE_RANGE,
   SERVE_Z,
-  ROCKS,
+  DEFAULT_TERRAIN,
+  createTerrain,
+  type TerrainData,
   ROCK_VERTICES,
   ROCK_INDICES,
-  TERRAIN_DATA,
   makeTerrain,
   terrainHeight,
 } from '../shared/map';
@@ -28,6 +30,8 @@ export class MarbleScene {
   public onPower?: (power: number) => void;
   public onAim?: (direction: Direction, power: number) => void;
   private readonly scene = new THREE.Scene();
+  private terrain: TerrainData = DEFAULT_TERRAIN;
+  private readonly ground = new THREE.Group();
   private readonly camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
   private readonly renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   private readonly resizeObserver: ResizeObserver;
@@ -78,7 +82,9 @@ export class MarbleScene {
   constructor(
     private readonly container: HTMLElement,
     private readonly onShoot: (direction: Direction, power: number, serveX: number) => void,
+    terrainSeed = 0,
   ) {
+    this.terrain = createTerrain(terrainSeed);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -128,7 +134,7 @@ export class MarbleScene {
         });
         this.doorReflection = makeDoorReflection();
         this.scene.add(this.doorReflection);
-        this.caustics.setScene(this.scene);
+        this.caustics.setScene(this.scene, (x, z) => terrainHeight(x, z, this.terrain));
         this.container.dataset.environment = 'ready';
       })
       .catch((error: unknown) => {
@@ -175,7 +181,7 @@ export class MarbleScene {
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(container);
     this.resize();
-    this.serveGuide = new ServeGuide(container);
+    this.serveGuide = new ServeGuide(container, this.terrain);
     this.caustics = new MarbleCaustics(this.balls[0].children[0] as THREE.Mesh);
   }
 
@@ -202,19 +208,27 @@ export class MarbleScene {
   }
 
   private buildGround() {
-    const data = makeTerrain();
+    disposeCourtyard(this.ground);
+    this.ground.clear();
+    this.ground.name = 'match-terrain';
+    this.scene.add(this.ground);
+    this.container.dataset.terrainSeed = String(this.terrain.seed);
+    const data = makeTerrain(this.terrain);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(data.vertices, 3));
     geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
-    const colors = new Float32Array(TERRAIN_DATA.colors.flatMap((c) => c.slice(0, 3)));
+    const colors = new Float32Array(this.terrain.colors.flatMap((c) => c.slice(0, 3)));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.computeVertexNormals();
-    const soil = new THREE.Mesh(
-      geometry,
-      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }),
-    );
+    const uv = new Float32Array((data.vertices.length / 3) * 2);
+    for (let i = 0; i < data.vertices.length / 3; i++) {
+      uv[i * 2] = data.vertices[i * 3] / 0.24;
+      uv[i * 2 + 1] = data.vertices[i * 3 + 2] / 0.24;
+    }
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    const soil = new THREE.Mesh(geometry, makeSoilMaterial(this.terrain.seed));
     soil.receiveShadow = soil.castShadow = true;
-    this.scene.add(soil);
+    this.ground.add(soil);
     const stoneGeometry = new THREE.BufferGeometry();
     stoneGeometry.setAttribute('position', new THREE.BufferAttribute(ROCK_VERTICES, 3));
     stoneGeometry.setIndex(new THREE.BufferAttribute(ROCK_INDICES, 1));
@@ -224,16 +238,16 @@ export class MarbleScene {
       roughness: 1,
       flatShading: true,
     });
-    for (const rock of ROCKS) {
+    for (const rock of this.terrain.rocks) {
       const mesh = new THREE.Mesh(stoneGeometry, stoneMaterial);
       mesh.scale.set(rock.radius, rock.height, rock.radius);
       mesh.position.set(rock.x, rock.y, rock.z);
       mesh.castShadow = mesh.receiveShadow = true;
-      this.scene.add(mesh);
+      this.ground.add(mesh);
     }
     // The shared serving line is chalk, with small endpoint ticks.
     const serve = new THREE.Group();
-    this.scene.add(serve);
+    this.ground.add(serve);
     this.chalkSegment(serve, -SERVE_RANGE, SERVE_Z, SERVE_RANGE, SERVE_Z, 0.012, 0xffefd0, 0.94);
     for (const x of [-SERVE_RANGE, SERVE_RANGE])
       this.chalkSegment(serve, x, SERVE_Z - 0.035, x, SERVE_Z + 0.035, 0.01, 0xffefd0, 0.9);
@@ -260,7 +274,11 @@ export class MarbleScene {
         x = x1 + (x2 - x1) * t,
         z = z1 + (z2 - z1) * t;
       for (const s of [-1, 1])
-        positions.push(x + nx * s, terrainHeight(x + nx * s, z + nz * s) + 0.002, z + nz * s);
+        positions.push(
+          x + nx * s,
+          terrainHeight(x + nx * s, z + nz * s, this.terrain) + 0.002,
+          z + nz * s,
+        );
       if (i < count) {
         const a = i * 2;
         indices.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
@@ -318,9 +336,31 @@ export class MarbleScene {
   }
 
   update(snapshot: GameSnapshot, canAct: boolean) {
+    if (snapshot.terrainSeed !== this.terrain.seed) {
+      this.clearAim();
+      this.terrain = createTerrain(snapshot.terrainSeed);
+      this.buildGround();
+      this.boundaryValue = this.nextBoundaryValue = -1;
+      this.serveGuide.setTerrain(this.terrain);
+      this.caustics.setScene(this.scene, (x, z) => terrainHeight(x, z, this.terrain));
+      if (this.reflection) {
+        const old = this.reflection;
+        this.reflection = captureCourtyardReflection(this.renderer, this.scene);
+        this.scene.traverse((object) => {
+          if (
+            object instanceof THREE.Mesh &&
+            object.name === 'transmissive-glass-shell' &&
+            object.material instanceof THREE.MeshPhysicalMaterial
+          )
+            object.material.envMap = this.reflection!.texture;
+        });
+        old.dispose();
+      }
+    }
     const reset =
       !this.snapshot ||
       this.snapshot.match !== snapshot.match ||
+      this.snapshot.terrainSeed !== snapshot.terrainSeed ||
       (this.snapshot.balls.length === 0 && snapshot.balls.length > 0);
     if (this.snapshot?.turn !== snapshot.turn || !canAct) this.clearAim();
     this.snapshot = snapshot;
@@ -415,7 +455,7 @@ export class MarbleScene {
       serving = !this.snapshot?.served[active];
     this.preview.visible = serving && (!this.snapshot || this.snapshot.phase === 'aiming');
     const high = !this.snapshot || active === this.snapshot.first;
-    const ground = terrainHeight(this.serveX, SERVE_Z);
+    const ground = terrainHeight(this.serveX, SERVE_Z, this.terrain);
     this.preview.position.set(
       this.serveX,
       ground + (high ? CONFIG.serveHeight : CONFIG.radius),
@@ -427,7 +467,11 @@ export class MarbleScene {
     this.halo.visible =
       (this.preview.visible && !high) || (this.canAct && !!this.snapshot?.served[active]);
     const origin = this.preview.visible ? this.preview.position : this.targets[active];
-    this.halo.position.set(origin.x, terrainHeight(origin.x, origin.z) + 0.004, origin.z);
+    this.halo.position.set(
+      origin.x,
+      terrainHeight(origin.x, origin.z, this.terrain) + 0.004,
+      origin.z,
+    );
     (this.halo.material as THREE.MeshBasicMaterial).color.setHex(active ? AMBER : BLUE);
   }
 
@@ -440,7 +484,11 @@ export class MarbleScene {
     this.power = THREE.MathUtils.clamp(power, 0, 1);
     const active = this.snapshot?.active ?? 0,
       origin = this.preview.visible ? this.preview.position : this.targets[active];
-    this.aim.position.set(origin.x, terrainHeight(origin.x, origin.z) + 0.025, origin.z);
+    this.aim.position.set(
+      origin.x,
+      terrainHeight(origin.x, origin.z, this.terrain) + 0.025,
+      origin.z,
+    );
     this.aim.setDirection(this.aimDirection);
     this.aim.setLength(0.12 + this.power * 0.68, 0.07, 0.05);
     this.aim.setColor(active ? AMBER : BLUE);

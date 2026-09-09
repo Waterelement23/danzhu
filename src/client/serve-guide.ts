@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CONFIG } from '../shared/map';
+import { CONFIG, DEFAULT_TERRAIN, type TerrainData } from '../shared/map';
 import type { ServeFlight, ServePredictor } from '../shared/serve-preview';
 import type { Vec3 } from '../shared/types';
 
@@ -10,8 +10,10 @@ export class ServeGuide {
   private flight?: ServeFlight;
   private key = '';
   private disposed = false;
+  private terrain?: TerrainData;
+  private generation = 0;
   private readonly svg: SVGSVGElement;
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, terrain = DEFAULT_TERRAIN) {
     this.root.className = 'serve-guide';
     this.root.setAttribute('role', 'img');
     this.root.setAttribute(
@@ -22,10 +24,22 @@ export class ServeGuide {
       '<svg aria-hidden="true"><path class="flight-path"/><path class="height-path"/><path class="serve-foot"/><path class="flight-end"/></svg>';
     this.svg = this.root.querySelector('svg')!;
     container.append(this.root);
+    this.setTerrain(terrain);
+  }
+  setTerrain(terrain: TerrainData) {
+    if (this.terrain?.seed === terrain.seed) return;
+    this.terrain = terrain;
+    const generation = ++this.generation;
+    this.predictor?.dispose();
+    this.predictor = undefined;
+    this.flight = undefined;
+    this.key = '';
+    this.svg.querySelector('.flight-path')!.setAttribute('d', '');
+    this.svg.querySelector('.flight-end')!.setAttribute('d', '');
     void import('../shared/serve-preview')
-      .then((m) => m.ServePredictor.create())
+      .then((m) => m.ServePredictor.create(terrain))
       .then((p) => {
-        if (this.disposed) p.dispose();
+        if (this.disposed || generation !== this.generation) p.dispose();
         else this.predictor = p;
       })
       .catch((error) => console.warn('Serve prediction unavailable', error));

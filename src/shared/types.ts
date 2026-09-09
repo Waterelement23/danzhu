@@ -17,6 +17,7 @@ export type Result = {
   time: number;
 };
 export type GameSnapshot = {
+  terrainSeed: number;
   mapVersion: string;
   protocolVersion: number;
   match: number;

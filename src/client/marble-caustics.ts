@@ -54,7 +54,12 @@ const SIZE = 128;
 const EPSILON = 0.00005;
 
 /** Normalized splats: filtering changes concentration, never creates light energy. */
-export function depositPhotons(deposits: PhotonDeposit[], bounds: THREE.Vector4, size = SIZE) {
+export function depositPhotons(
+  deposits: PhotonDeposit[],
+  bounds: THREE.Vector4,
+  size = SIZE,
+  heightAt = terrainHeight,
+) {
   const data = new Float32Array(size * size * 4),
     weights = new Float32Array(size * size);
   const dx = bounds.z / size,
@@ -100,10 +105,7 @@ export function depositPhotons(deposits: PhotonDeposit[], bounds: THREE.Vector4,
   for (let i = 0; i < weights.length; i++)
     data[i * 4 + 3] = weights[i]
       ? data[i * 4 + 3] / weights[i]
-      : terrainHeight(
-          bounds.x + ((i % size) + 0.5) * dx,
-          bounds.y + (Math.floor(i / size) + 0.5) * dz,
-        );
+      : heightAt(bounds.x + ((i % size) + 0.5) * dx, bounds.y + (Math.floor(i / size) + 0.5) * dz);
   return data;
 }
 
@@ -145,7 +147,8 @@ export class MarbleCaustics {
       ),
     };
   });
-  private materials = new Set<THREE.MeshStandardMaterial>();
+  private materials = new WeakSet<THREE.MeshStandardMaterial>();
+  private heightAt = terrainHeight;
   private uniforms: Record<string, { value: unknown }>;
   readonly stats = { photons: 0, deposits: 0, updateMs: 0 };
   constructor(ribbon: THREE.Mesh) {
@@ -161,10 +164,16 @@ export class MarbleCaustics {
       opticalBounds1: { value: this.fields[1].bounds },
     };
   }
-  setScene(scene: THREE.Scene) {
+  setScene(scene: THREE.Scene, heightAt = terrainHeight) {
+    this.heightAt = heightAt;
     this.world?.dispose();
     this.world = new OpticalScene(scene);
-    for (const field of this.fields) field.key = '';
+    for (const field of this.fields) {
+      field.key = '';
+      field.center.set(0, -100, 0, 0);
+      field.texture.image.data?.fill(0);
+      field.texture.needsUpdate = true;
+    }
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh) || !object.receiveShadow) return;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
@@ -284,7 +293,7 @@ export class MarbleCaustics {
         Math.max(0.04, box.max.x - box.min.x),
         Math.max(0.04, box.max.z - box.min.z),
       );
-      field.texture.image.data = depositPhotons(localDeposits, field.bounds);
+      field.texture.image.data = depositPhotons(localDeposits, field.bounds, SIZE, this.heightAt);
       field.texture.needsUpdate = true;
     }
     if (updated) this.stats.updateMs = performance.now() - started;
@@ -293,7 +302,7 @@ export class MarbleCaustics {
     this.world?.dispose();
     this.ribbon.dispose();
     for (const field of this.fields) field.texture.dispose();
-    this.materials.clear();
+    this.materials = new WeakSet();
   }
 }
 const GLSL = `

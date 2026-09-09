@@ -24,6 +24,7 @@ async (page) => {
     await page.locator('#ready').click();
     await b.locator('#ready').click();
     await page.waitForFunction(() => document.querySelector('#ready')?.hasAttribute('hidden'));
+    const terrainSeed = await page.locator('#scene').getAttribute('data-terrain-seed');
     const closeSocket = () => {
       const s = window.__duelSockets
         .filter((s) => s.url.includes(':2567/') && s.readyState === 1)
@@ -42,6 +43,8 @@ async (page) => {
     );
     if ((await page.locator('#copy-code').textContent()) !== code)
       throw new Error('Reconnected to wrong room');
+    if ((await page.locator('#scene').getAttribute('data-terrain-seed')) !== terrainSeed)
+      throw new Error('Reconnect changed terrain');
     await page.evaluate(closeSocket);
     await page.waitForFunction(() =>
       document.querySelector('#connection')?.textContent?.includes('连接中断'),
@@ -60,6 +63,7 @@ async (page) => {
       passed: true,
       checks: [
         'early socket loss reconnects same seat',
+        'reconnect preserves terrain seed',
         'cancel retry by returning lobby',
         'old connection cannot overwrite practice',
       ],

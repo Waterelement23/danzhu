@@ -1,6 +1,13 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { MarblePhysics, initPhysics } from './physics';
-import { CONFIG, SERVE_Z, terrainHeight, shotSpeed } from './map';
+import {
+  CONFIG,
+  DEFAULT_TERRAIN,
+  type TerrainData,
+  SERVE_Z,
+  terrainHeight,
+  shotSpeed,
+} from './map';
 import type { Vec3 } from './types';
 export type ServeFlight = {
   points: Vec3[];
@@ -11,14 +18,15 @@ export type ServeFlight = {
 
 /** Only the first airborne leg. A swept sphere queries the exact shared court colliders. */
 export class ServePredictor {
-  private readonly physics = new MarblePhysics();
+  private readonly physics: MarblePhysics;
   private readonly sphere = new RAPIER.Ball(CONFIG.radius);
   private readonly terrainHandle: number;
-  static async create() {
+  static async create(terrain = DEFAULT_TERRAIN) {
     await initPhysics();
-    return new ServePredictor();
+    return new ServePredictor(terrain);
   }
-  private constructor() {
+  private constructor(private readonly terrain: TerrainData) {
+    this.physics = new MarblePhysics({ terrain });
     const handles: number[] = [];
     this.physics.world.forEachCollider((c) => handles.push(c.handle));
     this.terrainHandle = handles[0];
@@ -34,7 +42,11 @@ export class ServePredictor {
     const norm = Math.hypot(direction.x, direction.z) || 1;
     const vx = (direction.x / norm) * speed,
       vz = (direction.z / norm) * speed;
-    const origin: Vec3 = { x, y: terrainHeight(x, SERVE_Z) + CONFIG.serveHeight, z: SERVE_Z };
+    const origin: Vec3 = {
+      x,
+      y: terrainHeight(x, SERVE_Z, this.terrain) + CONFIG.serveHeight,
+      z: SERVE_Z,
+    };
     const position = (t: number): Vec3 => ({
       x: x + vx * t,
       y: origin.y - (CONFIG.gravity * t * t) / 2,

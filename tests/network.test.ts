@@ -62,6 +62,8 @@ it('two real clients join, ready, serve and receive same authoritative state', a
     direction: { x: 0, z: -1 },
   });
   const [sa, sb] = await Promise.all([movedA, movedB]);
+  expect(sa.terrainSeed).toBe(sb.terrainSeed);
+  expect(sa.terrainSeed).toBeGreaterThan(0);
   expect(sa.active).toBe(sb.active);
   expect(sa.balls).toEqual(sb.balls);
   expect(sa.served[sa.active]).toBe(true);
@@ -78,6 +80,9 @@ it('ready consensus is reevaluated after reconnect', async () => {
   const b = await c.joinById(a.roomId, version);
   rooms.push(b);
   b.onMessage('*', () => {});
+  const originalWait = waitMessage<GameSnapshot>(b, 'snapshot');
+  b.send('sync');
+  const originalSeed = (await originalWait).terrainSeed;
   const readyA = waitMessage<Presence>(b, 'presence', (p) => p.ready[0]);
   a.send('ready');
   await readyA;
@@ -94,4 +99,7 @@ it('ready consensus is reevaluated after reconnect', async () => {
   rooms.push(restored);
   restored.onMessage('*', () => {});
   expect((await started).connected).toEqual([true, true]);
+  const restoredWait = waitMessage<GameSnapshot>(restored, 'snapshot');
+  restored.send('sync');
+  expect((await restoredWait).terrainSeed).toBe(originalSeed);
 }, 15000);

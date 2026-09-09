@@ -1,4 +1,12 @@
-import { CONFIG, SERVE_RANGE, SERVE_Z, MAP_VERSION, PROTOCOL_VERSION } from './map';
+import {
+  CONFIG,
+  SERVE_RANGE,
+  SERVE_Z,
+  MAP_VERSION,
+  PROTOCOL_VERSION,
+  createTerrain,
+  nextTerrainSeed,
+} from './map';
 import { MarblePhysics } from './physics';
 import type { ActionResult, GameSnapshot, Player, Result, Shot } from './types';
 const other = (p: Player) => (1 - p) as Player;
@@ -12,10 +20,15 @@ export class MarbleGame {
   private timeouts: [number, number] = [0, 0];
   private entered = false;
   private afterResult = 0;
-  constructor(first: Player = Math.random() < 0.5 ? 0 : 1, match = 1) {
-    this.physics = new MarblePhysics();
+  constructor(
+    first: Player = Math.random() < 0.5 ? 0 : 1,
+    match = 1,
+    terrainSeed = nextTerrainSeed(),
+  ) {
+    this.physics = new MarblePhysics({ terrain: createTerrain(terrainSeed) });
     this.state = {
       match,
+      terrainSeed,
       turn: 1,
       round: 1,
       active: first,
@@ -187,11 +200,13 @@ export class MarbleGame {
   }
   reset() {
     const first = other(this.state.first),
-      match = this.state.match + 1;
+      match = this.state.match + 1,
+      terrainSeed = nextTerrainSeed(this.state.terrainSeed);
     this.physics.dispose();
-    this.physics = new MarblePhysics();
+    this.physics = new MarblePhysics({ terrain: createTerrain(terrainSeed) });
     this.state = {
       match,
+      terrainSeed,
       turn: 1,
       round: 1,
       active: first,

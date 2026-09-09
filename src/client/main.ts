@@ -1,6 +1,6 @@
 import './style.css';
 import { MarbleScene } from './scene';
-import { CONFIG, SERVE_RANGE, MAP_VERSION, PROTOCOL_VERSION } from '../shared/map';
+import { CONFIG, SERVE_RANGE, MAP_VERSION, PROTOCOL_VERSION, nextTerrainSeed } from '../shared/map';
 import type { GameSnapshot, Presence, Shot, Result } from '../shared/types';
 import { practice, online, hasSession, type GameTransport, type Hooks } from './transport';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -13,7 +13,7 @@ $('app').innerHTML = `
    <section id="controls" class="panel controls" hidden><div class="control-heading"><span id="turn-eyebrow" class="section-number">轮到你了</span><span id="timer" class="timer">30s</span></div><h2 id="turn-title">准备入场</h2><p id="turn-description" class="muted">从发球线弹入第一颗球。</p><div id="room-share" class="room-share" hidden><small>房间码 · 发给朋友</small><button id="copy-code" aria-label="复制房间码"></button></div><button id="ready" class="primary" hidden>我准备好了 <span>✓</span></button><div id="serve-control"><label for="serve-position">发球位置 <span id="serve-value">中间</span></label><input id="serve-position" type="range" min="-900" max="900" value="0"/><div class="range-captions"><span>左侧</span><span>沿发球线移动</span><span>右侧</span></div></div><div class="power-display"><label>击球力度 <span id="power-text">25%</span></label><div class="power-track"><i id="power-bar"></i></div><p>按住自己的弹珠，向后拖动蓄力<br>松手弹出 · Esc 取消</p></div><details id="fine-aim"><summary>精细瞄准 <span>＋</span></summary><div class="fine-settings"><label for="angle">方向 <span id="angle-value">0°</span></label><input id="angle" type="range" min="-180" max="180" value="0"/><label for="power">力度</label><input id="power" type="range" min="1" max="100" value="25"/><button id="shoot" class="secondary">按当前方向弹出 →</button></div></details><div class="shrink-info"><span>◎</span><span id="shrink-label">前 3 轮不缩圈</span></div><button id="leave" class="text-button leave">← 返回大厅</button></section></div></section>
  <div class="game-layout">
   <section class="board-card" aria-label="弹珠场地">
-   <div class="board-top"><div><span class="terrain-dot"></span><strong>老院子的土地</strong><span class="board-meta">缓坡 · 石块 · 真实弹跳</span></div><div class="players" id="players"><div id="player0" class="player blue"><i></i><span id="name0">PLAYER 01</span></div><div class="versus">VS</div><div id="player1" class="player amber"><i></i><span id="name1">PLAYER 02</span></div></div><span id="mode-tag" class="mode-tag">练习 / 1V1 联网</span></div>
+   <div class="board-top"><div><span class="terrain-dot"></span><strong>老院子的土地</strong><span class="board-meta">每局随机 · 起伏 · 石子</span></div><div class="players" id="players"><div id="player0" class="player blue"><i></i><span id="name0">PLAYER 01</span></div><div class="versus">VS</div><div id="player1" class="player amber"><i></i><span id="name1">PLAYER 02</span></div></div><span id="mode-tag" class="mode-tag">练习 / 1V1 联网</span></div>
 
    <div id="scene" class="scene"></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
@@ -25,10 +25,11 @@ $('app').innerHTML = `
  <footer><span>玻璃里藏着的，是整个夏天。</span><span>GROUND RULES. GOOD TIMES.</span></footer>
 </main>
 <div id="toast" class="toast" role="status" hidden></div>
-<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>先手高位发球。</strong>从发球线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>拖住自己的球向后拉，松手发射；也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p></dialog>`;
+<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>每局一块新场地。</strong>起伏、浅凹和石子每局随机，双方共享同一场地，对局中保持不变。</li><li><strong>先手高位发球。</strong>从发球线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>拖住自己的球向后拉，松手发射；也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p></dialog>`;
 let snapshot: GameSnapshot = {
   mapVersion: MAP_VERSION,
   protocolVersion: PROTOCOL_VERSION,
+  terrainSeed: nextTerrainSeed(),
   match: 0,
   turn: 1,
   round: 1,
@@ -57,7 +58,7 @@ let serveX = 0,
   pendingTimer: ReturnType<typeof setTimeout>;
 let scene: MarbleScene;
 try {
-  scene = new MarbleScene($('scene'), (d, p, x) => sendShot(d, p, x));
+  scene = new MarbleScene($('scene'), (d, p, x) => sendShot(d, p, x), snapshot.terrainSeed);
 } catch (error) {
   $('scene').innerHTML =
     '<p class="webgl-error">当前浏览器无法创建 3D 场景，请开启硬件加速后重试。</p>';
@@ -302,7 +303,9 @@ async function start(kind: 'practice' | 'create' | 'join' | 'resume') {
   lastTurn = '';
   try {
     const created =
-      kind === 'practice' ? await practice(scoped) : await online(scoped, kind, code, current);
+      kind === 'practice'
+        ? await practice(scoped, snapshot.terrainSeed)
+        : await online(scoped, kind, code, current);
     if (!current()) {
       created.dispose();
       return;
@@ -342,6 +345,7 @@ function home() {
   snapshot = {
     mapVersion: MAP_VERSION,
     protocolVersion: PROTOCOL_VERSION,
+    terrainSeed: nextTerrainSeed(),
     match: 0,
     turn: 1,
     round: 1,

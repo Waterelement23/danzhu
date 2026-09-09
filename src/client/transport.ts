@@ -1,5 +1,11 @@
 import { Client, type Room } from '@colyseus/sdk';
-import { CONFIG, MAP_VERSION, PROTOCOL_VERSION } from '../shared/map';
+import {
+  CONFIG,
+  MAP_VERSION,
+  PROTOCOL_VERSION,
+  nextTerrainSeed,
+  validTerrainSeed,
+} from '../shared/map';
 import type { GameSnapshot, Presence, Shot, Player, ActionResult } from '../shared/types';
 export interface GameTransport {
   kind: 'practice' | 'online';
@@ -16,13 +22,13 @@ export type Hooks = {
   connection: (text: string, connected: boolean) => void;
   action: () => void;
 };
-export async function practice(h: Hooks): Promise<GameTransport> {
+export async function practice(h: Hooks, terrainSeed = nextTerrainSeed()): Promise<GameTransport> {
   const [{ MarbleGame }, { initPhysics }] = await Promise.all([
     import('../shared/game'),
     import('../shared/physics'),
   ]);
   await initPhysics();
-  let game = new MarbleGame(0),
+  let game = new MarbleGame(0, 1, terrainSeed),
     acc = 0;
   const send = () => h.snapshot(game.snapshot());
   send();
@@ -129,7 +135,11 @@ export async function online(
     const alive = () => !disposed && current === room;
     current.onMessage('snapshot', (s: GameSnapshot) => {
       if (!alive()) return;
-      if (s.mapVersion !== MAP_VERSION || s.protocolVersion !== PROTOCOL_VERSION) {
+      if (
+        s.mapVersion !== MAP_VERSION ||
+        s.protocolVersion !== PROTOCOL_VERSION ||
+        !validTerrainSeed(s.terrainSeed)
+      ) {
         disposed = true;
         clearTimeout(retryTimer);
         clearToken();

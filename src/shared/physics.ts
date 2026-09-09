@@ -1,5 +1,14 @@
 import RAPIER from '@dimforge/rapier3d-compat';
-import { CONFIG, ROCKS, makeTerrain, terrainHeight, groundNormal, SERVE_Z, shotSpeed } from './map';
+import {
+  CONFIG,
+  DEFAULT_TERRAIN,
+  type TerrainData,
+  makeTerrain,
+  terrainHeight,
+  groundNormal,
+  SERVE_Z,
+  shotSpeed,
+} from './map';
 import { ROCK_VERTICES } from './map';
 import type { BallState, Player, Result, Vec3 } from './types';
 let initialization: Promise<void> | undefined;
@@ -42,8 +51,10 @@ export class MarblePhysics {
   private queue = new RAPIER.EventQueue(true);
   private colliders = new Map<number, Player>();
   private flat: boolean;
-  constructor(options: { flat?: boolean; restitution?: number } = {}) {
+  readonly terrain: TerrainData;
+  constructor(options: { flat?: boolean; restitution?: number; terrain?: TerrainData } = {}) {
     this.flat = !!options.flat;
+    this.terrain = options.terrain ?? DEFAULT_TERRAIN;
     this.world = new RAPIER.World({ x: 0, y: -CONFIG.gravity, z: 0 });
     this.world.integrationParameters.maxCcdSubsteps = 4;
     if (this.flat)
@@ -54,7 +65,7 @@ export class MarblePhysics {
           .setRestitution(options.restitution ?? 0.38),
       );
     else {
-      const terrain = makeTerrain();
+      const terrain = makeTerrain(this.terrain);
       this.world.createCollider(
         RAPIER.ColliderDesc.trimesh(
           terrain.vertices,
@@ -64,7 +75,7 @@ export class MarblePhysics {
           .setFriction(0.55)
           .setRestitution(0.32),
       );
-      for (const rock of ROCKS) {
+      for (const rock of this.terrain.rocks) {
         const vertices = ROCK_VERTICES.map((v, i) => v * (i % 3 === 1 ? rock.height : rock.radius));
         const desc = RAPIER.ColliderDesc.convexHull(vertices);
         if (desc)
@@ -105,7 +116,7 @@ export class MarblePhysics {
     this.addBall(player, {
       x,
       y:
-        (this.flat ? 0 : terrainHeight(x, SERVE_Z)) +
+        (this.flat ? 0 : terrainHeight(x, SERVE_Z, this.terrain)) +
         (standing ? CONFIG.serveHeight : CONFIG.radius + 0.0001),
       z: SERVE_Z,
     });
@@ -125,7 +136,7 @@ export class MarblePhysics {
         : initial
           ? this.flat
             ? { x: 0, y: 1, z: 0 }
-            : groundNormal(pos.x, pos.z)
+            : groundNormal(pos.x, pos.z, this.terrain)
           : this.supportNormal(body);
     if (!n) return false;
     const dot = direction.x * n.x + direction.z * n.z;

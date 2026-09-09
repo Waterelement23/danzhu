@@ -66,6 +66,12 @@ async (page) => {
     const badgeA = await page.locator('.player.active').getAttribute('id'),
       badgeB = await other.locator('.player.active').getAttribute('id');
     if (badgeA !== badgeB) throw new Error('Browsers disagree about active player');
+    const terrainSeed = await page.locator('#scene').getAttribute('data-terrain-seed');
+    if (
+      terrainSeed === '0' ||
+      terrainSeed !== (await other.locator('#scene').getAttribute('data-terrain-seed'))
+    )
+      throw new Error('Browsers disagree about random terrain');
     await page.screenshot({ path: 'output/playwright/online-a.png', fullPage: true });
     await other.screenshot({ path: 'output/playwright/online-b.png', fullPage: true });
     if ((await second.locator('#fine-aim').getAttribute('open')) === null)
@@ -87,6 +93,30 @@ async (page) => {
     await other.waitForFunction(() =>
       document.querySelector('#round-label')?.textContent?.includes('02'),
     );
+    // End this match with a strong lateral shot, then both players request another match.
+    await first.locator('#angle').evaluate((e) => {
+      e.value = '90';
+      e.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await first.locator('#power').evaluate((e) => {
+      e.value = '100';
+      e.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await first.locator('#shoot').click();
+    await page.locator('#result').waitFor({ state: 'visible', timeout: 30000 });
+    await other.locator('#result').waitFor({ state: 'visible', timeout: 30000 });
+    await page.locator('#rematch').click();
+    await other.locator('#rematch').click();
+    await page.waitForFunction(
+      (old) => document.querySelector('#scene').dataset.terrainSeed !== old,
+      terrainSeed,
+    );
+    const newSeed = await page.locator('#scene').getAttribute('data-terrain-seed');
+    await other.waitForFunction(
+      (seed) => document.querySelector('#scene').dataset.terrainSeed === seed,
+      newSeed,
+    );
+    if (await page.locator('#result').isVisible()) throw new Error('Old result survived rematch');
     await other.locator('#leave').click();
     await page.waitForFunction(() => !document.querySelector('#result')?.hasAttribute('hidden'));
     await page.screenshot({ path: 'output/playwright/result.png', fullPage: true });
@@ -115,6 +145,8 @@ async (page) => {
       'both ready',
       'two serves and round transition',
       'same active player',
+      'both clients share random terrain',
+      'rematch changes terrain for both clients',
       'disconnect result',
       'mobile no overflow',
       'rules dialog',
