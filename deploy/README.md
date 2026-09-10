@@ -74,3 +74,9 @@ node --import tsx scripts/deployment-smoke.ts https://www.learntaskrevise.asia/d
 移动端对局采用全屏布局、回合自动放大与全景切换、底部瞄准区和固定像素轨迹。邀请使用 `/danzhu/?room=XXXXXXXX`；链接只含房间号，刷新原页面通过 sessionStorage 恢复本人席位。双方准备开局；再战需要双方接受，服务端规则和物理参数不变。
 
 部署代码提交 `cefb355`；镜像 digest `sha256:7739957ed7653e74ba3c3b4b3cf40d2e54863f035571295c13b3c1c9fbd95c80`。容器健康，Nginx 检查与热重载成功。公网七项冒烟检查、手机双页面邀请入房及身份/发球提示验证通过；同域名 `/exam` 与 `/health` 保持 200。
+
+## 2026-09-10 碰撞判胜修复
+
+当前发布目录 `/opt/danzhu/releases/20260910-hit-fix`，镜像 `danzhu:20260910-hit-fix`，代码提交 `f978689`。镜像 digest：`sha256:4aef7bc36b595030975e7c69ac8d5a1df748dc0a17014cd3399cbae13f581a7d`。保留 `20260910-mobile` 作为回滚版本。
+
+修复 Rapier 已产生接触响应但斜向碰撞未被胜负逻辑识别的问题。77 项测试及生产构建通过。公网用两名临时客户端执行合法发球和命中，双方收到完全一致的 `reason: hit`、获胜方与判定时间；容器健康，Nginx 检查及热重载成功。
