@@ -71,7 +71,9 @@ export async function online(
 ): Promise<GameTransport> {
   const endpoint =
     import.meta.env.VITE_SERVER_URL ||
-    (import.meta.env.DEV ? `${location.protocol}//${location.hostname}:2567` : location.origin);
+    (import.meta.env.DEV
+      ? `${location.protocol}//${location.hostname}:2567`
+      : new URL(import.meta.env.BASE_URL, location.origin).href);
   const client = new Client(endpoint);
   let room: Room;
   try {

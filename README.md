@@ -59,11 +59,13 @@ npm run build
 npm start
 ```
 
-生产构建将静态页面和服务器产物放到 `dist/`，Node 服务默认在 `2567` 同时提供页面与 WebSocket。可通过环境变量 `PORT` 修改监听端口。经支持 WebSocket 的反向代理提供 HTTPS/WSS 后，朋友才能通过公网访问；本次没有发布公网服务。
+生产构建将静态页面和服务器产物放到 `dist/`，Node 服务默认在 `2567` 同时提供页面与 WebSocket。可通过环境变量 `PORT` 修改监听端口。经支持 WebSocket 的反向代理提供 HTTPS/WSS 后，朋友才能通过公网访问。
 
-开发时客户端默认连当前主机的 `2567`；生产时连页面同源。如分开部署，可在构建时设置 `VITE_SERVER_URL=https://你的房间服务域名`。这些 URL 不是凭据。
+开发时客户端默认连当前主机的 `2567`；生产时连页面同源的构建子路径。如分开部署，可在构建时设置 `VITE_SERVER_URL=https://你的房间服务域名`。这些 URL 不是凭据。
 
 房间保存在单进程内存中，重启会丢失对局；未提供跨实例迁移、数据库、账号或匹配系统。首次加载练习模式会按需加载物理 WASM。
+
+已部署至 [公网试玩](https://www.learntaskrevise.asia/danzhu/)。Docker、已有 Nginx 的子路径转发、维护命令及回滚记录见 [部署说明](deploy/README.md)。
 
 ## 代码与设计
 

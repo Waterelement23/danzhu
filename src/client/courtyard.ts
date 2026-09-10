@@ -3,7 +3,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 /** Blender-authored surroundings. Gameplay geometry is loaded separately from shared data. */
 export async function loadCourtyard(): Promise<THREE.Group> {
-  const { scene } = await new GLTFLoader().loadAsync('/models/refined-courtyard.glb');
+  const { scene } = await new GLTFLoader().loadAsync(
+    `${import.meta.env.BASE_URL}models/refined-courtyard.glb`,
+  );
   scene.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
