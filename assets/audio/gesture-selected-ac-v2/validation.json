@@ -1,0 +1,69 @@
+{
+  "status": "offline revision; not integrated; user approval pending",
+  "source": {
+    "author": "Anthousai",
+    "url": "https://freesound.org/people/Anthousai/sounds/399008/",
+    "license": "CC0 1.0",
+    "sha256": "fd74095e08744fc54b356b0546aefe0fa791519f823a8f5b6ba7089b9e5f2425"
+  },
+  "processing": {
+    "sourceCut": [
+      1.7,
+      3.1
+    ],
+    "filters": "110Hz highpass / 6kHz lowpass",
+    "transients": "soft limiting relative to 45ms RMS, threshold 3.2x RMS",
+    "envelope": "100ms RMS stabilization, 60ms gain smoothing, gain bounded .45..2.2",
+    "stretchTempo": 0.56,
+    "cancel": "reverse last 0.50s of actual pull, atempo 1.35, gain .85 fading to .102, 22ms overlap",
+    "loops": false,
+    "pitchShift": false,
+    "bed100msRangeDb": 3.74
+  },
+  "combinedTimeline": {
+    "charge": [
+      0.3,
+      2.8
+    ],
+    "fire": 2.788,
+    "secondCharge": 4.9,
+    "cancelAt": 6.328
+  },
+  "files": {
+    "charge-continuous.wav": {
+      "seconds": 2.5,
+      "peakDbFS": -16.06,
+      "rmsDbFS": -29.43,
+      "sha256": "f6aaef0b2a5637e17f4ec50706c72d7e6c4b88afbc635c54217405d355548e86",
+      "clippedSamples": 0
+    },
+    "charge-cancel.wav": {
+      "seconds": 0.3741041666666667,
+      "peakDbFS": -20.97,
+      "rmsDbFS": -34.57,
+      "sha256": "e38959a6244a0e3531375d0f20273a7a424b7c8a78eef2cb94a9ac601c7ed26e",
+      "clippedSamples": 0
+    },
+    "charge-continuous-audition.wav": {
+      "seconds": 3.1,
+      "peakDbFS": -16.06,
+      "rmsDbFS": -30.37,
+      "sha256": "3aa31c67722cb6a4248c2d9030a946d49958e096ab36d833326d8d7894274fcf",
+      "clippedSamples": 0
+    },
+    "charge-cancel-audition.wav": {
+      "seconds": 2.8,
+      "peakDbFS": -17.72,
+      "rmsDbFS": -32.13,
+      "sha256": "b89350058c716d6a4da932d512391e9222833136e8db5869208972e73be4a04e",
+      "clippedSamples": 0
+    },
+    "gesture-audition.wav": {
+      "seconds": 8.0,
+      "peakDbFS": -8.0,
+      "rmsDbFS": -32.11,
+      "sha256": "bc11dac2dcc49b2270616de2464961098570711f31cdf02a709afe8348da2a04",
+      "clippedSamples": 0
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "status": "rejected by user: still too sharp; retained for comparison",
+  "source": {
+    "filename": "marble_tile_drop_and_rolling.wav",
+    "sha256": "fdac794a79b46f614cefcda3702ca1f7f2e8b7177b5eae152e8c2081710d28fe",
+    "surfaceBasis": "tile-like timbre per user; actual recording surface unverified",
+    "license": "not supplied; local audition only"
+  },
+  "sourceRange": [
+    2.02,
+    4.16
+  ],
+  "sampleRate": 48000,
+  "channels": 1,
+  "bitDepth": 16,
+  "targetRmsDbFSBeforeFades": -26.0,
+  "processing": "Rumble/resonance EQ; soft-friction variant additionally uses gentle compression; RMS comparison gain and 12 ms/40 ms edge fades; no pitch shift, time stretch, noise addition, transient slicing or looping",
+  "integratedInGame": false,
+  "clips": [
+    {
+      "filename": "earth-roll-previous.wav",
+      "duration": 2.14,
+      "peakDbFS": -13.1583876167229,
+      "rmsDbFS": -26.0709422295674,
+      "sha256": "841633b3e840fe855d351ff52817df5b610cfa2c67a23e91ee725002af246e45",
+      "filters": "highpass=f=100,equalizer=f=2200:t=q:w=0.7:g=-5,lowpass=f=1400:p=2",
+      "gainDb": 6.170712374860031,
+      "loop": false
+    },
+    {
+      "filename": "earth-roll-less-resonant.wav",
+      "duration": 2.14,
+      "peakDbFS": -10.872391895579128,
+      "rmsDbFS": -26.090970367258187,
+      "sha256": "93f6018a8b44579b4e1e0bf009ac1ff2b7c1d77b2c310fd47274fb5783ee0fd2",
+      "filters": "highpass=f=180:p=2,equalizer=f=1180:t=q:w=1.1:g=-10,equalizer=f=1900:t=q:w=0.8:g=-4,lowpass=f=3000:p=2",
+      "gainDb": 10.366186462271914,
+      "loop": false
+    },
+    {
+      "filename": "earth-roll-soft-friction.wav",
+      "duration": 2.14,
+      "peakDbFS": -12.486815874827686,
+      "rmsDbFS": -26.098968961624124,
+      "sha256": "d913ab3c9a06e76609f99dd581eb6e347c8712931d39ac9f2b5c307d1b90f497",
+      "filters": "highpass=f=240:p=2,equalizer=f=1180:t=q:w=1:g=-13,equalizer=f=1900:t=q:w=0.8:g=-5,lowpass=f=2400:p=2,acompressor=threshold=0.018:ratio=2.5:attack=2:release=65:makeup=1:knee=4",
+      "gainDb": 13.73693344870331,
+      "loop": false
+    },
+    {
+      "filename": "earth-roll-comparison.wav",
+      "duration": 9.07,
+      "peakDbFS": -10.872391895579128,
+      "rmsDbFS": -27.587667104725707,
+      "sha256": "6bf1778cdedfcc885001378eeae5775fb4c4cc2722ef99d9636767288cf32a8b",
+      "loop": false,
+      "sequence": [
+        "previous",
+        "less-resonant",
+        "soft-friction"
+      ],
+      "silenceBetweenSeconds": 0.8
+    }
+  ]
+}

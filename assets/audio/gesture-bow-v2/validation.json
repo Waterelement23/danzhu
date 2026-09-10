@@ -1,0 +1,109 @@
+{
+  "status": "v2 bow reference audition, not integrated; approval pending",
+  "sourceAuthor": "SonoFxAudio",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "sourcePages": [
+    "https://freesound.org/people/SonoFxAudio/sounds/649336/",
+    "https://freesound.org/people/SonoFxAudio/sounds/649335/"
+  ],
+  "sourceQuality": "public HQ MP3 previews, not original WAV",
+  "processing": "65Hz highpass, 9.5kHz lowpass, mono/48kHz, silence trim, gain, edge fades; no pitch shift or added synthetic layer",
+  "sources": {
+    "bow-draw-preview.mp3": {
+      "sha256": "78cc66985b2d11a0dab872487645a6f98155d49eef6ba782b4ab23807f4d5300",
+      "trimSeconds": [
+        0.035,
+        1.215
+      ],
+      "gainDb": -8.58,
+      "originalDecodedSeconds": 1.3750208333333334
+    },
+    "arrow-release-preview.mp3": {
+      "sha256": "35144a6c6cf5babb18d1bd41517f059b8213e740c0fb317eab4e2f603cef6b6d",
+      "trimSeconds": [
+        0.015,
+        0.365
+      ],
+      "gainDb": -7.214,
+      "originalDecodedSeconds": 0.6250208333333334
+    }
+  },
+  "combinedTimeline": [
+    {
+      "strength": "light",
+      "drawAt": 0.35,
+      "releaseAt": 1.518,
+      "gain": 0.55
+    },
+    {
+      "strength": "medium",
+      "drawAt": 3.35,
+      "releaseAt": 4.518,
+      "gain": 0.8
+    },
+    {
+      "strength": "strong",
+      "drawAt": 6.35,
+      "releaseAt": 7.518,
+      "gain": 1.0
+    }
+  ],
+  "files": {
+    "bow-charge.wav": {
+      "seconds": 1.18,
+      "peakDbFS": -9.0,
+      "rmsDbFS": -27.68,
+      "sha256": "e7b56a9ecc278445ef69c002d60b48d53756684224e929296a032f918769919b",
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ]
+    },
+    "bow-release.wav": {
+      "seconds": 0.35,
+      "peakDbFS": -6.85,
+      "rmsDbFS": -22.0,
+      "sha256": "feecc3830b3cbde05de403eaacc1d1bcbdc673e9fe425a69dfce951a274df798",
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ]
+    },
+    "bow-charge-audition.wav": {
+      "seconds": 6.0,
+      "peakDbFS": -9.0,
+      "rmsDbFS": -31.86,
+      "sha256": "a96cc414abb8fdddacf7d5138d46e10bd52520c20bf0000bef7810363c61af8a",
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ]
+    },
+    "bow-release-audition.wav": {
+      "seconds": 4.0,
+      "peakDbFS": -6.85,
+      "rmsDbFS": -29.7,
+      "sha256": "106e2651330f1053b4b5689936a63d793940f10ffb0b0696b4d6b3f992ccae23",
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ]
+    },
+    "bow-gesture-audition.wav": {
+      "seconds": 10.0,
+      "peakDbFS": -6.85,
+      "rmsDbFS": -30.86,
+      "sha256": "62cb616ab563e15a8c2f7c89032f451a2eaa5385aedce6adf727a3f70ad282f3",
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ]
+    }
+  }
+}

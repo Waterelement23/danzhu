@@ -1,0 +1,25 @@
+Marble/stone impacts: Two marbles colliding by D43thsilence.
+https://freesound.org/people/D43thsilence/sounds/755084/
+CC BY 4.0 https://creativecommons.org/licenses/by/4.0/
+Modified: right-channel extraction, resampling, trimming, gain, fades; stone variants also EQ and tail damping.
+
+Earth impacts: Sound effects obtained from https://www.zapsplat.com
+Small stone throw, land on dirt road and small stones 4. Edited cuts.
+https://www.zapsplat.com/music/small-stone-throw-land-on-dirt-road-and-small-stones-4/
+ZapSplat Standard License; embedded game effects, not a standalone stock sound download.
+
+Rolling sand layer: Gravel Stone Dirt Debris Falling Small 1 5 by Sheyvan, CC0 1.0.
+https://freesound.org/people/Sheyvan/sounds/569738/
+Rolling reference: user-provided marble_tile_drop_and_rolling.wav; source license not supplied.
+Rolling B: filtered source layers, sand-event attenuation and stationary spectral resynthesis.
+This integration is local; source license for rolling requires clarification before public distribution.
+
+Charge: rubber.wav by Anthousai, CC0 1.0.
+https://freesound.org/people/Anthousai/sounds/399008/
+Modified from public HQ MP3 preview: continuous stretch selection, peak softening, level stabilization, pitch-preserving time stretch and fades. Runtime overlapping windows follow increasing pull; cancellation adds no sound.
+
+Launch: Slingshot by renne100, CC0 1.0.
+https://freesound.org/people/renne100/sounds/353033/
+Modified from public HQ MP3 preview: trimmed release transient, filtering, gain and fades.
+CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+Selected processing chain: assets/audio/gesture-selected-ac-v4/README.md

@@ -1,0 +1,126 @@
+{
+  "status": "timbre accepted by user; source contains far-near-far motion; audition only, not a runtime rolling loop",
+  "sources": {
+    "rolling": {
+      "filename": "marble_tile_drop_and_rolling.wav",
+      "sourceRange": [
+        2.02,
+        4.16
+      ],
+      "license": "not supplied; local audition only",
+      "surfaceBasis": "tile-like per user; actual recording surface unverified",
+      "filters": "highpass=f=140:p=2,equalizer=f=1180:t=q:w=1:g=-8,lowpass=f=750:p=2,lowpass=f=750:p=2",
+      "sha256": "fdac794a79b46f614cefcda3702ca1f7f2e8b7177b5eae152e8c2081710d28fe"
+    },
+    "sand": {
+      "filename": "569738__sheyvan__gravel-stone-dirt-debris-falling-small-1-5.wav",
+      "sourceRange": [
+        0.15,
+        2.29
+      ],
+      "author": "Sheyvan",
+      "license": "CC0 1.0",
+      "url": "https://freesound.org/people/Sheyvan/sounds/569738/",
+      "recordedObject": "falling gravel/stone/dirt debris; texture layer, not marble rolling",
+      "filters": "highpass=f=180:p=2,lowpass=f=1500:p=2,lowpass=f=1500:p=2,acompressor=threshold=0.003:ratio=4:attack=0.5:release=45:knee=4:makeup=1",
+      "sha256": "fd5fd0ddb6c7a3aceb9935bdc3ba4b2160132e1adf31052bc06bf4abf6319f9d"
+    }
+  },
+  "sampleRate": 48000,
+  "channels": 1,
+  "bitDepth": 16,
+  "integratedInGame": false,
+  "processing": "Continuous rolling tail with fourth-order 750 Hz low-pass; falling-sand texture low-passed at 1500 Hz, with additional envelope attenuation of louder events. Lower rolling level retained: no final loudness normalization. No loop, time stretch, pitch shift or synthetic noise.",
+  "clips": [
+    {
+      "filename": "earth-roll-low-friction.wav",
+      "duration": 2.14,
+      "rmsDbFS": -33.1287784931572,
+      "peakDbFS": -19.598233088351986,
+      "sha256": "b1fec7de50897461623b36a4a2ed951287fcaa058d4692ce8fbaffbbeb7f87f5",
+      "loop": false,
+      "rollingTargetRmsDbFS": -33,
+      "allowDirectLoop": false
+    },
+    {
+      "filename": "earth-roll-previous-light-sand.wav",
+      "duration": 2.14,
+      "rmsDbFS": -32.19574989745448,
+      "peakDbFS": -17.9895560186939,
+      "sha256": "cda118f3d814d9cfb1a06f45c98d4097167aebc575a3e2feb19368db6d92ea5a",
+      "loop": false,
+      "purpose": "unchanged previous light-sand mix",
+      "allowDirectLoop": false
+    },
+    {
+      "filename": "earth-roll-soft-sand.wav",
+      "duration": 2.14,
+      "rmsDbFS": -32.61272879781912,
+      "peakDbFS": -19.42230476166626,
+      "sha256": "dbad09c41c7ac730edf0afbdda4a5cf22a1963f24a5d587a9dd8eb781a4cc597",
+      "loop": false,
+      "purpose": "same rolling bed, quieter sand impacts; no makeup gain",
+      "allowDirectLoop": false,
+      "reviewStatus": "timbre accepted; contains recorded pass-by motion, not runtime-ready"
+    },
+    {
+      "filename": "sand-layer-before.wav",
+      "duration": 2.14,
+      "rmsDbFS": -39.1703826200609,
+      "peakDbFS": -19.17257794986099,
+      "sha256": "aa2ed68de654453f30a5e01404377a0d7077900f360b9590f6758faffbf168dc",
+      "loop": false,
+      "purpose": "diagnostic isolated layer, not a rolling asset",
+      "allowDirectLoop": false
+    },
+    {
+      "filename": "sand-layer-after.wav",
+      "duration": 2.14,
+      "rmsDbFS": -42.24141524846826,
+      "peakDbFS": -26.76726462092465,
+      "sha256": "985a08f8345b255119e1943ba77adbcb608e261f071b3102bd5f141daa5db07e",
+      "loop": false,
+      "purpose": "diagnostic isolated layer, not a rolling asset",
+      "allowDirectLoop": false
+    },
+    {
+      "filename": "earth-roll-soft-sand-comparison.wav",
+      "duration": 5.63,
+      "rmsDbFS": -33.58988310578578,
+      "peakDbFS": -17.9895560186939,
+      "sha256": "e858212ac498a11b1cf9aee1e85dc337547316ce682bdfa73ef0c8986837450e",
+      "loop": false,
+      "sequence": [
+        "previous-light-sand",
+        "soft-sand"
+      ],
+      "silenceBetweenSeconds": 0.8,
+      "allowDirectLoop": false
+    }
+  ],
+  "rollingGainDb": 3.696927966199902,
+  "sandTransientControl": {
+    "referenceSandRmsDbFS": -39,
+    "sandGainDbBeforeAttenuation": 24.487925874377442,
+    "envelopeWindowMs": 10,
+    "thresholdPercentile": 65,
+    "thresholdDbFS": -40.56063529938661,
+    "attenuationExponent": 0.85,
+    "maxAttenuationDb": 18,
+    "gainSmoothingMs": 5,
+    "actualMaxAttenuationDb": 12.166094108848743,
+    "beforeRmsDbFS": -39.0,
+    "afterRmsDbFS": -42.08194725435878,
+    "peakReductionDb": 7.715285190281637,
+    "makeupGain": false
+  },
+  "playbackConstraints": {
+    "timbreReview": "acceptable per user",
+    "sourceMotion": "far-near-far, identified by user in original recording and derivatives",
+    "runtimeReady": false,
+    "allowDirectLoop": false,
+    "reason": "Recorded approach/recession would repeat independently of the marble position.",
+    "requiredPreparation": "Create sufficiently steady close-perspective rolling textures; do not merely crossfade the full pass-by recording. Validate sustained fixed-distance playback before integration.",
+    "runtimeControl": "Distance and pan from rendered world-space positions; rolling intensity from speed, surface and contact state. Fade rolling out during airborne or stopped states."
+  }
+}

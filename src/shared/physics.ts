@@ -10,7 +10,7 @@ import {
   shotSpeed,
 } from './map';
 import { ROCK_VERTICES } from './map';
-import type { BallState, Player, Result, Vec3 } from './types';
+import type { BallState, ImpactSound, Player, Result, Vec3 } from './types';
 let initialization: Promise<void> | undefined;
 export function initPhysics() {
   return (initialization ??= RAPIER.init());
@@ -51,6 +51,16 @@ export class MarblePhysics {
   private queue = new RAPIER.EventQueue(true);
   private colliders = new Map<number, Player>();
   private flat: boolean;
+  private stones = new Set<number>();
+  private audioContacts = new Set<string>();
+  private lastSound = new Map<string, number>();
+  private audioClock = 0;
+  private impacts: Omit<ImpactSound, 'id'>[] = [];
+  takeImpacts() {
+    const impacts = this.impacts;
+    this.impacts = [];
+    return impacts;
+  }
   readonly terrain: TerrainData;
   constructor(options: { flat?: boolean; restitution?: number; terrain?: TerrainData } = {}) {
     this.flat = !!options.flat;
@@ -79,8 +89,10 @@ export class MarblePhysics {
         const vertices = ROCK_VERTICES.map((v, i) => v * (i % 3 === 1 ? rock.height : rock.radius));
         const desc = RAPIER.ColliderDesc.convexHull(vertices);
         if (desc)
-          this.world.createCollider(
-            desc.setTranslation(rock.x, rock.y, rock.z).setFriction(0.45).setRestitution(0.5),
+          this.stones.add(
+            this.world.createCollider(
+              desc.setTranslation(rock.x, rock.y, rock.z).setFriction(0.45).setRestitution(0.5),
+            ).handle,
           );
       }
     }
@@ -155,13 +167,21 @@ export class MarblePhysics {
     );
     return true;
   }
-  states(): BallState[] {
-    return [...this.bodies].map(([player, b]) => ({
-      player,
-      position: { ...b.translation() },
-      rotation: { ...b.rotation() },
-      velocity: { ...b.linvel() },
-    }));
+  states(withSupport = true): BallState[] {
+    return [...this.bodies].map(([player, b]) => {
+      const n = withSupport ? this.supportNormal(b) : null;
+      const v = b.linvel();
+      const normalSpeed = n ? v.x * n.x + v.y * n.y + v.z * n.z : 0;
+      const grounded = !!n && Math.abs(normalSpeed) < 0.2;
+      return {
+        player,
+        position: { ...b.translation() },
+        rotation: { ...b.rotation() },
+        velocity: { ...v },
+        grounded,
+        rollingSpeed: grounded ? Math.sqrt(Math.max(0, length(v) ** 2 - normalSpeed ** 2)) : 0,
+      };
+    });
   }
   private supportNormal(body: RAPIER.RigidBody): Vec3 | null {
     let best: Vec3 | null = null;
@@ -199,6 +219,81 @@ export class MarblePhysics {
       body.setAngvel({ x: w.x * wFactor, y: w.y * wFactor, z: w.z * wFactor }, false);
     }
   }
+  private collectImpacts(before: BallState[], offset: number, h: number) {
+    this.audioClock += h;
+    const touching = new Set<string>();
+    for (const ball of before) {
+      const collider = this.bodies.get(ball.player)!.collider(0);
+      this.world.contactPairsWith(collider, (other) => {
+        const otherPlayer = this.colliders.get(other.handle);
+        if (otherPlayer !== undefined && ball.player > otherPlayer) return;
+        const key = [collider.handle, other.handle].sort((a, b) => a - b).join(':');
+        let speed = 0,
+          actual = false;
+        this.world.contactPair(collider, other, (m, flipped) => {
+          const n = m.normal(),
+            sign = flipped ? -1 : 1;
+          const v = before.find((b) => b.player === otherPlayer)?.velocity ?? { x: 0, y: 0, z: 0 };
+          const after = this.bodies.get(ball.player)!.linvel();
+          const otherAfter =
+            otherPlayer === undefined
+              ? { x: 0, y: 0, z: 0 }
+              : this.bodies.get(otherPlayer)!.linvel();
+          const approach =
+            sign *
+            ((ball.velocity.x - v.x) * n.x +
+              (ball.velocity.y - v.y) * n.y +
+              (ball.velocity.z - v.z) * n.z);
+          // CCD can discard solver impulses after resolving a trimesh contact.
+          // Use the measured velocity response (gravity removed) as corroboration.
+          const response =
+            sign *
+            ((after.x - otherAfter.x - ball.velocity.x + v.x) * n.x +
+              (after.y -
+                otherAfter.y -
+                ball.velocity.y +
+                v.y +
+                (otherPlayer === undefined ? CONFIG.gravity * h : 0)) *
+                n.y +
+              (after.z - otherAfter.z - ball.velocity.z + v.z) * n.z);
+          for (let i = 0; i < m.numContacts(); i++) {
+            if (
+              m.contactDist(i) > 0.000005 &&
+              m.contactImpulse(i) <= 1e-8 &&
+              !(m.contactDist(i) < 0.03 && response < -0.04)
+            )
+              continue;
+            actual = true;
+            speed = Math.max(speed, approach);
+          }
+        });
+        if (!actual) return;
+        touching.add(key);
+        if (
+          this.audioContacts.has(key) ||
+          speed < 0.12 ||
+          this.audioClock - (this.lastSound.get(key) ?? -Infinity) < 0.055
+        )
+          return;
+        this.lastSound.set(key, this.audioClock);
+        this.impacts.push({
+          time: offset,
+          player: ball.player,
+          position: { ...this.bodies.get(ball.player)!.translation() },
+          speed,
+          kind:
+            otherPlayer !== undefined
+              ? 'marble'
+              : this.stones.has(other.handle)
+                ? 'stone'
+                : 'earth',
+        });
+        // Preview/direct-physics callers need not consume this optional event stream.
+        if (this.impacts.length > 64) this.impacts.shift();
+      });
+    }
+    this.audioContacts = touching;
+  }
   /** Continuous swept candidates select microsteps near hits/bounds; timing resolution <0.1 ms. */
   step(
     dt: number,
@@ -209,25 +304,32 @@ export class MarblePhysics {
     let elapsed = 0,
       first: Result | null = null;
     while (elapsed < Math.max(dt, first ? first.time + EPS_TIME : 0) - 1e-10) {
-      const before = this.states();
+      const before = this.states(false);
       const remaining = first ? Math.max(0, first.time + EPS_TIME - elapsed) : dt - elapsed;
       if (remaining < 1e-10) return first;
-      let sensitive = before.some(
-        (b) =>
-          bound - Math.max(Math.abs(b.position.x), Math.abs(b.position.z)) <
-          length(b.velocity) * remaining + 0.002,
-      );
-      if (before.length === 2) {
+      const adjudicate = options?.adjudicate !== false;
+      let sensitive =
+        adjudicate &&
+        before.some(
+          (b) =>
+            bound - Math.max(Math.abs(b.position.x), Math.abs(b.position.z)) <
+            length(b.velocity) * remaining + 0.002,
+        );
+      if (adjudicate && before.length === 2) {
         const a = before[0],
           b = before[1];
-        sensitive ||=
-          Math.hypot(
-            a.position.x - b.position.x,
-            a.position.y - b.position.y,
-            a.position.z - b.position.z,
-          ) <
-          2 * CONFIG.radius + (length(a.velocity) + length(b.velocity)) * remaining + 0.004;
+        // Refine an imminent relative sweep, not mere proximity. Two nearby
+        // parallel/separating balls must not force 128 full terrain solves.
+        // Equal gravity cancels in relative motion. Re-evaluate after every
+        // ordinary substep so terrain-induced changes can refine the next one.
+        const end = (ball: BallState): Vec3 => ({
+          x: ball.position.x + ball.velocity.x * remaining,
+          y: ball.position.y + ball.velocity.y * remaining,
+          z: ball.position.z + ball.velocity.z * remaining,
+        });
+        sensitive ||= sweep(a.position, end(a), b.position, end(b)) !== null;
       }
+      if (first) sensitive = true; // Preserve the 0.1ms simultaneous-result window.
       const h = Math.min(remaining, sensitive ? CONFIG.dt / 128 : CONFIG.dt / 2);
       this.resistance(h);
       this.world.timestep = h;
@@ -241,7 +343,8 @@ export class MarblePhysics {
           });
         }
       });
-      const after = this.states();
+      this.collectImpacts(before, elapsed + h, h);
+      const after = this.states(false);
       const events: Result[] = [];
       for (let i = 0; i < before.length; i++) {
         const t = crossing(before[i].position, after[i].position, bound);

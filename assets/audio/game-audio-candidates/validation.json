@@ -1,0 +1,32 @@
+{
+  "loopMetrics": [
+    {
+      "file": "earth-loop-a-smooth.wav",
+      "halfSecondRmsRangeDb": 0.402,
+      "seamDelta": 0.00067140720847194,
+      "within99_9PercentileDelta": true
+    },
+    {
+      "file": "earth-loop-b-fine-sand.wav",
+      "halfSecondRmsRangeDb": 0.406,
+      "seamDelta": 0.0010071108127079073,
+      "within99_9PercentileDelta": true
+    },
+    {
+      "file": "earth-loop-c-grainy.wav",
+      "halfSecondRmsRangeDb": 0.685,
+      "seamDelta": 0.0006408886989959436,
+      "within99_9PercentileDelta": true
+    }
+  ],
+  "wavCount": 15,
+  "subjectiveReview": {
+    "date": "2026-09-10",
+    "status": "accepted in offline audition",
+    "rollingFeedback": "用户未听出机械重复感或忽远忽近，感觉比较自然。",
+    "stoneFeedback": "用户认为碰石声比较像碰石头。",
+    "selectedRollingVariant": null,
+    "scope": "A/B/C rolling candidates retained; no preferred variant selected; in-game behavior not yet tested"
+  },
+  "inGameReview": "not yet integrated or tested"
+}

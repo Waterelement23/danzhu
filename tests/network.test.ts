@@ -53,6 +53,16 @@ it('two real clients join, ready, serve and receive same authoritative state', a
   const actor = s.active === 0 ? a : b;
   const movedA = waitMessage<GameSnapshot>(a, 'snapshot', (x) => x.phase === 'moving');
   const movedB = waitMessage<GameSnapshot>(b, 'snapshot', (x) => x.phase === 'moving');
+  const soundA = waitMessage<GameSnapshot>(
+    a,
+    'snapshot',
+    (x) => !!x.sounds?.some((e) => e.kind === 'earth'),
+  );
+  const soundB = waitMessage<GameSnapshot>(
+    b,
+    'snapshot',
+    (x) => !!x.sounds?.some((e) => e.kind === 'earth'),
+  );
   actor.send('shot', {
     id: 'test-shot',
     match: s.match,
@@ -67,6 +77,13 @@ it('two real clients join, ready, serve and receive same authoritative state', a
   expect(sa.active).toBe(sb.active);
   expect(sa.balls).toEqual(sb.balls);
   expect(sa.served[sa.active]).toBe(true);
+  const [audibleA, audibleB] = await Promise.all([soundA, soundB]);
+  expect(audibleA.sounds).toEqual(audibleB.sounds);
+  expect(sa.sounds).toEqual(sb.sounds);
+  expect(sa.sounds?.filter((e) => e.kind === 'launch')).toHaveLength(1);
+  expect(audibleA.sounds![0].time).toBeLessThanOrEqual(audibleA.time);
+  const earth = audibleA.sounds!.find((e) => e.kind === 'earth')!;
+  expect(earth.kind !== 'launch' && earth.speed > 0).toBe(true);
   await expect(client.joinById(a.roomId, version)).rejects.toThrow();
   const invalid = waitMessage<{ ok: boolean }>(actor, 'action');
   actor.send('shot', { id: 'invalid', power: Infinity });

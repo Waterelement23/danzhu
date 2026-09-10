@@ -1,0 +1,40 @@
+{
+  "status": "audition only; not selected or integrated",
+  "sourceQuality": "public HQ MP3 previews",
+  "processing": "mono 48kHz, whole-clip gain targeting active RMS -24dBFS with peak cap -6dBFS, 3ms edge fades; no EQ/pitch/time edits",
+  "files": {
+    "slingshot-a-audition.wav": {
+      "author": "renne100",
+      "source": "https://freesound.org/people/renne100/sounds/353033/",
+      "license": "CC0 1.0",
+      "duration": 0.9869,
+      "gainDb": -13.33,
+      "peakDbFS": -8.9,
+      "clippedSamples": 0,
+      "sourceSha256": "6bf68736792fe540b3b025b68a4430219e2916573009e94c4cc9f2c5a6f147a9",
+      "sha256": "e5baa464d708e089c25c494afd637acd659f7232c2091f8d88936162b849287c"
+    },
+    "slingshot-b-audition.wav": {
+      "author": "olver",
+      "source": "https://freesound.org/people/olver/sounds/513934/",
+      "license": "CC0 1.0",
+      "duration": 2.6765,
+      "gainDb": -8.6,
+      "peakDbFS": -6.11,
+      "clippedSamples": 0,
+      "sourceSha256": "8e4f9ef95ce3b06fdf2c67b292e17fe75aa909dfc6c103c2a594dc39661da9a9",
+      "sha256": "4f6b80f56f1c58fb79c4ea2a0bfb993b0e7711c8be7ef61c00ef3d3602020f1a"
+    },
+    "rubber-stretch-audition.wav": {
+      "author": "Anthousai",
+      "source": "https://freesound.org/people/Anthousai/sounds/399008/",
+      "license": "CC0 1.0",
+      "duration": 7.6959,
+      "gainDb": 1.24,
+      "peakDbFS": -6.0,
+      "clippedSamples": 0,
+      "sourceSha256": "fd74095e08744fc54b356b0546aefe0fa791519f823a8f5b6ba7089b9e5f2425",
+      "sha256": "faa08908d875b8190f60e0a4347f50d530fd6146f7627eab7e1688405fb48cbe"
+    }
+  }
+}

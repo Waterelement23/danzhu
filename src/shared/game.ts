@@ -8,7 +8,7 @@ import {
   nextTerrainSeed,
 } from './map';
 import { MarblePhysics } from './physics';
-import type { ActionResult, GameSnapshot, Player, Result, Shot } from './types';
+import type { ActionResult, GameSnapshot, GameSound, Player, Result, Shot } from './types';
 const other = (p: Player) => (1 - p) as Player;
 export class MarbleGame {
   physics: MarblePhysics;
@@ -20,6 +20,13 @@ export class MarbleGame {
   private timeouts: [number, number] = [0, 0];
   private entered = false;
   private afterResult = 0;
+  private soundId = 0;
+  private sounds: GameSound[] = [];
+  private collectSounds(startTime: number) {
+    for (const sound of this.physics.takeImpacts())
+      this.sounds.push({ ...sound, id: ++this.soundId, time: startTime + sound.time });
+    this.sounds = this.sounds.filter((s) => this.state.time - s.time < 2).slice(-64);
+  }
   constructor(
     first: Player = Math.random() < 0.5 ? 0 : 1,
     match = 1,
@@ -54,6 +61,7 @@ export class MarbleGame {
       served: [...this.state.served],
       result: this.state.result ? { ...this.state.result } : null,
       balls: this.physics.states(),
+      sounds: this.sounds.map((s) => ({ ...s, position: { ...s.position } })),
       nextBoundary: this.nextBoundary(),
     };
   }
@@ -104,6 +112,15 @@ export class MarbleGame {
     this.stable = 0;
     this.state.phase = 'moving';
     this.state.secondsLeft = 0;
+    this.sounds.push({
+      id: ++this.soundId,
+      time: this.state.time,
+      kind: 'launch',
+      player,
+      position: { ...this.physics.bodies.get(player)!.translation() },
+      power: s.power,
+    });
+    this.sounds = this.sounds.filter((s) => this.state.time - s.time < 2).slice(-64);
     return { ok: true };
   }
   tick(dt: number, paused = false) {
@@ -112,6 +129,7 @@ export class MarbleGame {
     if (this.state.phase === 'finished') {
       if (this.afterResult < 8 && !this.physics.settled()) {
         this.physics.step(Math.min(dt, CONFIG.dt), 100, this.state.active, { adjudicate: false });
+        this.collectSounds(this.state.time - dt);
         this.afterResult += dt;
       }
       return;
@@ -123,6 +141,7 @@ export class MarbleGame {
         this.state.boundary,
         this.state.active,
       );
+      this.collectSounds(startTime);
       if (event) {
         this.finish({ ...event, time: startTime + event.time });
         return;
@@ -218,6 +237,8 @@ export class MarbleGame {
       time: 0,
       result: null,
     };
+    this.sounds = [];
+    this.soundId = 0;
     this.seen.clear();
     this.timeouts = [0, 0];
     this.stable = 0;

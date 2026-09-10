@@ -1,0 +1,102 @@
+{
+  "status": "A selected for release, C selected for charge; processed timbre pending audition, not integrated",
+  "sourceQuality": "Public HQ MP3 previews, not original WAV",
+  "sourceHashes": {
+    "rubber-stretch.mp3": "fd74095e08744fc54b356b0546aefe0fa791519f823a8f5b6ba7089b9e5f2425",
+    "slingshot-a.mp3": "6bf68736792fe540b3b025b68a4430219e2916573009e94c4cc9f2c5a6f147a9"
+  },
+  "sources": {
+    "release": {
+      "author": "renne100",
+      "url": "https://freesound.org/people/renne100/sounds/353033/",
+      "license": "CC0 1.0"
+    },
+    "charge": {
+      "author": "Anthousai",
+      "url": "https://freesound.org/people/Anthousai/sounds/399008/",
+      "license": "CC0 1.0"
+    }
+  },
+  "processing": {
+    "chargeCuts": [
+      [
+        0.8,
+        3.2
+      ],
+      [
+        5.5,
+        7.22
+      ]
+    ],
+    "chargeFilters": "110Hz highpass, 6.5kHz lowpass, 4:1 fast transient compression (threshold .025, attack .3ms, release 35ms)",
+    "releaseCut": [
+      0.407,
+      0.637
+    ],
+    "releaseFilters": "90Hz highpass, 8.5kHz lowpass",
+    "constantGainsDb": [
+      11.932477815270893,
+      10.53273518624312,
+      -13.288760755179725
+    ],
+    "quickTempo": 1.65,
+    "pitchShift": false,
+    "combinedReleaseTimes": [
+      1.3896666666666668,
+      5.388000000000001
+    ],
+    "cancelAt": 7.7,
+    "cancelEnds": 8.35
+  },
+  "files": {
+    "charge-main.wav": {
+      "seconds": 2.4,
+      "peakDbFS": -12.0,
+      "rmsDbFS": -30.03,
+      "clippedSamples": 0,
+      "sha256": "1df37531e1ec6f2060e94da76074fd3fa0b81a7d0898025eb65772f700878d81"
+    },
+    "charge-alternate.wav": {
+      "seconds": 1.72,
+      "peakDbFS": -12.0,
+      "rmsDbFS": -31.64,
+      "clippedSamples": 0,
+      "sha256": "dcf46a0fab8466400be5bf222ea96754f98e8d904a682d09407af4fdb79f1d95"
+    },
+    "charge-quick.wav": {
+      "seconds": 1.0516666666666667,
+      "peakDbFS": -12.0,
+      "rmsDbFS": -32.14,
+      "clippedSamples": 0,
+      "sha256": "a31a7fac1617adf893ac361afb068ef9e1d897aced2ed4cd8cb4fefd19e608e6"
+    },
+    "release.wav": {
+      "seconds": 0.23,
+      "peakDbFS": -8.0,
+      "rmsDbFS": -28.05,
+      "clippedSamples": 0,
+      "sha256": "17feae48b4726b85e521b8136d1a66f22447f248555adbf6ba57a2a8a086f7fc"
+    },
+    "charge-audition.wav": {
+      "seconds": 7.0,
+      "peakDbFS": -12.0,
+      "rmsDbFS": -33.65,
+      "clippedSamples": 0,
+      "sha256": "4c9e505992ba80a5b837aa5e4dcc4644c3b54ae3e482aa21800bb03c8d915820"
+    },
+    "release-audition.wav": {
+      "seconds": 3.0,
+      "peakDbFS": -8.0,
+      "rmsDbFS": -36.2,
+      "clippedSamples": 0,
+      "sha256": "9cc93fb24d3ac33659f8eee24d3ca5b95d5647e056bfceb537898276dc622608"
+    },
+    "gesture-audition.wav": {
+      "seconds": 10.0,
+      "peakDbFS": -8.0,
+      "rmsDbFS": -34.45,
+      "clippedSamples": 0,
+      "sha256": "4dd1bec322337c6d4c7b35f9090379648b1637acef0f93dc37a91a6ca084342f"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "status": "user likes direction; sand impacts too prominent, revision requested",
+  "sources": {
+    "rolling": {
+      "filename": "marble_tile_drop_and_rolling.wav",
+      "sourceRange": [
+        2.02,
+        4.16
+      ],
+      "license": "not supplied; local audition only",
+      "surfaceBasis": "tile-like per user; actual recording surface unverified",
+      "filters": "highpass=f=140:p=2,equalizer=f=1180:t=q:w=1:g=-8,lowpass=f=750:p=2,lowpass=f=750:p=2",
+      "sha256": "fdac794a79b46f614cefcda3702ca1f7f2e8b7177b5eae152e8c2081710d28fe"
+    },
+    "sand": {
+      "filename": "569738__sheyvan__gravel-stone-dirt-debris-falling-small-1-5.wav",
+      "sourceRange": [
+        0.15,
+        2.29
+      ],
+      "author": "Sheyvan",
+      "license": "CC0 1.0",
+      "url": "https://freesound.org/people/Sheyvan/sounds/569738/",
+      "recordedObject": "falling gravel/stone/dirt debris; texture layer, not marble rolling",
+      "filters": "highpass=f=180:p=2,lowpass=f=1500:p=2,lowpass=f=1500:p=2,acompressor=threshold=0.003:ratio=4:attack=0.5:release=45:knee=4:makeup=1",
+      "sha256": "fd5fd0ddb6c7a3aceb9935bdc3ba4b2160132e1adf31052bc06bf4abf6319f9d"
+    }
+  },
+  "sampleRate": 48000,
+  "channels": 1,
+  "bitDepth": 16,
+  "integratedInGame": false,
+  "processing": "Continuous rolling tail with fourth-order 750 Hz low-pass; falling-sand texture low-passed at 1500 Hz with softened peaks. Lower rolling level retained: no final loudness normalization. No loop, time stretch, pitch shift or synthetic noise.",
+  "clips": [
+    {
+      "filename": "earth-roll-low-friction.wav",
+      "duration": 2.14,
+      "rmsDbFS": -33.1287784931572,
+      "peakDbFS": -19.598233088351986,
+      "sha256": "b1fec7de50897461623b36a4a2ed951287fcaa058d4692ce8fbaffbbeb7f87f5",
+      "loop": false,
+      "rollingTargetRmsDbFS": -33
+    },
+    {
+      "filename": "earth-roll-light-sand.wav",
+      "duration": 2.14,
+      "rmsDbFS": -32.19574989745448,
+      "peakDbFS": -17.9895560186939,
+      "sha256": "cda118f3d814d9cfb1a06f45c98d4097167aebc575a3e2feb19368db6d92ea5a",
+      "loop": false,
+      "rollingTargetRmsDbFS": -33,
+      "sandTargetRmsDbFS": -39,
+      "sandGainDb": 24.487925874377442
+    },
+    {
+      "filename": "earth-roll-more-sand.wav",
+      "duration": 2.14,
+      "rmsDbFS": -31.05926040969441,
+      "peakDbFS": -14.616120888321724,
+      "sha256": "168c39d11758d2b99290c76880c6edc1d4d9bcc5326d13b0175b4bb63c31290c",
+      "loop": false,
+      "rollingTargetRmsDbFS": -33,
+      "sandTargetRmsDbFS": -35,
+      "sandGainDb": 28.487925874377446
+    },
+    {
+      "filename": "earth-roll-layered-comparison.wav",
+      "duration": 9.07,
+      "rmsDbFS": -33.54596229381382,
+      "peakDbFS": -14.616120888321724,
+      "sha256": "9924eac364eec03af34d023e5ae826bfd6077ee25a64009123039bf87115eda6",
+      "loop": false,
+      "sequence": [
+        "low-friction",
+        "light-sand",
+        "more-sand"
+      ],
+      "silenceBetweenSeconds": 0.8
+    }
+  ],
+  "rollingGainDb": 3.696927966199902
+}

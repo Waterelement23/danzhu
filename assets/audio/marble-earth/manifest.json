@@ -1,0 +1,350 @@
+{
+  "status": "impact cuts accepted; all gravel-based rolling candidates rejected: falling-grain impacts do not match marble rolling on dirt",
+  "surface": "dry-earth",
+  "sampleRate": 48000,
+  "channels": 1,
+  "sources": {
+    "impact": {
+      "filename": "zapsplat_foley_stone_small_land_on_dirt_road_small_stones_004_23358.mp3",
+      "author": "ZapSplat",
+      "url": "https://www.zapsplat.com/music/small-stone-throw-land-on-dirt-road-and-small-stones-4/",
+      "license": "ZapSplat Standard License (Basic download; attribution required)",
+      "credit": "Sound effects obtained from https://www.zapsplat.com",
+      "recordedObject": "small stone landing on dirt road and small stones",
+      "sha256": "c347cbabc6772cb8ecf025f2bfa7de8051228bd34a0cb64e10781d12f1f16376",
+      "decodedDuration": 0.521375
+    },
+    "grit": {
+      "filename": "569738__sheyvan__gravel-stone-dirt-debris-falling-small-1-5.wav",
+      "author": "Sheyvan",
+      "url": "https://freesound.org/people/Sheyvan/sounds/569738/",
+      "license": "CC0 1.0",
+      "credit": "Gravel Stone Dirt Debris Falling Small 1 5 by Sheyvan (Freesound, CC0)",
+      "recordedObject": "small falling gravel / dirt / stone debris",
+      "sha256": "fd5fd0ddb6c7a3aceb9935bdc3ba4b2160132e1adf31052bc06bf4abf6319f9d",
+      "decodedDuration": 2.5706458333333333
+    }
+  },
+  "processing": "mono 48 kHz PCM16; impacts/details retain previous processing; rolling uses unfiltered source at original gain, no pitch change, denoising or compression",
+  "rolling": {
+    "status": "rejected by user; retained for processing history only",
+    "basis": "Earlier feedback favored preserving continuous detail; latest louder audition rejects the source because falling-grain impacts do not match a glass marble rolling on dirt.",
+    "naturalFile": "earth-roll-natural.wav",
+    "rejectedLoopFile": "earth-roll-loop.wav",
+    "auditionFile": "earth-roll-varied-audition.wav",
+    "method": "Long continuous source windows with varied lengths/offsets and equal-power crossfades; no fixed short loop"
+  },
+  "clips": [
+    {
+      "filename": "earth-impact-01.wav",
+      "duration": 0.091,
+      "peakDbFS": -4.0,
+      "source": "impact",
+      "sourceRange": [
+        0.029,
+        0.12
+      ],
+      "gainDb": -3.23,
+      "attackMs": 1,
+      "releaseMs": 12,
+      "loop": false,
+      "reviewStatus": "accepted by user; unchanged"
+    },
+    {
+      "filename": "earth-impact-02.wav",
+      "duration": 0.074,
+      "peakDbFS": -5.17,
+      "source": "impact",
+      "sourceRange": [
+        0.167,
+        0.241
+      ],
+      "gainDb": -3.23,
+      "attackMs": 1,
+      "releaseMs": 12,
+      "loop": false,
+      "reviewStatus": "accepted by user; unchanged"
+    },
+    {
+      "filename": "earth-impact-03.wav",
+      "duration": 0.069,
+      "peakDbFS": -12.15,
+      "source": "impact",
+      "sourceRange": [
+        0.254,
+        0.323
+      ],
+      "gainDb": -3.23,
+      "attackMs": 1,
+      "releaseMs": 12,
+      "loop": false,
+      "reviewStatus": "accepted by user; unchanged"
+    },
+    {
+      "filename": "earth-impact-audition.wav",
+      "duration": 3.968,
+      "peakDbFS": -4.0,
+      "purpose": "Each independent cut played twice with silent gaps; audition only, not an in-game sequence",
+      "source": "impact",
+      "loop": false,
+      "reviewStatus": "accepted by user; unchanged"
+    },
+    {
+      "filename": "earth-grit-01.wav",
+      "duration": 0.096,
+      "peakDbFS": -15.97,
+      "source": "grit",
+      "sourceRange": [
+        0.143,
+        0.239
+      ],
+      "gainDb": 0.4,
+      "attackMs": 1,
+      "releaseMs": 12,
+      "loop": false,
+      "reviewStatus": "not suitable as rolling per user; legacy isolated grain detail only"
+    },
+    {
+      "filename": "earth-grit-02.wav",
+      "duration": 0.079,
+      "peakDbFS": -13.0,
+      "source": "grit",
+      "sourceRange": [
+        0.363,
+        0.442
+      ],
+      "gainDb": 0.4,
+      "attackMs": 1,
+      "releaseMs": 12,
+      "loop": false,
+      "reviewStatus": "not suitable as rolling per user; legacy isolated grain detail only"
+    },
+    {
+      "filename": "earth-grit-03.wav",
+      "duration": 0.095,
+      "peakDbFS": -17.52,
+      "source": "grit",
+      "sourceRange": [
+        0.816,
+        0.911
+      ],
+      "gainDb": 0.4,
+      "attackMs": 1,
+      "releaseMs": 12,
+      "loop": false,
+      "reviewStatus": "not suitable as rolling per user; legacy isolated grain detail only"
+    },
+    {
+      "filename": "earth-grit-04.wav",
+      "duration": 0.076,
+      "peakDbFS": -13.41,
+      "source": "grit",
+      "sourceRange": [
+        1.333,
+        1.409
+      ],
+      "gainDb": 0.4,
+      "attackMs": 1,
+      "releaseMs": 12,
+      "loop": false,
+      "reviewStatus": "not suitable as rolling per user; legacy isolated grain detail only"
+    },
+    {
+      "filename": "earth-grit-audition.wav",
+      "duration": 5.292,
+      "peakDbFS": -13.0,
+      "purpose": "Each independent cut played twice with silent gaps; audition only, not an in-game sequence",
+      "source": "grit",
+      "loop": false,
+      "reviewStatus": "not suitable as rolling per user; legacy isolated grain detail only"
+    },
+    {
+      "filename": "earth-roll-natural.wav",
+      "duration": 2.5706458333333333,
+      "peakDbFS": -13.23,
+      "source": "grit",
+      "sourceRange": [
+        0,
+        2.5706458333333333
+      ],
+      "gainDb": 0,
+      "highpassHz": null,
+      "attackMs": 6,
+      "releaseMs": 15,
+      "loop": false,
+      "purpose": "Complete source motion, original gain; only short endpoint fades",
+      "reviewStatus": "rejected by user: falling-grain impacts do not match marble rolling on dirt; archive only"
+    },
+    {
+      "filename": "earth-roll-loop.wav",
+      "duration": 2.31,
+      "peakDbFS": -13.23,
+      "source": "grit",
+      "sourceRange": [
+        0.04,
+        2.43
+      ],
+      "gainDb": 0,
+      "highpassHz": null,
+      "crossfadeMs": 80,
+      "loop": true,
+      "cycleStartsAtSourceTime": 0.12,
+      "purpose": "Full-motion loop candidate; no transient extraction or level flattening",
+      "reviewStatus": "rejected by user: obvious periodic repetition; retained for comparison only"
+    },
+    {
+      "filename": "earth-roll-loop-audition.wav",
+      "duration": 6.93,
+      "peakDbFS": -13.23,
+      "source": "grit",
+      "gainDb": 0,
+      "loop": false,
+      "repeats": 3,
+      "purpose": "Three uninterrupted cycles to audition seam and repeating motion; not a gameplay sequence",
+      "reviewStatus": "rejected by user: obvious periodic repetition; retained for comparison only"
+    },
+    {
+      "filename": "earth-roll-varied-audition.wav",
+      "duration": 12.0,
+      "peakDbFS": -13.23,
+      "source": "grit",
+      "loop": false,
+      "gainDb": 0,
+      "highpassHz": null,
+      "seed": 569738,
+      "schedule": [
+        {
+          "sourceRange": [
+            0.25354166666666667,
+            1.1823125
+          ],
+          "outputStart": 0.0,
+          "crossfadeMs": 0.0
+        },
+        {
+          "sourceRange": [
+            1.4021875,
+            2.2017708333333332
+          ],
+          "outputStart": 0.7949166666666667,
+          "crossfadeMs": 133.85416666666666
+        },
+        {
+          "sourceRange": [
+            0.9335625,
+            2.008583333333333
+          ],
+          "outputStart": 1.5025,
+          "crossfadeMs": 92.0
+        },
+        {
+          "sourceRange": [
+            0.2547291666666667,
+            1.1365625
+          ],
+          "outputStart": 2.4284583333333334,
+          "crossfadeMs": 149.0625
+        },
+        {
+          "sourceRange": [
+            1.1364166666666666,
+            1.8882708333333333
+          ],
+          "outputStart": 3.166,
+          "crossfadeMs": 144.29166666666669
+        },
+        {
+          "sourceRange": [
+            0.586375,
+            1.3367708333333332
+          ],
+          "outputStart": 3.8126875,
+          "crossfadeMs": 105.16666666666667
+        },
+        {
+          "sourceRange": [
+            0.0949375,
+            0.897375
+          ],
+          "outputStart": 4.448833333333333,
+          "crossfadeMs": 114.25
+        },
+        {
+          "sourceRange": [
+            1.391875,
+            2.168375
+          ],
+          "outputStart": 5.105145833333333,
+          "crossfadeMs": 146.125
+        },
+        {
+          "sourceRange": [
+            0.358625,
+            1.4645
+          ],
+          "outputStart": 5.774541666666667,
+          "crossfadeMs": 107.10416666666667
+        },
+        {
+          "sourceRange": [
+            0.8972708333333334,
+            1.7732083333333333
+          ],
+          "outputStart": 6.773458333333333,
+          "crossfadeMs": 106.95833333333334
+        },
+        {
+          "sourceRange": [
+            0.0861875,
+            0.8443958333333333
+          ],
+          "outputStart": 7.5359791666666665,
+          "crossfadeMs": 113.41666666666667
+        },
+        {
+          "sourceRange": [
+            0.70425,
+            1.6359791666666668
+          ],
+          "outputStart": 8.198770833333333,
+          "crossfadeMs": 95.41666666666666
+        },
+        {
+          "sourceRange": [
+            1.2330416666666666,
+            2.3184375
+          ],
+          "outputStart": 8.990645833333334,
+          "crossfadeMs": 139.85416666666666
+        },
+        {
+          "sourceRange": [
+            0.47141666666666665,
+            1.4021666666666666
+          ],
+          "outputStart": 9.982166666666666,
+          "crossfadeMs": 93.875
+        },
+        {
+          "sourceRange": [
+            0.93375,
+            1.8874791666666666
+          ],
+          "outputStart": 10.8195,
+          "crossfadeMs": 93.41666666666666
+        },
+        {
+          "sourceRange": [
+            1.3416458333333334,
+            2.202375
+          ],
+          "outputStart": 11.628833333333333,
+          "crossfadeMs": 144.39583333333334
+        }
+      ],
+      "pitchShift": false,
+      "purpose": "12 second continuous variation audition; long windows keep connected texture; do not loop this file in game",
+      "reviewStatus": "rejected by user: falling-grain impacts do not match marble rolling on dirt; archive only"
+    }
+  ]
+}

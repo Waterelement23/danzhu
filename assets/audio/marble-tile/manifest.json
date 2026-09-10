@@ -1,0 +1,77 @@
+{
+  "source": "marble_tile_drop_and_rolling.wav",
+  "sourceDuration": 4.639375,
+  "sampleRate": 48000,
+  "status": "reserved for future tile court; not suitable for dirt court per user audition",
+  "processing": "mono, 48 kHz, 80 Hz high-pass, PCM16; original preserved",
+  "clips": [
+    {
+      "name": "marble-tile-bounce-01.wav",
+      "duration": 0.177,
+      "peakDbFS": -3.45,
+      "sourceRange": [
+        0.237,
+        0.414
+      ],
+      "gainDb": -7.37
+    },
+    {
+      "name": "marble-tile-bounce-02.wav",
+      "duration": 0.154,
+      "peakDbFS": -4.13,
+      "sourceRange": [
+        0.428,
+        0.582
+      ],
+      "gainDb": -7.37
+    },
+    {
+      "name": "marble-tile-bounce-03.wav",
+      "duration": 0.137,
+      "peakDbFS": -5.02,
+      "sourceRange": [
+        0.594,
+        0.731
+      ],
+      "gainDb": -7.37
+    },
+    {
+      "name": "marble-tile-bounce-audition.wav",
+      "duration": 2.118,
+      "peakDbFS": -3.45,
+      "purpose": "three isolated impacts separated by silence"
+    },
+    {
+      "name": "marble-tile-rolling-tail.wav",
+      "duration": 2.14,
+      "peakDbFS": -9.74,
+      "sourceRange": [
+        2.02,
+        4.16
+      ],
+      "gainDb": 2.82,
+      "purpose": "tail candidate before loop construction"
+    },
+    {
+      "name": "marble-tile-rolling-loop.wav",
+      "duration": 2.02,
+      "peakDbFS": -9.74,
+      "sourceRange": [
+        2.02,
+        4.16
+      ],
+      "crossfadeSeconds": 0.12,
+      "loop": true,
+      "purpose": "crossfaded candidate; requires listening check for rhythmic repetition"
+    },
+    {
+      "name": "marble-tile-rolling-audition.wav",
+      "duration": 6.06,
+      "peakDbFS": -9.74,
+      "purpose": "three repeats to audition seams; runtime should loop marble-tile-rolling-loop.wav"
+    }
+  ],
+  "originalSourceName": "marble_drop_and_rolling.wav",
+  "surface": "tile",
+  "surfaceBasis": "user listening assessment; actual recording surface unverified"
+}

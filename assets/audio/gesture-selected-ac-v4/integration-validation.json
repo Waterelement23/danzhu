@@ -1,0 +1,22 @@
+{
+  "files": {
+    "charge": {
+      "bytes": 227564,
+      "rate": 48000,
+      "channels": 1,
+      "duration": 2.37,
+      "sha256": "499f6e01720057e1ddd16fac91da30b7720e078171f1b88e93ecbf8ce49a3a6c"
+    },
+    "launch": {
+      "bytes": 22124,
+      "rate": 48000,
+      "channels": 1,
+      "duration": 0.23,
+      "sha256": "17feae48b4726b85e521b8136d1a66f22447f248555adbf6ba57a2a8a086f7fc"
+    }
+  },
+  "unit_network_tests": "64 passed in 12 files",
+  "browser": "Chrome real AudioContext: 28 checks passed; continuous charge, silence, launch timeline and cleanup verified",
+  "practice": "one successful shot: launch=1, earth=3, stone=1; charge=0 before gesture",
+  "iab_limitation": "AudioContext reported running but currentTime stayed at 0.00533 seconds; no signal. Verified actual output in Chrome instead."
+}

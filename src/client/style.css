@@ -1619,3 +1619,34 @@ footer {
   visibility: hidden;
   pointer-events: none;
 }
+
+.sound-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sound-controls input {
+  width: 64px;
+  accent-color: #2c5141;
+  cursor: pointer;
+}
+.sound-controls button {
+  white-space: nowrap;
+  min-width: 56px;
+}
+.audio-credit {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.audio-credit a {
+  color: inherit;
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .sound-controls {
+    gap: 2px;
+  }
+  .sound-controls input {
+    width: 45px;
+  }
+}

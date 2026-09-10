@@ -1,3 +1,4 @@
+import type { AudioFrame } from './audio';
 import { makeSoilMaterial } from './soil-material';
 import { ServeGuide } from './serve-guide';
 import { makeDoorReflection } from './glazing';
@@ -29,6 +30,7 @@ const BLUE = 0x2389b9,
 /** Display and input only. The shared map and server snapshots own every physical surface and ball. */
 export class MarbleScene {
   public onPower?: (power: number) => void;
+  public onCharge?: (phase: 'start' | 'move' | 'end', power: number) => void;
   public onAim?: (direction: Direction, power: number) => void;
   private readonly scene = new THREE.Scene();
   private terrain: TerrainData = DEFAULT_TERRAIN;
@@ -42,6 +44,19 @@ export class MarbleScene {
   private readonly frames: PresentationFrame[] = [];
   private latestFrameReceivedAt = 0;
   private displayedTime = 0;
+  private presentedBalls: BallState[] = [];
+  get audioFrame(): AudioFrame {
+    const forward = this.camera.getWorldDirection(new THREE.Vector3());
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
+    return {
+      time: this.displayedTime,
+      balls: this.presentedBalls,
+      fresh: performance.now() - this.latestFrameReceivedAt < 300,
+      listener: { ...this.camera.position },
+      forward: { ...forward },
+      up: { ...up },
+    };
+  }
   /** Simulation seconds actually shown, for synchronizing the result overlay with the contact frame. */
   public get presentationTime(): number {
     return this.displayedTime;
@@ -394,6 +409,8 @@ export class MarbleScene {
     for (const ball of snapshot.balls)
       frame.balls[ball.player] = {
         player: ball.player,
+        grounded: ball.grounded,
+        rollingSpeed: ball.rollingSpeed,
         position: { ...ball.position },
         rotation: { ...ball.rotation },
         velocity: { ...ball.velocity },
@@ -432,6 +449,7 @@ export class MarbleScene {
             1,
           )
         : 1;
+    this.presentedBalls = [];
     for (let p = 0; p < 2; p++) {
       const a = before.balls[p],
         b = after.balls[p],
@@ -447,6 +465,14 @@ export class MarbleScene {
         this.sampleRotation.set(b.rotation.x, b.rotation.y, b.rotation.z, b.rotation.w);
         ball.quaternion.slerp(this.sampleRotation, alpha);
       }
+      this.presentedBalls.push({
+        ...state,
+        position: { ...ball.position },
+        rollingSpeed:
+          a && b
+            ? THREE.MathUtils.lerp(a.rollingSpeed ?? 0, b.rollingSpeed ?? 0, alpha)
+            : state.rollingSpeed,
+      });
     }
   }
 
@@ -508,6 +534,7 @@ export class MarbleScene {
     this.power = 0;
     this.aim.visible = false;
     if (changed) this.onPower?.(0);
+    this.onCharge?.('end', 0);
   }
 
   private resize = () => {
@@ -567,6 +594,7 @@ export class MarbleScene {
     // A new gesture starts at zero; a click must not launch a preset shot.
     this.clearAim();
     this.dragging = true;
+    this.onCharge?.('start', 0);
     this.pointerId = event.pointerId;
     this.renderer.domElement.setPointerCapture(event.pointerId);
     this.renderer.domElement.focus({ preventScroll: true });
@@ -588,6 +616,7 @@ export class MarbleScene {
       this.aim.visible = false;
       this.power = 0;
       this.onPower?.(0);
+      this.onCharge?.('move', 0);
       return;
     }
     this.scratch.multiplyScalar(1 / distance);
@@ -596,6 +625,7 @@ export class MarbleScene {
     this.setAim(direction, power);
     this.onPower?.(power);
     this.onAim?.(direction, power);
+    this.onCharge?.('move', power);
   };
   private pointerUp = (event: PointerEvent) => {
     if (!this.dragging || event.pointerId !== this.pointerId) return;

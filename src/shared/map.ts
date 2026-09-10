@@ -9,7 +9,7 @@ import {
 export { nextTerrainSeed, validTerrainSeed, type TerrainData } from './terrain-generator';
 export { COURT_SCALE } from './terrain-generator';
 export const MAP_VERSION = 'seeded-earth-2';
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 4;
 export const CONFIG = {
   half: 1.5 * COURT_SCALE,
   radius: 0.05,

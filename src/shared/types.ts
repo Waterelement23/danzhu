@@ -10,13 +10,39 @@ export type Shot = {
   power: number;
   serveX?: number;
 };
-export type BallState = { player: Player; position: Vec3; rotation: Quat; velocity: Vec3 };
+export type BallState = {
+  player: Player;
+  position: Vec3;
+  rotation: Quat;
+  velocity: Vec3;
+  /** Authoritative support and tangential speed; never inferred from screen motion. */
+  grounded?: boolean;
+  rollingSpeed?: number;
+};
+export type ImpactSound = {
+  id: number;
+  time: number;
+  kind: 'earth' | 'stone' | 'marble';
+  player: Player;
+  position: Vec3;
+  speed: number;
+};
+export type LaunchSound = {
+  id: number;
+  time: number;
+  kind: 'launch';
+  player: Player;
+  position: Vec3;
+  power: number;
+};
+export type GameSound = ImpactSound | LaunchSound;
 export type Result = {
   winner: Player | null;
   reason: 'hit' | 'out' | 'shrink' | 'timeout' | 'draw' | 'physics' | 'disconnect' | 'serve';
   time: number;
 };
 export type GameSnapshot = {
+  sounds?: GameSound[];
   terrainSeed: number;
   mapVersion: string;
   protocolVersion: number;

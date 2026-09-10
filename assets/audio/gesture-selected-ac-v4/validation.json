@@ -1,0 +1,30 @@
+{
+  "status": "current audition; cancel has no added sound; not integrated",
+  "cancelPolicy": "fade only the playing charge over 40ms; no reverse/recoil/release sound",
+  "sources": {
+    "assets/audio/gesture-selected-ac-v3/charge-continuous-audition.wav": "499f6e01720057e1ddd16fac91da30b7720e078171f1b88e93ecbf8ce49a3a6c",
+    "assets/audio/gesture-selected-ac/release.wav": "17feae48b4726b85e521b8136d1a66f22447f248555adbf6ba57a2a8a086f7fc"
+  },
+  "files": {
+    "charge-continuous.wav": {
+      "seconds": 2.37,
+      "sha256": "499f6e01720057e1ddd16fac91da30b7720e078171f1b88e93ecbf8ce49a3a6c",
+      "clippedSamples": 0
+    },
+    "release.wav": {
+      "seconds": 0.23,
+      "sha256": "17feae48b4726b85e521b8136d1a66f22447f248555adbf6ba57a2a8a086f7fc",
+      "clippedSamples": 0
+    },
+    "charge-cancel-audition.wav": {
+      "seconds": 1.5,
+      "sha256": "4225c1094f3d1e62a37b6395ee4cd2f6c69a596dc1a9dd866dd44ca353317f29",
+      "clippedSamples": 0
+    },
+    "gesture-audition.wav": {
+      "seconds": 4.685,
+      "sha256": "69927ca59b5327444197165f27b4f741d7eb20e670b3ab38bcf25bf10171c996",
+      "clippedSamples": 0
+    }
+  }
+}

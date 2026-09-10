@@ -1,0 +1,65 @@
+{
+  "status": "rejected by user: still sounds like tile/wood friction; retained for comparison",
+  "source": {
+    "filename": "marble_tile_drop_and_rolling.wav",
+    "sha256": "fdac794a79b46f614cefcda3702ca1f7f2e8b7177b5eae152e8c2081710d28fe",
+    "surfaceBasis": "tile-like timbre per user; actual recording surface unverified",
+    "license": "not supplied; local audition only"
+  },
+  "sourceRange": [
+    2.02,
+    4.16
+  ],
+  "sampleRate": 48000,
+  "channels": 1,
+  "bitDepth": 16,
+  "targetRmsDbFSBeforeFades": -26.0,
+  "processing": "EQ and low-pass filtering, RMS comparison gain, 12 ms/40 ms edge fades; no pitch shift, time stretch, noise addition, transient slicing or looping",
+  "integratedInGame": false,
+  "clips": [
+    {
+      "filename": "earth-roll-reference.wav",
+      "duration": 2.14,
+      "peakDbFS": -9.743234312649989,
+      "rmsDbFS": -26.055110762554246,
+      "sha256": "8ebc904f793d34cb62e763e7a9c927a96a7408b0d520ff3b99d19623c68f1c60",
+      "filters": "highpass=f=80",
+      "gainDb": 2.824787943450524,
+      "loop": false
+    },
+    {
+      "filename": "earth-roll-mild.wav",
+      "duration": 2.14,
+      "peakDbFS": -11.320963498075985,
+      "rmsDbFS": -26.060373558714595,
+      "sha256": "849a797b8883937e5c6c0e13584224d7b2aa7a20281eb1dba6e870a7e5da4ae6",
+      "filters": "highpass=f=80,equalizer=f=1800:t=q:w=0.7:g=-3,lowpass=f=2800:p=2",
+      "gainDb": 4.041005467009575,
+      "loop": false
+    },
+    {
+      "filename": "earth-roll-muted.wav",
+      "duration": 2.14,
+      "peakDbFS": -13.1583876167229,
+      "rmsDbFS": -26.0709422295674,
+      "sha256": "841633b3e840fe855d351ff52817df5b610cfa2c67a23e91ee725002af246e45",
+      "filters": "highpass=f=100,equalizer=f=2200:t=q:w=0.7:g=-5,lowpass=f=1400:p=2",
+      "gainDb": 6.170712374860031,
+      "loop": false
+    },
+    {
+      "filename": "earth-roll-comparison.wav",
+      "duration": 9.07,
+      "peakDbFS": -9.743234312649989,
+      "rmsDbFS": -27.562859785185395,
+      "sha256": "6839e1897a4557915c1ba01a069d0b2c2020ad794273c150f0fde8435e3a02ee",
+      "loop": false,
+      "sequence": [
+        "reference",
+        "mild",
+        "muted"
+      ],
+      "silenceBetweenSeconds": 0.8
+    }
+  ]
+}

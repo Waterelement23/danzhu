@@ -1,0 +1,62 @@
+{
+  "status": "offline audition v3, not integrated; human listening approval pending",
+  "source": "C: Anthousai rubber.wav (CC0); processed through gesture-selected-ac-v2. A launch retained from renne100 Slingshot (CC0).",
+  "sourceHash": "f6aaef0b2a5637e17f4ec50706c72d7e6c4b88afbc635c54217405d355548e86",
+  "changes": {
+    "trailingPadding": 0,
+    "chargeGainTargetRmsDb": -26.5,
+    "chargeCut": [
+      0.055,
+      2.425
+    ],
+    "cancelSeconds": 0.65,
+    "reverseRecentSeconds": 0.85,
+    "descendingResampleSpeedShape": [
+      1.9,
+      0.95
+    ],
+    "pitchChange": "intentional high-to-low through variable resampling; not pitch-preserving",
+    "cancelRmsTargetBeforeDecayDb": -25,
+    "crossfadeMs": 15
+  },
+  "files": {
+    "charge-continuous-audition.wav": {
+      "seconds": 2.37,
+      "peakDbFS": -13.78,
+      "rmsDbFS": -26.58,
+      "trailingSilenceSeconds": 0.00025,
+      "sha256": "499f6e01720057e1ddd16fac91da30b7720e078171f1b88e93ecbf8ce49a3a6c",
+      "clippedSamples": 0
+    },
+    "cancel-only-audition.wav": {
+      "seconds": 0.65,
+      "peakDbFS": -13.85,
+      "rmsDbFS": -28.42,
+      "trailingSilenceSeconds": 0.0014375,
+      "sha256": "bfb04b89df1112b196b65ef9d570b494012435dc345594f25169179b221a16cd",
+      "clippedSamples": 0
+    },
+    "charge-cancel-audition.wav": {
+      "seconds": 2.135,
+      "peakDbFS": -13.78,
+      "rmsDbFS": -27.34,
+      "trailingSilenceSeconds": 0.0014375,
+      "sha256": "c0b83fb688af3f9244d1c91b31133297679912385533872d2a310d5446fa49b0",
+      "clippedSamples": 0
+    },
+    "gesture-audition.wav": {
+      "seconds": 5.32,
+      "peakDbFS": -8.0,
+      "rmsDbFS": -27.48,
+      "trailingSilenceSeconds": 0.0014375,
+      "sha256": "16bfc84bd449031c9e67abd118980dcbd0641d3186c2c5ca63328468185571f5",
+      "clippedSamples": 0
+    }
+  },
+  "feedbackChecks": {
+    "lastHalfSecondVsEarlyDb": 1.19,
+    "cancelOnsetVsChargeDb": 0.52,
+    "cancelOnsetInSeparateDemo": 1.485,
+    "cancelOnsetInCombined": 4.67
+  }
+}

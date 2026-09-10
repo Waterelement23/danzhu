@@ -1,4 +1,5 @@
 import './style.css';
+import { GameAudio } from './audio';
 import { MarbleScene } from './scene';
 import { CONFIG, SERVE_RANGE, MAP_VERSION, PROTOCOL_VERSION, nextTerrainSeed } from '../shared/map';
 import type { GameSnapshot, Presence, Shot, Result } from '../shared/types';
@@ -7,7 +8,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 const marbleIcon =
   '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 30C30 32 7 6 31 8M5 21C18 28 22 13 35 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 $('app').innerHTML = `
-<header class="site-header"><a class="brand" href="/">${marbleIcon}<span>弹珠<small>MARBLE CLUB</small></span></a><nav><span class="edition">童年游乐计划 · 001</span><button id="rules-open" class="text-button">玩法说明 <span>↗</span></button></nav></header>
+<header class="site-header"><a class="brand" href="/">${marbleIcon}<span>弹珠<small>MARBLE CLUB</small></span></a><nav><span class="edition">童年游乐计划 · 001</span><div class="sound-controls"><button id="sound-toggle" class="text-button" aria-label="静音" aria-pressed="false">声音 开</button><input id="sound-volume" type="range" min="0" max="100" value="70" aria-label="音效音量" /></div><button id="rules-open" class="text-button">玩法说明 <span>↗</span></button></nav></header>
 <main>
  <section class="intro"><div><p class="eyebrow"><span></span> 一颗玻璃珠，一整个下午</p><h1>再玩一个下午<span>。</span></h1><p class="intro-copy">圈一块地，约一个朋友。把童年的手感，弹回来。</p></div>   <div class="session-panels"><section id="lobby" class="panel lobby"><span class="section-number">01 — LET’S PLAY</span><h2>约一场弹珠</h2><p class="muted">不用下载，不用注册。<br>一个房间码，就能一起玩。</p><button id="create" class="primary">创建双人房间 <span>↗</span></button><div class="join-label">朋友已经开好房间？</div><form id="join-form" class="join-form"><input id="room-code" aria-label="房间码" autocomplete="off" maxlength="8" placeholder="输入 8 位房间码"/><button id="join" type="submit" aria-label="加入房间">→</button></form><div class="divider"><span>也可以先找找手感</span></div><button id="practice" class="secondary">本机双人练习 <span>↗</span></button><button id="resume" class="text-button resume" hidden>恢复上一局连接 →</button></section>
    <section id="controls" class="panel controls" hidden><div class="control-heading"><span id="turn-eyebrow" class="section-number">轮到你了</span><span id="timer" class="timer">30s</span></div><h2 id="turn-title">准备入场</h2><p id="turn-description" class="muted">从发球线弹入第一颗球。</p><div id="room-share" class="room-share" hidden><small>房间码 · 发给朋友</small><button id="copy-code" aria-label="复制房间码"></button></div><button id="ready" class="primary" hidden>我准备好了 <span>✓</span></button><div id="serve-control"><label for="serve-position">发球位置 <span id="serve-value">中间</span></label><input id="serve-position" type="range" min="-900" max="900" value="0"/><div class="range-captions"><span>左侧</span><span>沿发球线移动</span><span>右侧</span></div></div><div class="power-display"><label>击球力度 <span id="power-text">25%</span></label><div class="power-track"><i id="power-bar"></i></div><p>按住自己的弹珠，向后拖动蓄力<br>松手弹出 · Esc 取消</p></div><details id="fine-aim"><summary>精细瞄准 <span>＋</span></summary><div class="fine-settings"><label for="angle">方向 <span id="angle-value">0°</span></label><input id="angle" type="range" min="-180" max="180" value="0"/><label for="power">力度</label><input id="power" type="range" min="1" max="100" value="25"/><button id="shoot" class="secondary">按当前方向弹出 →</button></div></details><div class="shrink-info"><span>◎</span><span id="shrink-label">前 3 轮不缩圈</span></div><button id="leave" class="text-button leave">← 返回大厅</button></section></div></section>
@@ -25,7 +26,28 @@ $('app').innerHTML = `
  <footer><span>玻璃里藏着的，是整个夏天。</span><span>GROUND RULES. GOOD TIMES.</span></footer>
 </main>
 <div id="toast" class="toast" role="status" hidden></div>
-<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>每局一块新场地。</strong>起伏、浅凹和石子每局随机，双方共享同一场地，对局中保持不变。</li><li><strong>先手高位发球。</strong>从发球线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>拖住自己的球向后拉，松手发射；也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p></dialog>`;
+<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>每局一块新场地。</strong>起伏、浅凹和石子每局随机，双方共享同一场地，对局中保持不变。</li><li><strong>先手高位发球。</strong>从发球线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>拖住自己的球向后拉，松手发射；也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p><p class="muted audio-credit">音效：<a href="https://freesound.org/people/D43thsilence/sounds/755084/" target="_blank" rel="noopener">D43thsilence</a>（CC BY 4.0，已剪辑与加工）；<a href="https://www.zapsplat.com" target="_blank" rel="noopener">Sound effects obtained from ZapSplat</a>；Sheyvan、Anthousai、renne100（CC0）。<a href="audio/CREDITS.txt" target="_blank" rel="noopener">完整音效来源</a></p></dialog>`;
+const audio = new GameAudio();
+function refreshAudio() {
+  const state = audio.state;
+  $('sound-toggle').textContent = state.muted ? '声音 关' : '声音 开';
+  $('sound-toggle').setAttribute('aria-pressed', String(state.muted));
+  $('sound-toggle').setAttribute('aria-label', state.muted ? '开启音效' : '静音');
+  $('sound-toggle').title = state.status === 'error' ? '音效加载失败，点击重试' : '切换音效';
+  $('sound-toggle').dataset.status = state.status;
+  $<HTMLInputElement>('sound-volume').value = String(Math.round(state.volume * 100));
+}
+audio.onChange = refreshAudio;
+refreshAudio();
+const unlockAudio = () => audio.unlock();
+document.addEventListener('pointerdown', unlockAudio, { passive: true });
+document.addEventListener('keydown', unlockAudio);
+$('sound-toggle').onclick = () => {
+  if (audio.state.status === 'error') audio.unlock();
+  else audio.setMuted(!audio.state.muted);
+};
+$('sound-volume').oninput = () =>
+  audio.setVolume(Number($<HTMLInputElement>('sound-volume').value) / 100);
 let snapshot: GameSnapshot = {
   mapVersion: MAP_VERSION,
   protocolVersion: PROTOCOL_VERSION,
@@ -90,6 +112,11 @@ function updatePower(p: number) {
   $<HTMLInputElement>('power').value = String(Math.round(p * 100));
 }
 scene.onPower = updatePower;
+scene.onCharge = (phase, p) => {
+  if (phase === 'end' || !canAct()) audio.endCharge();
+  else if (phase === 'start') audio.beginCharge(p);
+  else audio.chargeTo(p);
+};
 scene.onAim = (d, p) => {
   direction = d;
   updatePower(p);
@@ -116,6 +143,7 @@ function sendShot(d = direction, p = power, x = serveX) {
 }
 const hooks: Hooks = {
   snapshot(s) {
+    audio.ingest(s);
     snapshot = s;
     const turn = `${s.match}:${s.turn}`;
     if (turn !== lastTurn) {
@@ -275,6 +303,7 @@ async function start(kind: 'practice' | 'create' | 'join' | 'resume') {
     notify('请输入 8 位房间码');
     return;
   }
+  audio.reset();
   loading = true;
   const generation = ++sessionGeneration;
   const current = () => generation === sessionGeneration;
@@ -332,6 +361,7 @@ async function start(kind: 'practice' | 'create' | 'join' | 'resume') {
   }
 }
 function home() {
+  audio.reset();
   sessionGeneration++;
   loading = false;
   for (const id of ['create', 'practice', 'join', 'resume'])
@@ -397,7 +427,18 @@ function fineAim() {
   if (canAct()) scene.setAim(direction, power);
 }
 $('angle').oninput = fineAim;
-$('power').oninput = fineAim;
+$('power').oninput = () => {
+  fineAim();
+  if (canAct()) audio.chargeTo(power);
+};
+$('power').onpointerdown = () => {
+  if (canAct()) audio.beginCharge(power);
+};
+$('power').onkeydown = (event) => {
+  if (!event.repeat && canAct()) audio.beginCharge(power);
+};
+for (const event of ['pointerup', 'pointercancel', 'keyup', 'blur'])
+  $('power').addEventListener(event, () => audio.endCharge());
 $('shoot').onclick = () => sendShot();
 $('rules-open').onclick = () => $<HTMLDialogElement>('rules').showModal();
 $('rules-close').onclick = () => $<HTMLDialogElement>('rules').close();
@@ -412,10 +453,18 @@ function animate(now: number) {
   previous = now;
   transport?.tick(dt);
   scene.render(dt);
+  audio.update(scene.audioFrame, mode !== 'lobby' && connected);
+  if (import.meta.env.DEV) $('scene').dataset.audio = JSON.stringify(audio.state);
   updateResult();
   requestAnimationFrame(animate);
 }
 requestAnimationFrame(animate);
 window.addEventListener('pagehide', (event) => {
-  if (!event.persisted) scene.dispose();
+  audio.reset();
+  if (!event.persisted) {
+    audio.dispose();
+    scene.dispose();
+    document.removeEventListener('pointerdown', unlockAudio);
+    document.removeEventListener('keydown', unlockAudio);
+  }
 });

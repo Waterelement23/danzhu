@@ -1,0 +1,289 @@
+{
+  "status": "user accepted rolling loop naturalness and stone-impact timbre; in-game integration pending",
+  "sampleRate": 48000,
+  "channels": 1,
+  "bitDepth": 16,
+  "integratedInGame": false,
+  "rollingMethod": "Stationary random-phase resynthesis from mean source power spectra; original time envelope and stereo motion discarded. Mild periodic RMS stabilization; sand modulation has 40 ms knots, not a pass-by envelope.",
+  "limitations": "Synthesized approximation using existing timbre, not real soil recording. Every finite loop repeats; 8-second loops and three-repeat auditions require listening for mechanical repetition and seam artifacts.",
+  "sources": {
+    "assets/audio/marble-earth-layered-v2/earth-roll-low-friction.wav": "b1fec7de50897461623b36a4a2ed951287fcaa058d4692ce8fbaffbbeb7f87f5",
+    "assets/audio/marble-earth-layered-v2/sand-layer-after.wav": "985a08f8345b255119e1943ba77adbcb608e261f071b3102bd5f141daa5db07e",
+    "assets/audio/marble-collision/marble-collision-01.wav": "80b26444f992229752df9e137781b907fa6d7f60d1f619edc715ea2a48db3722",
+    "assets/audio/marble-collision/marble-collision-02.wav": "1af2f72d240fb47e9be2e72ed302b63b3174fd57c3c109d89063fbfecec82678",
+    "assets/audio/marble-collision/marble-collision-03.wav": "b38ec768e4d3f22797292c9fda5d480004d1399434fc5d9a2aeab748ed4acbb5",
+    "assets/audio/marble-collision/marble-collision-04.wav": "5a46d98c21d5a3bbe1d93e4089ad15970d17775e6ca2b91508bbdc05bc1e3df5",
+    "assets/audio/marble-collision/marble-collision-05.wav": "6abb7e8fbff49224f029f4c963ee06836db31750442ba8702d97346aceaf8278",
+    "assets/audio/marble-collision/marble-collision-06.wav": "0542beae1fb97eb4370f0c0658e5e0782d7b1a95a8cbf4af207ee43577d181f5",
+    "assets/audio/marble-collision/marble-collision-07.wav": "722f93aadf2f77c83a8fbb3a18a60d364c13f78ac906675d1168ad0b987509f5",
+    "assets/audio/marble-collision/marble-collision-08.wav": "e7ed7288b9dec4655edbe04d8d93428e6a4a63c28f2192b41e5c983049eaabf6"
+  },
+  "clips": [
+    {
+      "filename": "earth-loop-a-smooth.wav",
+      "duration": 8.0,
+      "rmsDbFS": -33.0,
+      "peakDbFS": -21.05727668459363,
+      "sha256": "dad9f63063bf56d18aef3a93fa9d81eb02394b9ad736a3f6e5880004e6a210b5",
+      "label": "A 平滑土面",
+      "loop": true,
+      "runtimeReady": false,
+      "loopStart": 0,
+      "loopEnd": 8,
+      "seed": 9201,
+      "sourceRollDb": -33,
+      "sourceSandDb": -46,
+      "rollLowpassHz": 750,
+      "sandLowpassHz": 950,
+      "particleModulationDb": 0.3,
+      "auditionApproved": true
+    },
+    {
+      "filename": "earth-loop-a-smooth-audition.wav",
+      "duration": 24.0,
+      "rmsDbFS": -33.0168518482103,
+      "peakDbFS": -21.05727668459363,
+      "sha256": "1f3c01151938b18288e0491cd9e7c2a45901df2e28f6836967d505c81b0e3b93",
+      "label": "A 平滑土面",
+      "loop": false,
+      "repeats": 3,
+      "internalSeamsSeconds": [
+        8,
+        16
+      ],
+      "purpose": "24-second constant-distance audition; only outer edges faded",
+      "auditionApproved": true
+    },
+    {
+      "filename": "earth-loop-b-fine-sand.wav",
+      "duration": 8.0,
+      "rmsDbFS": -33.0,
+      "peakDbFS": -20.346805437457892,
+      "sha256": "cee94fa464f5af5e7dc81a56ef0931458b1a3481cf564946de9993edd97573de",
+      "label": "B 细砂土面",
+      "loop": true,
+      "runtimeReady": false,
+      "loopStart": 0,
+      "loopEnd": 8,
+      "seed": 9202,
+      "sourceRollDb": -34,
+      "sourceSandDb": -41,
+      "rollLowpassHz": 750,
+      "sandLowpassHz": 1100,
+      "particleModulationDb": 0.8,
+      "auditionApproved": true
+    },
+    {
+      "filename": "earth-loop-b-fine-sand-audition.wav",
+      "duration": 24.0,
+      "rmsDbFS": -33.0182130487657,
+      "peakDbFS": -20.346805437457892,
+      "sha256": "461393555e817f66e882af327a6ef76cc92e1336a18f9e39904c52200d4ae937",
+      "label": "B 细砂土面",
+      "loop": false,
+      "repeats": 3,
+      "internalSeamsSeconds": [
+        8,
+        16
+      ],
+      "purpose": "24-second constant-distance audition; only outer edges faded",
+      "auditionApproved": true
+    },
+    {
+      "filename": "earth-loop-c-grainy.wav",
+      "duration": 8.0,
+      "rmsDbFS": -33.0,
+      "peakDbFS": -19.79965509722499,
+      "sha256": "e1f8247c9f8bc976cce180fdf218a150c9262acc7ac8e4cce4dfd3447ce839a9",
+      "label": "C 颗粒稍明显",
+      "loop": true,
+      "runtimeReady": false,
+      "loopStart": 0,
+      "loopEnd": 8,
+      "seed": 9203,
+      "sourceRollDb": -34.5,
+      "sourceSandDb": -38.5,
+      "rollLowpassHz": 850,
+      "sandLowpassHz": 1250,
+      "particleModulationDb": 1.3,
+      "auditionApproved": true
+    },
+    {
+      "filename": "earth-loop-c-grainy-audition.wav",
+      "duration": 24.0,
+      "rmsDbFS": -33.021764457414974,
+      "peakDbFS": -19.79965509722499,
+      "sha256": "b4c044a3dd9dc398f4c106738f617963e6665f0c1e77367115ad0fc3de606657",
+      "label": "C 颗粒稍明显",
+      "loop": false,
+      "repeats": 3,
+      "internalSeamsSeconds": [
+        8,
+        16
+      ],
+      "purpose": "24-second constant-distance audition; only outer edges faded",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-01.wav",
+      "duration": 0.2,
+      "rmsDbFS": -41.13155888624359,
+      "peakDbFS": -18.103075493779762,
+      "sha256": "c1678ce2e10505127cc48a23c5c66a9624679b99b2ddb98f148f3348e9e6fa00",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-01.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-02.wav",
+      "duration": 0.2,
+      "rmsDbFS": -43.204392301251005,
+      "peakDbFS": -18.56120569661012,
+      "sha256": "1197931fbcba31dd210e81383cc115bff439c34409284c6fe7d871d594db0f78",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-02.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-03.wav",
+      "duration": 0.2,
+      "rmsDbFS": -41.68034777288459,
+      "peakDbFS": -17.98987811011522,
+      "sha256": "50c2e614bbb145427e24e033f3781d5de57faf01d464e85d1eb54aa3d52b1243",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-03.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-04.wav",
+      "duration": 0.2,
+      "rmsDbFS": -41.53972475545245,
+      "peakDbFS": -16.662732149769507,
+      "sha256": "df438880e147d1417755abe2f3a02db345f2e11238f0cc77a1598e45cc0c44fd",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-04.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-05.wav",
+      "duration": 0.2,
+      "rmsDbFS": -39.8092233473054,
+      "peakDbFS": -18.623484806675478,
+      "sha256": "ddd9ee80383655dece69ea0cddf3716557a5af6c57c3ff34156c4e4803df624f",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-05.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-06.wav",
+      "duration": 0.2,
+      "rmsDbFS": -41.80326247686604,
+      "peakDbFS": -17.446776389951534,
+      "sha256": "4800497623bb020e9897dc91513c669b9ff88548070551f8342c464ef46f6a77",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-06.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-07.wav",
+      "duration": 0.2,
+      "rmsDbFS": -44.43849202985058,
+      "peakDbFS": -20.524966713311805,
+      "sha256": "77296dad7fe3f3a23c5b0cbaa44f9f7602646ecd5076876028682cf73501807b",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-07.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-08.wav",
+      "duration": 0.2,
+      "rmsDbFS": -42.50640286045153,
+      "peakDbFS": -20.161261058004214,
+      "sha256": "648e8970f0436278eba8bd14183f525edf2808192791d016a8aa78a8b7c3220d",
+      "loop": false,
+      "runtimeReady": false,
+      "derivation": "glass collision with EQ, 45ms exponential tail damping after 30ms, -1dB gain",
+      "filters": "highpass=f=90:p=2,equalizer=f=2400:t=q:w=0.7:g=-4,lowpass=f=3600:p=2",
+      "source": "assets/audio/marble-collision/marble-collision-08.wav",
+      "auditionApproved": true
+    },
+    {
+      "filename": "marble-stone-audition.wav",
+      "duration": 6.65,
+      "rmsDbFS": -48.011434329989925,
+      "peakDbFS": -16.662732149769507,
+      "sha256": "12ea36f300c39f210f3733322d2b9462eb2d1e4a132a473aee3be8483bbe998e",
+      "loop": false,
+      "sequence": "stone candidates 01 through 08 once each",
+      "credit": "Derived from Two marbles colliding by D43thsilence, Freesound 755084, CC BY 4.0; EQ, gain and tail changed.",
+      "auditionApproved": true
+    }
+  ],
+  "provenance": {
+    "rollingAndSand": {
+      "rolling": {
+        "filename": "marble_tile_drop_and_rolling.wav",
+        "sourceRange": [
+          2.02,
+          4.16
+        ],
+        "license": "not supplied; local audition only",
+        "surfaceBasis": "tile-like per user; actual recording surface unverified",
+        "filters": "highpass=f=140:p=2,equalizer=f=1180:t=q:w=1:g=-8,lowpass=f=750:p=2,lowpass=f=750:p=2",
+        "sha256": "fdac794a79b46f614cefcda3702ca1f7f2e8b7177b5eae152e8c2081710d28fe"
+      },
+      "sand": {
+        "filename": "569738__sheyvan__gravel-stone-dirt-debris-falling-small-1-5.wav",
+        "sourceRange": [
+          0.15,
+          2.29
+        ],
+        "author": "Sheyvan",
+        "license": "CC0 1.0",
+        "url": "https://freesound.org/people/Sheyvan/sounds/569738/",
+        "recordedObject": "falling gravel/stone/dirt debris; texture layer, not marble rolling",
+        "filters": "highpass=f=180:p=2,lowpass=f=1500:p=2,lowpass=f=1500:p=2,acompressor=threshold=0.003:ratio=4:attack=0.5:release=45:knee=4:makeup=1",
+        "sha256": "fd5fd0ddb6c7a3aceb9935bdc3ba4b2160132e1adf31052bc06bf4abf6319f9d"
+      }
+    },
+    "glassImpacts": {
+      "title": "Two marbles colliding",
+      "author": "D43thsilence",
+      "url": "https://freesound.org/people/D43thsilence/sounds/755084/",
+      "filename": "755084__d43thsilence__two-marbles-colliding.wav",
+      "sha256": "b634e9a88ebcd81e82e999df126e5dca327185bfde0ec16fbf0da380863fa027",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "credit": "Two marbles colliding by D43thsilence (Freesound), CC BY 4.0. Modified: right-channel extraction, resampling, trimming, shared gain and edge fades."
+    }
+  },
+  "userReview": {
+    "date": "2026-09-10",
+    "status": "accepted in offline audition",
+    "rollingFeedback": "用户未听出机械重复感或忽远忽近，感觉比较自然。",
+    "stoneFeedback": "用户认为碰石声比较像碰石头。",
+    "selectedRollingVariant": null,
+    "scope": "A/B/C rolling candidates retained; no preferred variant selected; in-game behavior not yet tested"
+  }
+}

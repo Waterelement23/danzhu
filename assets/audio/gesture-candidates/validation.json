@@ -1,0 +1,75 @@
+{
+  "source": "Procedural sound-design synthesis only; no sampled recording.",
+  "status": "offline audition; user timbre approval pending; not integrated",
+  "sampleRate": 48000,
+  "channels": 1,
+  "bitDepth": 16,
+  "files": {
+    "release-01.wav": {
+      "seconds": 0.14,
+      "peakDbFS": -16.33,
+      "rmsDbFS": -39.54,
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ],
+      "sha256": "02b70ff4cd6385317268c98b69b5acaab315b4628d4d6812e8de2c8d11e758f5"
+    },
+    "release-02.wav": {
+      "seconds": 0.14,
+      "peakDbFS": -13.83,
+      "rmsDbFS": -34.99,
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ],
+      "sha256": "c18312c534802b5299e878146bdb58fb32a29ec392de5ca1b3538f5c69b0a2cb"
+    },
+    "release-03.wav": {
+      "seconds": 0.14,
+      "peakDbFS": -11.6,
+      "rmsDbFS": -34.17,
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ],
+      "sha256": "ae63be706e49e672515b2e2a144daaa1a63614dde97e6fbb2d757a7148c84606"
+    },
+    "aim-charge-audition.wav": {
+      "seconds": 6.0,
+      "peakDbFS": -20.0,
+      "rmsDbFS": -37.04,
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ],
+      "sha256": "06703f0be8ddc6c568fe028277dfdb730c31db498095eb984d2aeec34cd5ab9a"
+    },
+    "release-audition.wav": {
+      "seconds": 3.2,
+      "peakDbFS": -11.6,
+      "rmsDbFS": -44.5,
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ],
+      "sha256": "bd4765fdcc88819aeee01065b72d1e5d8869dc28f1b799f32678dfba53081e20"
+    },
+    "gesture-audition.wav": {
+      "seconds": 10.0,
+      "peakDbFS": -11.81,
+      "rmsDbFS": -39.37,
+      "clippedSamples": 0,
+      "edgeSamples": [
+        0,
+        0
+      ],
+      "sha256": "71349a12697d5f0a280684b643f2faf0696e4a47425a0032408d81427e5ad0cc"
+    }
+  }
+}

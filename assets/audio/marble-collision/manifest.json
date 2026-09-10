@@ -1,0 +1,133 @@
+{
+  "status": "source selected by user; eight extracted hits awaiting audition",
+  "source": {
+    "title": "Two marbles colliding",
+    "author": "D43thsilence",
+    "url": "https://freesound.org/people/D43thsilence/sounds/755084/",
+    "filename": "755084__d43thsilence__two-marbles-colliding.wav",
+    "sha256": "b634e9a88ebcd81e82e999df126e5dca327185bfde0ec16fbf0da380863fa027",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "credit": "Two marbles colliding by D43thsilence (Freesound), CC BY 4.0. Modified: right-channel extraction, resampling, trimming, shared gain and edge fades."
+  },
+  "sampleRate": 48000,
+  "channels": 1,
+  "bitDepth": 16,
+  "processing": {
+    "sourceChannel": "right",
+    "gainDb": -3.514439338772899,
+    "attackFadeMs": 1,
+    "releaseFadeMs": 25,
+    "pitchShift": false,
+    "denoise": false,
+    "compression": false,
+    "filter": null
+  },
+  "integratedInGame": false,
+  "clips": [
+    {
+      "filename": "marble-collision-01.wav",
+      "duration": 0.295,
+      "peakDbFS": -3.0,
+      "sha256": "80b26444f992229752df9e137781b907fa6d7f60d1f619edc715ea2a48db3722",
+      "sourceRange": [
+        0.51,
+        0.805
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-02.wav",
+      "duration": 0.295,
+      "peakDbFS": -3.396035836185562,
+      "sha256": "1af2f72d240fb47e9be2e72ed302b63b3174fd57c3c109d89063fbfecec82678",
+      "sourceRange": [
+        2.47,
+        2.765
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-03.wav",
+      "duration": 0.295,
+      "peakDbFS": -4.297248554384501,
+      "sha256": "b38ec768e4d3f22797292c9fda5d480004d1399434fc5d9a2aeab748ed4acbb5",
+      "sourceRange": [
+        4.44,
+        4.735
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-04.wav",
+      "duration": 0.295,
+      "peakDbFS": -4.584171243332744,
+      "sha256": "5a46d98c21d5a3bbe1d93e4089ad15970d17775e6ca2b91508bbdc05bc1e3df5",
+      "sourceRange": [
+        6.45,
+        6.745
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-05.wav",
+      "duration": 0.295,
+      "peakDbFS": -3.0431144555109437,
+      "sha256": "6abb7e8fbff49224f029f4c963ee06836db31750442ba8702d97346aceaf8278",
+      "sourceRange": [
+        8.4,
+        8.695
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-06.wav",
+      "duration": 0.295,
+      "peakDbFS": -4.742247012970085,
+      "sha256": "0542beae1fb97eb4370f0c0658e5e0782d7b1a95a8cbf4af207ee43577d181f5",
+      "sourceRange": [
+        10.475,
+        10.77
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-07.wav",
+      "duration": 0.295,
+      "peakDbFS": -4.361580071457519,
+      "sha256": "722f93aadf2f77c83a8fbb3a18a60d364c13f78ac906675d1168ad0b987509f5",
+      "sourceRange": [
+        12.49,
+        12.785
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-08.wav",
+      "duration": 0.295,
+      "peakDbFS": -3.210966898753018,
+      "sha256": "e7ed7288b9dec4655edbe04d8d93428e6a4a63c28f2192b41e5c983049eaabf6",
+      "sourceRange": [
+        14.495,
+        14.79
+      ],
+      "loop": false,
+      "reviewStatus": "source approved; extracted cut awaiting user audition"
+    },
+    {
+      "filename": "marble-collision-audition.wav",
+      "duration": 7.41,
+      "peakDbFS": -3.0,
+      "sha256": "b07b9807bcd30288f80be676ecec10bcf62625652a8e5e938d0eacd7503a5055",
+      "loop": false,
+      "sequence": "01 through 08, once each; 600 ms silence after each hit"
+    }
+  ]
+}
