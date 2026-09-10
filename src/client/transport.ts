@@ -60,6 +60,9 @@ export async function practice(h: Hooks, terrainSeed = nextTerrainSeed()): Promi
   };
 }
 const TOKEN = 'danzhu-reconnect';
+export function sessionRoomCode() {
+  return sessionStorage.getItem('danzhu-room');
+}
 export function hasSession() {
   return !!sessionStorage.getItem(TOKEN);
 }
@@ -103,7 +106,10 @@ export async function online(
   let reconnecting = false;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
   let deadline = 0;
-  const save = () => sessionStorage.setItem(TOKEN, room.reconnectionToken);
+  const save = () => {
+    sessionStorage.setItem(TOKEN, room.reconnectionToken);
+    sessionStorage.setItem('danzhu-room', room.roomId);
+  };
   const clearToken = () => {
     if (sessionStorage.getItem(TOKEN) === room.reconnectionToken) sessionStorage.removeItem(TOKEN);
   };

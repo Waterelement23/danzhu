@@ -120,3 +120,45 @@ it('ready consensus is reevaluated after reconnect', async () => {
   restored.send('sync');
   expect((await restoredWait).terrainSeed).toBe(originalSeed);
 }, 15000);
+it('rematch invitation waits for acceptance and resets both players to the same new terrain', async () => {
+  const c = new Client(`http://127.0.0.1:${port}`),
+    a = await c.create('marble', version);
+  rooms.push(a);
+  a.onMessage('*', () => {});
+  const b = await c.joinById(a.roomId, version);
+  rooms.push(b);
+  b.onMessage('*', () => {});
+  const started = waitMessage<Presence>(a, 'presence', (p) => p.started);
+  a.send('ready');
+  b.send('ready');
+  await started;
+  const state = waitMessage<GameSnapshot>(a, 'snapshot');
+  a.send('sync');
+  const before = await state;
+  const finished = waitMessage<GameSnapshot>(b, 'snapshot', (s) => s.phase === 'finished');
+  (before.active === 0 ? a : b).send('shot', {
+    id: 'out-for-rematch',
+    match: before.match,
+    turn: before.turn,
+    direction: { x: 1, z: -0.1 },
+    power: 1,
+    serveX: 0.9,
+  });
+  await finished;
+  const invitation = waitMessage<Presence>(b, 'presence', (p) => p.rematch[0]);
+  a.send('rematch');
+  expect((await invitation).rematch).toEqual([true, false]);
+  const stillFinished = waitMessage<GameSnapshot>(b, 'snapshot');
+  b.send('sync');
+  expect((await stillFinished).phase).toBe('finished');
+  const nextA = waitMessage<GameSnapshot>(a, 'snapshot', (s) => s.match > before.match);
+  const nextB = waitMessage<GameSnapshot>(b, 'snapshot', (s) => s.match > before.match);
+  b.send('rematch');
+  const [sa, sb] = await Promise.all([nextA, nextB]);
+  expect(sa.terrainSeed).toBe(sb.terrainSeed);
+  expect(sa.terrainSeed).not.toBe(before.terrainSeed);
+  expect(sa.phase).toBe('aiming');
+  const cleared = waitMessage<Presence>(a, 'presence', (p) => !p.rematch.some(Boolean));
+  a.send('sync');
+  expect((await cleared).rematch).toEqual([false, false]);
+}, 15000);

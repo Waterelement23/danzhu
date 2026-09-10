@@ -21,7 +21,7 @@ export class ServeGuide {
       `高位发球：弹珠离地 ${Math.round(CONFIG.serveHeight * 100)} 厘米，虚线连接弹珠与正下方地面，弧线表示预计首次接触路线。`,
     );
     this.root.innerHTML =
-      '<svg aria-hidden="true"><path class="flight-path"/><path class="height-path"/><path class="serve-foot"/><path class="flight-end"/></svg>';
+      '<svg aria-hidden="true"><path class="flight-outline"/><path class="flight-path"/><path class="height-path"/><path class="serve-foot"/><path class="flight-end"/></svg>';
     this.svg = this.root.querySelector('svg')!;
     container.append(this.root);
     this.setTerrain(terrain);
@@ -103,6 +103,7 @@ export class ServeGuide {
         })
         .join(' ') ?? '';
     this.svg.querySelector('.flight-path')!.setAttribute('d', curve);
+    this.svg.querySelector('.flight-outline')!.setAttribute('d', curve);
     this.svg.querySelector('.flight-end')!.setAttribute('d', '');
     if (flight) {
       const end = project(flight.end),
@@ -111,6 +112,11 @@ export class ServeGuide {
         .querySelector('.flight-end')!
         .setAttribute('d', `M${end.x},${end.y - r}l${r},${r}l${-r},${r}l${-r},${-r}Z`);
     }
+  }
+  clearAim() {
+    for (const selector of ['.flight-path', '.flight-outline', '.flight-end'])
+      this.svg.querySelector(selector)!.setAttribute('d', '');
+    this.root.dataset.prediction = 'none';
   }
   dispose() {
     this.disposed = true;

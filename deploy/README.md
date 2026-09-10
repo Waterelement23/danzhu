@@ -66,3 +66,9 @@ node --import tsx scripts/deployment-smoke.ts https://www.learntaskrevise.asia/d
 镜像构建自动生成预压缩资源，不依赖 Nginx 的 Brotli 模块。客户端模型 URL 带内容哈希；修改模型后构建会生成新 URL。更新容器后执行 Nginx 配置测试与 reload，以重新解析游戏容器地址。
 
 当前 startup 镜像 digest：`sha256:a5732ebd0f7892894d114da46c2ac873d4e10dc134624f1f5a7f321c3f578d86`。公网模型传输由未压缩 9.90 MB / 27.24 秒降为 Brotli 4.36 MB / 11.80 秒（此次网络测量）。
+
+## 2026-09-10 移动端与好友邀请升级
+
+发布目录 `/opt/danzhu/releases/20260910-mobile`，镜像 `danzhu:20260910-mobile`。沿用现有 Docker 网络和 Nginx path；保留 `20260910-startup` 作为回滚版本。
+
+移动端对局采用全屏布局、回合自动放大与全景切换、底部瞄准区和固定像素轨迹。邀请使用 `/danzhu/?room=XXXXXXXX`；链接只含房间号，刷新原页面通过 sessionStorage 恢复本人席位。双方准备开局；再战需要双方接受，服务端规则和物理参数不变。

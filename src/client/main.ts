@@ -1,25 +1,35 @@
 import './style.css';
+import { invitationCode, invitationUrl, playerName, rematchView } from './match-ui';
 import { GameAudio } from './audio';
 import { MarbleScene } from './scene';
 import { CONFIG, SERVE_RANGE, MAP_VERSION, PROTOCOL_VERSION, nextTerrainSeed } from '../shared/map';
 import type { GameSnapshot, Presence, Shot, Result } from '../shared/types';
-import { practice, online, hasSession, type GameTransport, type Hooks } from './transport';
+import {
+  practice,
+  online,
+  hasSession,
+  sessionRoomCode,
+  type GameTransport,
+  type Hooks,
+} from './transport';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const marbleIcon =
   '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 30C30 32 7 6 31 8M5 21C18 28 22 13 35 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 $('app').innerHTML = `
 <header class="site-header"><a class="brand" href="${import.meta.env.BASE_URL}">${marbleIcon}<span>弹珠<small>MARBLE CLUB</small></span></a><nav><span class="edition">童年游乐计划 · 001</span><div class="sound-controls"><button id="sound-toggle" class="text-button" aria-label="静音" aria-pressed="false">声音 开</button><input id="sound-volume" type="range" min="0" max="100" value="70" aria-label="音效音量" /></div><button id="rules-open" class="text-button">玩法说明 <span>↗</span></button></nav></header>
 <main>
- <section class="intro"><div><p class="eyebrow"><span></span> 一颗玻璃珠，一整个下午</p><h1>再玩一个下午<span>。</span></h1><p class="intro-copy">圈一块地，约一个朋友。把童年的手感，弹回来。</p></div>   <div class="session-panels"><section id="lobby" class="panel lobby"><span class="section-number">01 — LET’S PLAY</span><h2>约一场弹珠</h2><p class="muted">不用下载，不用注册。<br>一个房间码，就能一起玩。</p><button id="create" class="primary">创建双人房间 <span>↗</span></button><div class="join-label">朋友已经开好房间？</div><form id="join-form" class="join-form"><input id="room-code" aria-label="房间码" autocomplete="off" maxlength="8" placeholder="输入 8 位房间码"/><button id="join" type="submit" aria-label="加入房间">→</button></form><div class="divider"><span>也可以先找找手感</span></div><button id="practice" class="secondary">本机双人练习 <span>↗</span></button><button id="resume" class="text-button resume" hidden>恢复上一局连接 →</button></section>
-   <section id="controls" class="panel controls" hidden><div class="control-heading"><span id="turn-eyebrow" class="section-number">轮到你了</span><span id="timer" class="timer">30s</span></div><h2 id="turn-title">准备入场</h2><p id="turn-description" class="muted">从发球线弹入第一颗球。</p><div id="room-share" class="room-share" hidden><small>房间码 · 发给朋友</small><button id="copy-code" aria-label="复制房间码"></button></div><button id="ready" class="primary" hidden>我准备好了 <span>✓</span></button><div id="serve-control"><label for="serve-position">发球位置 <span id="serve-value">中间</span></label><input id="serve-position" type="range" min="-900" max="900" value="0"/><div class="range-captions"><span>左侧</span><span>沿发球线移动</span><span>右侧</span></div></div><div class="power-display"><label>击球力度 <span id="power-text">25%</span></label><div class="power-track"><i id="power-bar"></i></div><p>按住自己的弹珠，向后拖动蓄力<br>松手弹出 · Esc 取消</p></div><details id="fine-aim"><summary>精细瞄准 <span>＋</span></summary><div class="fine-settings"><label for="angle">方向 <span id="angle-value">0°</span></label><input id="angle" type="range" min="-180" max="180" value="0"/><label for="power">力度</label><input id="power" type="range" min="1" max="100" value="25"/><button id="shoot" class="secondary">按当前方向弹出 →</button></div></details><div class="shrink-info"><span>◎</span><span id="shrink-label">前 3 轮不缩圈</span></div><button id="leave" class="text-button leave">← 返回大厅</button></section></div></section>
+ <section class="intro"><div><p class="eyebrow"><span></span> 一颗玻璃珠，一整个下午</p><h1>再玩一个下午<span>。</span></h1><p class="intro-copy">圈一块地，约一个朋友。把童年的手感，弹回来。</p></div>   <div class="session-panels"><section id="lobby" class="panel lobby"><span class="section-number">01 — LET’S PLAY</span><h2>约一场弹珠</h2><p class="muted">不用下载，不用注册。<br>一个邀请链接，就能一起玩。</p><button id="create" class="primary">创建双人房间 <span>↗</span></button><div class="join-label">朋友已经开好房间？</div><form id="join-form" class="join-form"><input id="room-code" aria-label="房间码" autocomplete="off" maxlength="8" placeholder="输入 8 位房间码"/><button id="join" type="submit" aria-label="加入房间">→</button></form><div class="divider"><span>也可以先找找手感</span></div><button id="practice" class="secondary">本机双人练习 <span>↗</span></button><button id="resume" class="text-button resume" hidden>恢复上一局连接 →</button></section>
+   <section id="controls" class="panel controls" hidden><div class="control-heading"><span id="turn-eyebrow" class="section-number">轮到你了</span><span id="timer" class="timer">30s</span></div><h2 id="turn-title">准备入场</h2><p id="turn-description" class="muted">从发球线弹入第一颗球。</p><div id="room-share" class="room-share" hidden><small>邀请朋友 · 打开链接直接加入</small><button id="copy-code" aria-label="复制邀请链接"></button></div><button id="ready" class="primary" hidden>我准备好了 <span>✓</span></button><div id="serve-control"><label for="serve-position">发球位置 <span id="serve-value">中间</span></label><input id="serve-position" type="range" min="-900" max="900" value="0"/><div class="range-captions"><span>左侧</span><span>沿发球线移动</span><span>右侧</span></div></div><div class="power-display"><label>击球力度 <span id="power-text">25%</span></label><div class="power-track"><i id="power-bar"></i></div><p>按住自己的弹珠，向后拖动蓄力<br>松手弹出 · Esc 取消</p></div><details id="fine-aim"><summary>精细瞄准 <span>＋</span></summary><div class="fine-settings"><label for="angle">方向 <span id="angle-value">0°</span></label><input id="angle" type="range" min="-180" max="180" value="0"/><label for="power">力度</label><input id="power" type="range" min="1" max="100" value="25"/><button id="shoot" class="secondary">按当前方向弹出 →</button></div></details><div class="shrink-info"><span>◎</span><span id="shrink-label">前 3 轮不缩圈</span></div><button id="leave" class="text-button leave">← 返回大厅</button></section></div></section>
  <div class="game-layout">
   <section class="board-card" aria-label="弹珠场地">
    <div class="board-top"><div><span class="terrain-dot"></span><strong>老院子的土地</strong><span class="board-meta">每局随机 · 起伏 · 石子</span></div><div class="players" id="players"><div id="player0" class="player blue"><i></i><span id="name0">PLAYER 01</span></div><div class="versus">VS</div><div id="player1" class="player amber"><i></i><span id="name1">PLAYER 02</span></div></div><span id="mode-tag" class="mode-tag">练习 / 1V1 联网</span></div>
 
+   <div class="match-status" id="match-status" role="status" aria-live="polite" hidden></div>
    <div id="scene" class="scene"></div>
+   <div id="mobile-play" class="mobile-play" hidden><div class="mobile-actions"><span id="mobile-timer" class="mobile-timer"></span><button id="view-toggle" class="secondary" aria-pressed="false">放大瞄准</button><button id="mobile-cancel" class="text-button">取消蓄力</button><button id="mobile-sound" class="text-button" aria-label="切换音效">声音开</button><button id="mobile-leave" class="text-button">离开</button></div><div id="aim-pad" class="aim-pad" role="group" aria-label="瞄准区：按住向后拖动，松手发射"><span id="pad-label">按住这里向后拉 · 松手发射</span><div class="pad-power"><i id="pad-power"></i></div></div><div id="mobile-serve"></div><div id="mobile-wait"></div></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
    <div class="board-bottom"><span><i class="live-dot"></i><span id="connection">准备好，把第一颗球弹出去。</span></span><span id="round-label">01 / 土地场</span></div>
-   <div id="result" class="result-overlay" role="status" aria-live="polite" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><button id="rematch" class="primary"><span id="rematch-label">再来一局</span><span id="rematch-arrow" aria-hidden="true">↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
+   <div id="result" class="result-overlay" role="status" aria-live="polite" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><p id="rematch-message" class="rematch-message" aria-live="polite" hidden></p><button id="rematch" class="primary"><span id="rematch-label">再来一局</span><span id="rematch-arrow" aria-hidden="true">↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
   </section>
 
  </div>
@@ -30,6 +40,8 @@ $('app').innerHTML = `
 const audio = new GameAudio();
 function refreshAudio() {
   const state = audio.state;
+  $('mobile-sound').textContent = state.muted ? '声音关' : '声音开';
+  $('mobile-sound').setAttribute('aria-pressed', String(state.muted));
   $('sound-toggle').textContent = state.muted ? '声音 关' : '声音 开';
   $('sound-toggle').setAttribute('aria-pressed', String(state.muted));
   $('sound-toggle').setAttribute('aria-label', state.muted ? '开启音效' : '静音');
@@ -110,6 +122,9 @@ function updatePower(p: number) {
   power = p;
   $('power-text').textContent = `${Math.round(p * 100)}%`;
   $('power-bar').style.width = `${p * 100}%`;
+  $('pad-power').style.width = `${p * 100}%`;
+  $('pad-label').textContent =
+    p > 0 ? `力度 ${Math.round(p * 100)}% · 松手发射` : '按住这里向后拉 · 松手发射';
   $<HTMLInputElement>('power').value = String(Math.round(p * 100));
 }
 scene.onPower = updatePower;
@@ -156,13 +171,15 @@ const hooks: Hooks = {
       direction = { x: 0, z: -1 };
       $<HTMLInputElement>('angle').value = '0';
       $('angle-value').textContent = '0°';
-      updatePower(0.25);
+      updatePower(0);
       pending = false;
     }
     refresh();
   },
   presence(p) {
     presence = p;
+    if (mode === 'online' && invitationCode(location.href) !== p.code)
+      history.replaceState(null, '', invitationUrl(location.href, p.code));
     refresh();
   },
   error: notify,
@@ -182,6 +199,10 @@ function refresh() {
     onlineMode = mode === 'online',
     isServing = !snapshot.served[snapshot.active],
     isFirst = isServing && snapshot.active === snapshot.first;
+  if (document.body.classList.contains('in-match') === isLobby)
+    document.body.classList.toggle('in-match', !isLobby);
+  $('mobile-play').hidden = isLobby;
+  scene.setMatchMode(!isLobby);
   $('lobby').hidden = !isLobby;
   $('controls').hidden = isLobby;
   $('mode-tag').textContent = isLobby
@@ -194,7 +215,7 @@ function refresh() {
     : `第 ${String(snapshot.round).padStart(2, '0')} 轮 · 土地场`;
   for (const p of [0, 1] as const) {
     $('player' + p).classList.toggle('active', !isLobby && snapshot.active === p);
-    const name = `PLAYER 0${p + 1}` + (onlineMode && presence?.player === p ? ' · 你' : '');
+    const name = isLobby ? `PLAYER 0${p + 1}` : playerName(p, onlineMode ? presence : null);
     const status = isLobby
       ? ''
       : onlineMode && !presence?.connected[p]
@@ -212,7 +233,9 @@ function refresh() {
       : snapshot.phase === 'moving'
         ? '滚动中'
         : `${Math.ceil(snapshot.secondsLeft)}s`;
-  $('turn-eyebrow').textContent = onlineMode ? 'ONLINE DUEL' : 'LOCAL PRACTICE';
+  $('mobile-timer').textContent = $('timer').textContent;
+  $('turn-eyebrow').textContent =
+    playerName(snapshot.active, onlineMode ? presence : null) + (isServing ? '发球' : '的回合');
   let title = isFirst ? '站着，弹第一颗。' : isServing ? '贴地，瞄准入场。' : '看准，再弹一下。';
   let description = isFirst
     ? '从高处弹入，落地反弹后停稳。先选好你的发球位置。'
@@ -227,7 +250,7 @@ function refresh() {
     description = '正在尝试恢复原来的席位，请稍候。';
   } else if (onlineMode && !presence?.started) {
     title = presence?.connected.every(Boolean) ? '人齐了，准备开局。' : '等一个老朋友。';
-    description = '把下面的房间码发给朋友，双方准备后开始。';
+    description = '复制邀请链接发给朋友，打开即可入房；双方准备后开始。';
   } else if (onlineMode && !presence?.connected.every(Boolean)) {
     title = '对方暂时掉线';
     description = '保留席位 30 秒；当前击球会完成，之后暂停操作。';
@@ -238,13 +261,13 @@ function refresh() {
     title = '场地正在缩小';
     description = '新的边界生效后继续。留意场地里的虚线。';
   } else if (onlineMode && presence?.player !== snapshot.active) {
-    title = '轮到对方出手';
+    title = isServing ? (isFirst ? '对手高位发球' : '对手贴地发球') : '轮到对手出手';
     description = '观察对方的落点，为下一击做准备。';
   }
   $('turn-title').textContent = title;
   $('turn-description').textContent = description;
-  $('room-share').hidden = !onlineMode;
-  $('copy-code').textContent = presence?.code ?? '连接中';
+  $('room-share').hidden = !onlineMode || (!!presence?.started && snapshot.phase !== 'finished');
+  $('copy-code').textContent = presence ? '复制邀请链接 ↗' : '连接中';
   $('ready').hidden = !onlineMode || !!presence?.started;
   $<HTMLButtonElement>('ready').disabled = !connected || !!presence?.ready[presence.player];
   $('ready').innerHTML = presence?.ready[presence.player]
@@ -267,6 +290,28 @@ function refresh() {
           ? '先手高位发球 · 拉住空中的弹珠向后拖动'
           : '按住自己的弹珠，向后拖动，松手弹出'
         : '看看地形，想好下一步。';
+  const actor = playerName(snapshot.active, onlineMode ? presence : null);
+  const status =
+    snapshot.phase === 'aiming' && (mode === 'practice' || presence?.started)
+      ? `${actor}${isServing ? (isFirst ? ' · 高位发球' : ' · 贴地发球') : ' · 出手'}${canAct() ? ' · 轮到你操作' : ''}`
+      : title;
+  const statusNode = $('match-status');
+  statusNode.hidden = isLobby;
+  if (statusNode.textContent !== status) statusNode.textContent = status;
+  statusNode.dataset.player = String(snapshot.active);
+  statusNode.classList.toggle('my-turn', canAct());
+  $('aim-pad').setAttribute('aria-disabled', String(!canAct()));
+  $('aim-pad').hidden = !canAct();
+  $('mobile-cancel').hidden = !canAct();
+  $<HTMLButtonElement>('view-toggle').disabled = snapshot.phase !== 'aiming';
+  $('mobile-wait').hidden = canAct();
+  $('mobile-wait').textContent = title;
+  scene.setPlayerLabels(
+    isLobby
+      ? null
+      : [playerName(0, onlineMode ? presence : null), playerName(1, onlineMode ? presence : null)],
+    mode === 'practice' || !!presence?.started,
+  );
   // Snapshot refreshes are not user aiming input.
   scene.update(snapshot, canAct());
   updateResult();
@@ -290,16 +335,20 @@ function updateResult() {
     r.winner === null ? '这局，算平手。' : `${r.winner === 0 ? '蓝色' : '琥珀'}弹珠获胜！`;
   $('result-reason').textContent = reasons[r.reason];
   $('result-ball').className = 'result-ball ' + (r.winner === 1 ? 'gold' : '');
-  const wait = mode === 'online' && presence?.rematch[presence.player];
-  $('rematch-label').textContent = wait ? '已邀请 · 等待对方' : '再来一局';
-  $('rematch-arrow').hidden = !!wait;
-  $<HTMLButtonElement>('rematch').disabled =
-    !!wait || (mode === 'online' && !presence?.connected.every(Boolean));
+  if (mode === 'online' && presence && r.winner !== null)
+    $('result-title').textContent = r.winner === presence.player ? '你赢了！' : '对手获胜';
+  const view = rematchView(mode === 'online' ? presence : null);
+  $('rematch-label').textContent = view.label;
+  $('rematch-arrow').hidden = view.disabled;
+  $('rematch-message').textContent = view.message;
+  $('rematch-message').hidden = !view.message;
+  $('result-home').textContent = mode === 'online' ? '离开房间' : '回到院子';
+  $<HTMLButtonElement>('rematch').disabled = view.disabled;
 }
 let sessionGeneration = 0;
-async function start(kind: 'practice' | 'create' | 'join' | 'resume') {
+async function start(kind: 'practice' | 'create' | 'join' | 'resume', invitedCode?: string) {
   if (loading) return;
-  const code = $<HTMLInputElement>('room-code').value.trim();
+  const code = invitedCode ?? $<HTMLInputElement>('room-code').value.trim();
   if (kind === 'join' && !/^[A-Fa-f0-9]{8}$/.test(code)) {
     notify('请输入 8 位房间码');
     return;
@@ -341,15 +390,22 @@ async function start(kind: 'practice' | 'create' | 'join' | 'resume') {
       return;
     }
     transport = created;
+    if (kind !== 'practice' && presence)
+      history.replaceState(null, '', invitationUrl(location.href, (presence as Presence).code));
     refresh();
   } catch (error) {
     if (!current()) return;
     mode = 'lobby';
     presence = null;
+    const message = error instanceof Error ? error.message : '请检查网络连接';
     notify(
       kind === 'resume'
         ? '上一局已结束，重新开一局吧。'
-        : `暂时无法连接房间：${error instanceof Error ? error.message : '请检查服务是否启动'}`,
+        : /not found|not exist|expired/i.test(message)
+          ? '邀请已失效或房间已关闭，请朋友重新发一个邀请链接。'
+          : /full|locked|seat/i.test(message)
+            ? '房间已满或已经开局，请朋友重新创建房间邀请你。'
+            : `暂时无法连接房间：${message}`,
     );
     refresh();
   } finally {
@@ -363,6 +419,10 @@ async function start(kind: 'practice' | 'create' | 'join' | 'resume') {
 }
 function home() {
   audio.reset();
+  const cleanUrl = new URL(location.href);
+  cleanUrl.searchParams.delete('room');
+  history.replaceState(null, '', cleanUrl);
+  scene.setZoom(false);
   sessionGeneration++;
   loading = false;
   for (const id of ['create', 'practice', 'join', 'resume'])
@@ -406,12 +466,17 @@ $('ready').onclick = () => transport?.ready();
 $('leave').onclick = home;
 $('result-home').onclick = home;
 $('rematch').onclick = () => transport?.rematch();
-$('copy-code').onclick = () => {
-  if (presence)
-    void navigator.clipboard
-      ?.writeText(presence.code)
-      .then(() => notify('房间码已复制'))
-      .catch(() => notify(`房间码：${presence!.code}`));
+$('copy-code').onclick = async () => {
+  if (!presence) return;
+  const url = invitationUrl(location.href, presence.code);
+  try {
+    await navigator.clipboard.writeText(url);
+    notify('邀请链接已复制，发给朋友即可加入');
+  } catch {
+    $<HTMLInputElement>('invite-link').value = url;
+    $<HTMLDialogElement>('invite-dialog').showModal();
+    $<HTMLInputElement>('invite-link').select();
+  }
 };
 $('serve-position').oninput = () => {
   serveX = Number($<HTMLInputElement>('serve-position').value) / 1000;
@@ -447,7 +512,50 @@ $('rules').onclick = (e) => {
   if (e.target === $('rules')) $<HTMLDialogElement>('rules').close();
 };
 $('resume').hidden = !hasSession();
+const inviteDialog = document.createElement('dialog');
+inviteDialog.id = 'invite-dialog';
+inviteDialog.innerHTML =
+  '<h2>邀请朋友</h2><p>复制下方链接，打开即可加入房间。</p><input id="invite-link" readonly aria-label="邀请链接"/><form method="dialog"><button class="secondary">关闭</button></form>';
+document.body.append(inviteDialog);
+scene.attachAimPad($('aim-pad'));
+scene.onZoom = (zoomed) => {
+  $('view-toggle').textContent = zoomed ? '返回全景' : '放大瞄准';
+  $('view-toggle').setAttribute('aria-pressed', String(zoomed));
+};
+$('view-toggle').onclick = () => scene.setZoom(!scene.zoomed);
+$('mobile-cancel').onpointerdown = (e) => {
+  e.preventDefault();
+  scene.clearAim();
+};
+$('mobile-leave').onclick = home;
+$('mobile-sound').onclick = () => audio.setMuted(!audio.state.muted);
+// Move existing controls rather than duplicating state and input handlers.
+const mobileQuery = matchMedia('(max-width: 720px), (max-height: 500px) and (pointer: coarse)');
+function placeControls() {
+  const mobile = mobileQuery.matches && mode !== 'lobby';
+  const destination = mobile ? $('mobile-serve') : $('controls');
+  for (const id of ['room-share', 'ready', 'serve-control'])
+    if ($(id).parentElement !== destination) destination.append($(id));
+}
+mobileQuery.addEventListener('change', placeControls);
+new MutationObserver(placeControls).observe(document.body, {
+  attributes: true,
+  attributeFilter: ['class'],
+});
 refresh();
+const invited = invitationCode(location.href);
+if (invited) {
+  $<HTMLInputElement>('room-code').value = invited;
+  void ready.then(async () => {
+    if (sessionRoomCode() === invited && hasSession()) {
+      await start('resume');
+      if (mode !== 'lobby') return;
+    }
+    await start('join', invited);
+  });
+} else if (new URL(location.href).searchParams.has('room'))
+  notify('邀请链接无效，请向朋友获取新的链接。');
+
 let previous = performance.now();
 function animate(now: number) {
   const dt = Math.min((now - previous) / 1000, 0.1);

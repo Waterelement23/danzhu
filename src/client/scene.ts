@@ -1,3 +1,5 @@
+import { BallLabels } from './ball-labels';
+import { touchAim } from './match-ui';
 import type { AudioFrame } from './audio';
 import { startupStage } from './startup';
 import { makeSoilMaterial } from './soil-material';
@@ -31,6 +33,24 @@ const BLUE = 0x2389b9,
 /** Display and input only. The shared map and server snapshots own every physical surface and ball. */
 export class MarbleScene {
   public readonly ready: Promise<void>;
+  public onZoom?: (zoomed: boolean) => void;
+  public zoomed = false;
+  private matchMode = false;
+  private mobileFocusTurn = '';
+  private readonly mobileQuery = matchMedia(
+    '(max-width: 720px), (max-height: 500px) and (pointer: coarse)',
+  );
+  private cameraDistance = 6;
+  private zoomAmount = 1;
+  private focus = new THREE.Vector3(0, 0.05, 0);
+  private focusTarget = new THREE.Vector3(0, 0.05, 0);
+  private showActivePlayer = false;
+  private playerLabels: [string, string] | null = null;
+  private readonly ballLabels: BallLabels;
+  private dragPixels = { x: 0, y: 0 };
+  private screenDrag = false;
+  private dragSurface?: HTMLElement;
+  private aimPad?: HTMLElement;
   public onPower?: (power: number) => void;
   public onCharge?: (phase: 'start' | 'move' | 'end', power: number) => void;
   public onAim?: (direction: Direction, power: number) => void;
@@ -115,6 +135,7 @@ export class MarbleScene {
     canvas.setAttribute('aria-label', '弹珠场地：从自己的弹珠向后拖动，松手击球');
     canvas.tabIndex = 0;
     container.appendChild(canvas);
+    this.ballLabels = new BallLabels(container);
     this.camera.position.set(0, 5, 3);
     this.camera.lookAt(0, 0.05, 0);
     this.scene.add(new THREE.HemisphereLight(0xfff9e9, 0x958772, 1.15));
@@ -392,6 +413,7 @@ export class MarbleScene {
       this.snapshot.terrainSeed !== snapshot.terrainSeed ||
       (this.snapshot.balls.length === 0 && snapshot.balls.length > 0);
     if (this.snapshot?.turn !== snapshot.turn || !canAct) this.clearAim();
+    if (this.snapshot?.turn !== snapshot.turn || snapshot.phase !== 'aiming') this.setZoom(false);
     this.snapshot = snapshot;
     this.canAct = canAct && snapshot.phase === 'aiming';
     this.renderer.domElement.style.cursor = this.canAct ? 'grab' : 'default';
@@ -410,6 +432,11 @@ export class MarbleScene {
     this.nextBoundary.visible =
       snapshot.nextBoundary < snapshot.boundary && snapshot.phase !== 'finished';
     this.syncPreview();
+    const focusTurn = `${snapshot.terrainSeed}:${snapshot.match}:${snapshot.turn}`;
+    if (this.canAct && this.mobileQuery.matches && focusTurn !== this.mobileFocusTurn) {
+      this.mobileFocusTurn = focusTurn;
+      this.setZoom(true);
+    }
   }
 
   private bufferSnapshot(snapshot: GameSnapshot, reset: boolean) {
@@ -540,12 +567,65 @@ export class MarbleScene {
   clearAim() {
     const changed = this.dragging || this.power > 0;
     this.dragging = false;
+    if (this.dragSurface?.hasPointerCapture(this.pointerId))
+      this.dragSurface.releasePointerCapture(this.pointerId);
     this.power = 0;
     this.aim.visible = false;
-    if (changed) this.onPower?.(0);
+    if (changed) {
+      this.onPower?.(0);
+      this.serveGuide.clearAim();
+    }
     this.onCharge?.('end', 0);
   }
 
+  setPlayerLabels(names: [string, string] | null, showActive = true) {
+    this.showActivePlayer = showActive;
+    this.playerLabels = names;
+  }
+  setMatchMode(enabled: boolean) {
+    if (enabled === this.matchMode) return;
+    this.matchMode = enabled;
+    if (!enabled) {
+      this.mobileFocusTurn = '';
+      this.setZoom(false);
+    }
+  }
+  setZoom(zoomed: boolean) {
+    if (this.dragging || (zoomed && this.snapshot?.phase !== 'aiming')) return;
+    this.zoomed = zoomed;
+    const active = this.snapshot?.active ?? 0;
+    const origin = this.preview.visible ? this.preview.position : this.targets[active];
+    this.focusTarget.set(zoomed ? origin.x * 0.7 : 0, 0.05, zoomed ? origin.z * 0.3 : 0);
+    this.onZoom?.(zoomed);
+  }
+  attachAimPad(pad: HTMLElement) {
+    this.aimPad = pad;
+    pad.addEventListener('pointerdown', this.padDown);
+    pad.addEventListener('pointermove', this.pointerMove);
+    pad.addEventListener('pointerup', this.pointerUp);
+    pad.addEventListener('pointercancel', this.cancel);
+    pad.addEventListener('lostpointercapture', this.cancel);
+    pad.addEventListener('contextmenu', this.contextMenu);
+  }
+  private padDown = (event: PointerEvent) => this.beginDrag(event, true);
+  private updateCamera(dt: number, immediate = false) {
+    // During a gesture even an unfinished transition stops, so aim cannot drift.
+    if (this.dragging && !immediate) return;
+    const mobile = this.mobileQuery.matches;
+    const targetZoom = this.matchMode && mobile && this.zoomed ? 1.5 : 1;
+    const alpha = immediate ? 1 : 1 - Math.exp(-dt * 12);
+    this.zoomAmount = THREE.MathUtils.lerp(this.zoomAmount, targetZoom, alpha);
+    this.focus.lerp(targetZoom > 1 ? this.focusTarget : new THREE.Vector3(0, 0.05, 0), alpha);
+    const tilt = THREE.MathUtils.degToRad(58),
+      d = this.cameraDistance / this.zoomAmount;
+    this.camera.position.set(
+      this.focus.x,
+      this.focus.y + d * Math.sin(tilt),
+      this.focus.z + d * Math.cos(tilt),
+    );
+    this.camera.lookAt(this.focus);
+    this.camera.updateMatrixWorld();
+  }
   private resize = () => {
     const width = Math.max(1, this.container.clientWidth),
       height = Math.max(1, this.container.clientHeight),
@@ -568,8 +648,8 @@ export class MarbleScene {
           );
         }
     this.camera.aspect = aspect;
-    this.camera.position.set(0, 0.05 + distance * sin, distance * cos);
-    this.camera.lookAt(0, 0.05, 0);
+    this.cameraDistance = distance;
+    this.updateCamera(0, true);
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   };
@@ -582,7 +662,8 @@ export class MarbleScene {
     this.raycaster.setFromCamera(this.pointer, this.camera);
     return this.raycaster.ray.intersectPlane(this.plane, this.groundPoint);
   }
-  private pointerDown = (event: PointerEvent) => {
+  private pointerDown = (event: PointerEvent) => this.beginDrag(event, false);
+  private beginDrag(event: PointerEvent, pad: boolean) {
     if (event.button !== 0 || !this.canAct || this.dragging) return;
     const active = this.snapshot?.active ?? 0,
       origin = this.preview.visible ? this.preview.position : this.balls[active].position;
@@ -594,22 +675,26 @@ export class MarbleScene {
     const hx = rect.left + ((this.scratch.x + 1) * rect.width) / 2,
       hy = rect.top + ((1 - this.scratch.y) * rect.height) / 2;
     if (
+      !pad &&
       Math.hypot(event.clientX - x, event.clientY - y) > 42 &&
       Math.hypot(event.clientX - hx, event.clientY - hy) > 30
     )
       return;
     if (!this.eventGround(event)) return;
     this.dragStart.copy(this.groundPoint);
+    this.dragPixels = { x: event.clientX, y: event.clientY };
+    this.screenDrag = pad || event.pointerType === 'touch';
     // A new gesture starts at zero; a click must not launch a preset shot.
     this.clearAim();
     this.dragging = true;
     this.onCharge?.('start', 0);
     this.pointerId = event.pointerId;
-    this.renderer.domElement.setPointerCapture(event.pointerId);
+    this.dragSurface = event.currentTarget as HTMLElement;
+    this.dragSurface.setPointerCapture(event.pointerId);
     this.renderer.domElement.focus({ preventScroll: true });
     this.renderer.domElement.style.cursor = 'grabbing';
     event.preventDefault();
-  };
+  }
   private pointerMove = (event: PointerEvent) => {
     if (
       !this.dragging ||
@@ -618,6 +703,18 @@ export class MarbleScene {
       !this.eventGround(event)
     )
       return;
+    if (this.screenDrag) {
+      const { direction, power } = touchAim(
+        event.clientX - this.dragPixels.x,
+        event.clientY - this.dragPixels.y,
+        Math.min(140, this.container.clientWidth * 0.34),
+      );
+      this.setAim(direction, power);
+      this.onPower?.(power);
+      this.onAim?.(direction, power);
+      this.onCharge?.('move', power);
+      return;
+    }
     this.scratch.subVectors(this.dragStart, this.groundPoint);
     this.scratch.y = 0;
     const distance = this.scratch.length();
@@ -663,6 +760,7 @@ export class MarbleScene {
     if (this.disposed) return;
     this.time += Math.min(dt, 0.1);
     this.sampleFrames();
+    this.updateCamera(dt);
     const scale = 1 + Math.sin(this.time * 2.8) * 0.045;
     this.halo.scale.setScalar(scale);
     this.serveGuide.update(this.camera, this.container.clientWidth, this.container.clientHeight, {
@@ -675,6 +773,33 @@ export class MarbleScene {
       power: this.power,
       bound: this.snapshot?.boundary ?? CONFIG.half,
     });
+    const active = this.snapshot?.active ?? 0;
+    const points = [0, 1].map((p) =>
+      this.preview.visible && p === active
+        ? this.preview.position
+        : this.balls[p].visible
+          ? this.balls[p].position
+          : null,
+    );
+    const arrow = this.aim.visible
+      ? [
+          this.aim.position,
+          this.aim.position.clone().addScaledVector(this.aimDirection, 0.12 + this.power * 0.68),
+        ]
+      : null;
+    this.ballLabels.update(
+      this.camera,
+      this.container.clientWidth,
+      this.container.clientHeight,
+      this.playerLabels,
+      points,
+      active,
+      this.showActivePlayer && this.snapshot?.phase === 'aiming',
+      arrow,
+    );
+    // The SVG arrow has constant pixel width on small screens.
+    const oldVisible = this.aim.visible;
+    if (arrow) this.aim.visible = false;
     this.scene.updateMatrixWorld(true);
     this.caustics.update(
       [0, 1].map((player) =>
@@ -688,11 +813,19 @@ export class MarbleScene {
       this.container.clientHeight,
     );
     this.renderer.render(this.scene, this.camera);
+    this.aim.visible = oldVisible;
   }
   dispose() {
     this.disposed = true;
     this.resizeObserver.disconnect();
     this.serveGuide.dispose();
+    this.ballLabels.dispose();
+    this.aimPad?.removeEventListener('pointerdown', this.padDown);
+    this.aimPad?.removeEventListener('pointermove', this.pointerMove);
+    this.aimPad?.removeEventListener('pointerup', this.pointerUp);
+    this.aimPad?.removeEventListener('pointercancel', this.cancel);
+    this.aimPad?.removeEventListener('lostpointercapture', this.cancel);
+    this.aimPad?.removeEventListener('contextmenu', this.contextMenu);
     this.caustics.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.pointerDown);
