@@ -57,3 +57,12 @@ node --import tsx scripts/deployment-smoke.ts https://www.learntaskrevise.asia/d
 ```
 
 本记录不包含登录密码、私钥或其他凭据。
+
+
+## 2026-09-10 首次加载优化升级
+
+当前版本目录改为 `/opt/danzhu/releases/20260910-startup`，镜像标签为 `danzhu:20260910-startup`；Compose 项目仍为 `danzhu`，网络与 Nginx location 不变。旧 `20260910-audio` 目录及镜像保留，可按该目录的 Compose 配置回滚。
+
+镜像构建自动生成预压缩资源，不依赖 Nginx 的 Brotli 模块。客户端模型 URL 带内容哈希；修改模型后构建会生成新 URL。更新容器后执行 Nginx 配置测试与 reload，以重新解析游戏容器地址。
+
+当前 startup 镜像 digest：`sha256:a5732ebd0f7892894d114da46c2ac873d4e10dc134624f1f5a7f321c3f578d86`。公网模型传输由未压缩 9.90 MB / 27.24 秒降为 Brotli 4.36 MB / 11.80 秒（此次网络测量）。

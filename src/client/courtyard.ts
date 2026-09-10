@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { courtyardBuffer, courtyardUrl, releaseCourtyardBuffer } from './startup-assets';
+import { startupStage } from './startup';
 
 /** Blender-authored surroundings. Gameplay geometry is loaded separately from shared data. */
 export async function loadCourtyard(): Promise<THREE.Group> {
-  const { scene } = await new GLTFLoader().loadAsync(
-    `${import.meta.env.BASE_URL}models/refined-courtyard.glb`,
-  );
+  const buffer = await courtyardBuffer();
+  startupStage('正在布置院落');
+  const { scene } = await new GLTFLoader().parseAsync(buffer, new URL('.', courtyardUrl()).href);
+  releaseCourtyardBuffer();
   scene.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];

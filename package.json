@@ -11,7 +11,7 @@
     "dev:server": "tsx watch src/server/index.ts",
     "dev:web": "vite --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit && vite build && esbuild src/server/index.ts --platform=node --format=esm --packages=external --bundle --outfile=dist/server/index.js",
+    "build": "tsc --noEmit && vite build && esbuild src/server/index.ts --platform=node --format=esm --packages=external --bundle --outfile=dist/server/index.js && node scripts/compress-assets.mjs",
     "start": "node dist/server/index.js",
     "test": "vitest run",
     "test:browser": "node scripts/browser-smoke.mjs",

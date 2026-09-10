@@ -8,3 +8,5 @@
 !src/**
 !public/
 !public/**
+!scripts/
+!scripts/compress-assets.mjs

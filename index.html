@@ -1,1 +1,164 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#f4f1e9"/><meta name="description" content="一颗玻璃珠，一整个下午。真实物理的 1V1 地面弹珠对战。"/><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2213%22 fill=%22%23294c3d%22/%3E%3Cpath d=%22M8 22C26 25 6 7 24 9%22 fill=%22none%22 stroke=%22%23d4c788%22 stroke-width=%223%22/%3E%3C/svg%3E"/><title>弹珠 · 再玩一个下午</title></head><body><div id="app"></div><script type="module" src="/src/client/main.ts"></script></body></html>
+<!doctype html>
+<html lang="zh-CN" class="is-loading">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f1e9" />
+    <meta name="description" content="一颗玻璃珠，一整个下午。真实物理的 1V1 地面弹珠对战。" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2213%22 fill=%22%23294c3d%22/%3E%3Cpath d=%22M8 22C26 25 6 7 24 9%22 fill=%22none%22 stroke=%22%23d4c788%22 stroke-width=%223%22/%3E%3C/svg%3E"
+    />
+    <title>弹珠 · 再玩一个下午</title>
+    <link
+      id="courtyard-preload"
+      rel="preload"
+      as="fetch"
+      crossorigin="anonymous"
+      href="__COURTYARD_URL__"
+      data-bytes="__COURTYARD_BYTES__"
+    />
+    <style>
+      .is-loading {
+        overflow: hidden;
+        background: #f4f1e9;
+      }
+      .is-loading #app {
+        visibility: hidden;
+      }
+      #startup {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(ellipse at 50% 40%, #fffcf3, #eeeadd);
+        color: #294c3d;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        transition: opacity 0.24s ease;
+      }
+      #startup[data-state='ready'] {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .startup-card {
+        width: min(320px, calc(100vw - 64px));
+        text-align: center;
+      }
+      .startup-marble {
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 30px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at 30% 25%,
+          #effeff 0%,
+          #9bd6d9 16%,
+          #4d969d 42%,
+          #24515c 75%,
+          #153946
+        );
+        box-shadow:
+          inset -3px -4px 9px #173a5544,
+          0 15px 22px -13px #23443466;
+      }
+      #startup h1 {
+        font:
+          500 25px/1.5 Georgia,
+          'Songti SC',
+          serif;
+        letter-spacing: 0.12em;
+        margin: 0 0 24px;
+      }
+      #startup-label {
+        font-size: 14px;
+        min-height: 22px;
+        margin: 0 0 14px;
+      }
+      #startup-detail {
+        font-size: 12px;
+        line-height: 1.8;
+        color: #74816c;
+        margin: 16px 0 0;
+      }
+      #startup-progress {
+        appearance: none;
+        width: 100%;
+        height: 4px;
+        border: 0;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #dce0d0;
+        color: #537557;
+      }
+      #startup-progress::-webkit-progress-bar {
+        background: #dce0d0;
+      }
+      #startup-progress::-webkit-progress-value {
+        background: #537557;
+        border-radius: 4px;
+        transition: width 0.15s linear;
+      }
+      #startup-progress::-moz-progress-bar {
+        background: #537557;
+      }
+      #startup-progress:not([value]) {
+        background: linear-gradient(90deg, #dce0d0 20%, #688968 50%, #dce0d0 80%);
+        background-size: 200% 100%;
+        animation: loading-shimmer 1.6s linear infinite;
+      }
+      #startup-progress:not([value])::-webkit-progress-bar {
+        background: transparent;
+      }
+      #startup-retry {
+        margin-top: 22px;
+        padding: 10px 28px;
+        border: 1px solid #294c3d;
+        border-radius: 7px;
+        background: #294c3d;
+        color: #fff;
+        font: inherit;
+        cursor: pointer;
+      }
+      #startup [hidden] {
+        display: none !important;
+      }
+      @keyframes loading-shimmer {
+        to {
+          background-position: -200% 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #startup,
+        #startup-progress {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="startup" role="status" aria-live="polite">
+      <div class="startup-card">
+        <div class="startup-marble" aria-hidden="true"></div>
+        <h1>再玩一个下午。</h1>
+        <p id="startup-label">正在走进院子</p>
+        <progress id="startup-progress" max="100" aria-label="院落下载进度"></progress>
+        <p id="startup-detail">让阳光、草木和玻璃珠，都准备好。</p>
+        <button id="startup-retry" hidden onclick="location.reload()">重新加载</button>
+      </div>
+    </div>
+    <div id="app" inert aria-hidden="true"></div>
+    <script
+      type="module"
+      src="/src/client/bootstrap.ts"
+      onerror="
+        document.getElementById('startup-label').textContent = '加载失败，请重试';
+        document.getElementById('startup-retry').hidden = false;
+      "
+    ></script>
+  </body>
+</html>

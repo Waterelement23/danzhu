@@ -87,6 +87,7 @@ try {
   throw error;
 }
 scene.update(snapshot, false);
+export const ready = scene.ready;
 function notify(message: string) {
   $('toast').textContent = message;
   $('toast').hidden = false;

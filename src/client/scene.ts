@@ -1,4 +1,5 @@
 import type { AudioFrame } from './audio';
+import { startupStage } from './startup';
 import { makeSoilMaterial } from './soil-material';
 import { ServeGuide } from './serve-guide';
 import { makeDoorReflection } from './glazing';
@@ -29,6 +30,7 @@ const BLUE = 0x2389b9,
 
 /** Display and input only. The shared map and server snapshots own every physical surface and ball. */
 export class MarbleScene {
+  public readonly ready: Promise<void>;
   public onPower?: (power: number) => void;
   public onCharge?: (phase: 'start' | 'move' | 'end', power: number) => void;
   public onAim?: (direction: Direction, power: number) => void;
@@ -130,8 +132,8 @@ export class MarbleScene {
     this.buildGround();
     this.fitShadow(sun);
     this.container.dataset.environment = 'loading';
-    void loadCourtyard()
-      .then((group) => {
+    this.ready = loadCourtyard()
+      .then(async (group) => {
         if (this.disposed) {
           disposeCourtyard(group);
           return;
@@ -139,6 +141,9 @@ export class MarbleScene {
         group.scale.set(COURT_SCALE, 1, COURT_SCALE);
         this.scene.add(group);
         this.fitShadow(sun);
+        startupStage('正在准备玻璃反光与光影');
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        if (this.disposed) return;
         this.reflection = captureCourtyardReflection(this.renderer, this.scene);
         // Apply the probe only to glass: preserve the established courtyard lighting.
         this.scene.traverse((object) => {
@@ -155,6 +160,9 @@ export class MarbleScene {
         glazing.add(this.doorReflection);
         this.scene.add(glazing);
         this.caustics.setScene(this.scene, (x, z) => terrainHeight(x, z, this.terrain));
+        await this.renderer.compileAsync(this.scene, this.camera);
+        if (this.disposed) return;
+        this.render(0);
         this.container.dataset.environment = 'ready';
       })
       .catch((error: unknown) => {
@@ -165,6 +173,7 @@ export class MarbleScene {
         message.textContent = '院落模型加载失败，请刷新重试。';
         this.container.append(message);
         console.error('Courtyard asset failed', error);
+        throw error;
       });
     for (let p = 0; p < 2; p++) {
       const ball = makeMarble(p);

@@ -5,6 +5,7 @@ RUN npm ci
 COPY tsconfig.json vite.config.ts index.html ./
 COPY src ./src
 COPY public ./public
+COPY scripts/compress-assets.mjs ./scripts/compress-assets.mjs
 ARG VITE_BASE_PATH=/danzhu/
 ENV VITE_BASE_PATH=$VITE_BASE_PATH
 RUN npm run build && npm prune --omit=dev

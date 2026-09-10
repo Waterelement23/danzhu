@@ -6,12 +6,13 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { initPhysics } from '../shared/physics';
 import { MarbleRoom } from './room';
+import { staticAssets } from './static-assets';
 export async function createGameServer() {
   await initPhysics();
   const app = express();
   const http = createServer(app);
   app.get('/health', (_req, res) => res.json({ ok: true, game: 'danzhu', version: '0.1.0' }));
-  app.use(express.static(resolve('dist/client')));
+  app.use(staticAssets(resolve('dist/client')));
   const server = new Server({
     transport: new WebSocketTransport({ server: http }),
     greet: false,
