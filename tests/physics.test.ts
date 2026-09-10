@@ -139,3 +139,37 @@ it('slow grounded direct contact still produces a winning hit', () => {
   expect(event?.reason).toBe('hit');
   p.dispose();
 });
+it.each([
+  { speed: 1, offset: 0.095 },
+  { speed: 2, offset: 0.03 },
+  { speed: 2, offset: 0.08 },
+])(
+  'a resolved oblique contact wins even if solver separation stays positive: $speed / $offset',
+  ({ speed, offset }) => {
+    const p = new MarblePhysics({ flat: true });
+    try {
+      p.addBall(0, { x: -0.16, y: CONFIG.radius, z: offset }, { x: speed, y: 0, z: 0 });
+      p.addBall(1, { x: 0, y: CONFIG.radius, z: 0 });
+      let result = null;
+      let collided = false;
+      for (let i = 0; i < 180 && !result; i++) {
+        result = p.step(CONFIG.dt, 10, 0);
+        collided ||= p.takeImpacts().some((e) => e.kind === 'marble');
+      }
+      expect(collided).toBe(true);
+      expect(result).toMatchObject({ winner: 0, reason: 'hit' });
+    } finally {
+      p.dispose();
+    }
+  },
+);
+it('nearby speculative contact without collision response is not a win', () => {
+  const p = new MarblePhysics({ flat: true });
+  try {
+    p.addBall(0, { x: 0, y: 0.5, z: 0 }, { x: 0, y: 0, z: -0.3 });
+    p.addBall(1, { x: 2 * CONFIG.radius + 0.001, y: 0.5, z: 0 }, { x: 0, y: 0, z: -0.3 });
+    for (let i = 0; i < 20; i++) expect(p.step(CONFIG.dt, 10, 0)).toBeNull();
+  } finally {
+    p.dispose();
+  }
+});

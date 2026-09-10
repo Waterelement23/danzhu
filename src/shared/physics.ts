@@ -219,7 +219,11 @@ export class MarblePhysics {
       body.setAngvel({ x: w.x * wFactor, y: w.y * wFactor, z: w.z * wFactor }, false);
     }
   }
-  private collectImpacts(before: BallState[], offset: number, h: number) {
+  /** Inspect every manifold, including a pair announced earlier at speculative separation.
+   * Adjudication uses resolved contact before audio volume/cooldown filtering.
+   */
+  private collectContacts(before: BallState[], offset: number, h: number): boolean {
+    let marbleContact = false;
     this.audioClock += h;
     const touching = new Set<string>();
     for (const ball of before) {
@@ -268,6 +272,7 @@ export class MarblePhysics {
           }
         });
         if (!actual) return;
+        if (otherPlayer !== undefined) marbleContact = true;
         touching.add(key);
         if (
           this.audioContacts.has(key) ||
@@ -293,6 +298,7 @@ export class MarblePhysics {
       });
     }
     this.audioContacts = touching;
+    return marbleContact;
   }
   /** Continuous swept candidates select microsteps near hits/bounds; timing resolution <0.1 ms. */
   step(
@@ -334,16 +340,10 @@ export class MarblePhysics {
       this.resistance(h);
       this.world.timestep = h;
       this.world.step(this.queue);
-      let contact = false;
-      this.queue.drainCollisionEvents((a, b, started) => {
-        if (started && this.colliders.has(a) && this.colliders.has(b)) {
-          this.world.contactPair(this.world.getCollider(a), this.world.getCollider(b), (m) => {
-            for (let i = 0; i < m.numContacts(); i++)
-              if (m.contactDist(i) <= 0.000005) contact = true;
-          });
-        }
-      });
-      this.collectImpacts(before, elapsed + h, h);
+      // A collision-start event can precede actual response; later solver contact
+      // must still count even when CCD leaves a positive geometric separation.
+      this.queue.drainCollisionEvents(() => {});
+      const contact = this.collectContacts(before, elapsed + h, h);
       const after = this.states(false);
       const events: Result[] = [];
       for (let i = 0; i < before.length; i++) {

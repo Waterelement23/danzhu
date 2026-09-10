@@ -1,3 +1,6 @@
+import { matchMaker } from '@colyseus/core';
+import { MarbleGame } from '../src/shared/game';
+import { MarblePhysics } from '../src/shared/physics';
 import { afterAll, beforeAll, it, expect } from 'vitest';
 import { Client, type Room } from '@colyseus/sdk';
 import { createGameServer } from '../src/server/index';
@@ -161,4 +164,46 @@ it('rematch invitation waits for acceptance and resets both players to the same 
   const cleared = waitMessage<Presence>(a, 'presence', (p) => !p.rematch.some(Boolean));
   a.send('sync');
   expect((await cleared).rematch).toEqual([false, false]);
+}, 15000);
+
+it('broadcasts an oblique physical hit and the same winner to both online clients', async () => {
+  const c = new Client(`http://127.0.0.1:${port}`);
+  const a = await c.create('marble', version);
+  rooms.push(a);
+  a.onMessage('*', () => {});
+  const b = await c.joinById(a.roomId, version);
+  rooms.push(b);
+  b.onMessage('*', () => {});
+  const started = waitMessage<Presence>(a, 'presence', (p) => p.started);
+  a.send('ready');
+  b.send('ready');
+  await started;
+  // Controlled contact fixture on the real authoritative room, without a production debug API.
+  const room = matchMaker.getLocalRoomById(a.roomId) as unknown as { game: MarbleGame };
+  const game = room.game,
+    s = game.snapshot();
+  game.physics.dispose();
+  game.physics = new MarblePhysics({ flat: true });
+  expect(
+    game.shoot(s.active, {
+      id: 'oblique-network',
+      match: s.match,
+      turn: s.turn,
+      power: 0.2,
+      serveX: 0,
+      direction: { x: 0, z: -1 },
+    }).ok,
+  ).toBe(true);
+  const actor = game.physics.bodies.get(s.active)!;
+  actor.setTranslation({ x: -0.16, y: 0.05, z: 0.095 }, true);
+  actor.setLinvel({ x: 1, y: 0, z: 0 }, true);
+  game.physics.addBall(s.active === 0 ? 1 : 0, { x: 0, y: 0.05, z: 0 });
+  const [sa, sb] = await Promise.all([
+    waitMessage<GameSnapshot>(a, 'snapshot', (x) => x.result?.reason === 'hit'),
+    waitMessage<GameSnapshot>(b, 'snapshot', (x) => x.result?.reason === 'hit'),
+  ]);
+  expect(sa.phase).toBe('finished');
+  expect(sa.result?.winner).toBe(s.active);
+  expect(sa.result).toEqual(sb.result);
+  expect(sa.sounds?.some((e) => e.kind === 'marble')).toBe(true);
 }, 15000);
