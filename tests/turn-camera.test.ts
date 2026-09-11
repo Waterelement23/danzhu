@@ -6,7 +6,7 @@ import {
   angleDelta,
   fitDistance,
 } from '../src/client/turn-camera';
-import { touchAim } from '../src/client/match-ui';
+import { touchAim, touchTravel, touchViewLimit } from '../src/client/match-ui';
 import { PerspectiveCamera, Vector3 } from 'three';
 
 const frame = {
@@ -85,4 +85,25 @@ it.each([0.45, 1, 2.2])('fits distant balls inside the safe view at aspect %s', 
     expect(Math.abs(point.x)).toBeLessThan(0.84);
     expect(Math.abs(point.y)).toBeLessThan(0.78);
   }
+});
+
+it.each([
+  [390, 770],
+  [844, 312],
+])('leaves room for a full drag on %sx%s', (width, height) => {
+  const travel = touchTravel(width, height);
+  const limit = touchViewLimit(width, height);
+  const own = { x: -1.4, y: 0.05, z: 1.5 },
+    other = { x: 1.5, y: 0.08, z: -1.4 };
+  const p = pairPose(own, other, width / height, 0.55, limit)!;
+  const eye = cameraPosition(p),
+    camera = new PerspectiveCamera(42, width / height, 0.1, 60);
+  camera.position.set(eye.x, eye.y, eye.z);
+  camera.lookAt(p.focus.x, p.focus.y, p.focus.z);
+  camera.updateMatrixWorld();
+  const point = new Vector3(own.x, own.y, own.z).project(camera);
+  expect(((1 + point.y) * height) / 2).toBeGreaterThan(travel + 24);
+  expect(touchAim(0, travel, travel).power).toBe(1);
+  expect(touchAim(2, 2, travel).power).toBe(0);
+  expect(touchAim(0, 0, travel).power).toBe(0);
 });

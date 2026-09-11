@@ -59,7 +59,13 @@ export function cameraPosition(pose: CameraPose): Vec3 {
     z: pose.focus.z + Math.cos(pose.yaw) * horizontal,
   };
 }
-export function fitDistance(points: Vec3[], focus: Vec3, yaw: number, aspect: number) {
+export function fitDistance(
+  points: Vec3[],
+  focus: Vec3,
+  yaw: number,
+  aspect: number,
+  bottomLimit = 0.78,
+) {
   let distance = 0;
   const sy = Math.sin(yaw),
     cy = Math.cos(yaw),
@@ -75,13 +81,19 @@ export function fitDistance(points: Vec3[], focus: Vec3, yaw: number, aspect: nu
       vertical = dy * ct - along * st;
     distance = Math.max(
       distance,
-      depth + Math.abs(vertical) / (FOV_TAN * 0.78),
+      depth + Math.abs(vertical) / (FOV_TAN * (vertical < 0 ? bottomLimit : 0.78)),
       depth + Math.abs(horizontal) / (FOV_TAN * Math.max(0.1, aspect) * 0.84),
     );
   }
   return distance;
 }
-export function pairPose(own: Vec3, other: Vec3, aspect: number, weight = 0.55): CameraPose | null {
+export function pairPose(
+  own: Vec3,
+  other: Vec3,
+  aspect: number,
+  weight = 0.55,
+  bottomLimit = 0.78,
+): CameraPose | null {
   const dx = other.x - own.x,
     dz = other.z - own.z;
   if (
@@ -96,5 +108,9 @@ export function pairPose(own: Vec3, other: Vec3, aspect: number, weight = 0.55):
       [-0.22, 0.22].map((z) => ({ x: p.x + x, y: p.y + 0.12, z: p.z + z })),
     ),
   );
-  return { yaw, focus, distance: Math.max(2.6, fitDistance(points, focus, yaw, aspect)) };
+  return {
+    yaw,
+    focus,
+    distance: Math.max(2.6, fitDistance(points, focus, yaw, aspect, bottomLimit)),
+  };
 }

@@ -54,3 +54,11 @@ export function touchAim(dx: number, dy: number, fullPowerPixels: number, yaw = 
     power: travel < 5 ? 0 : Math.min(1, travel / fullPowerPixels),
   };
 }
+
+/** Same drag gain anywhere in the scene, with room to pull on short landscape screens. */
+export function touchTravel(width: number, height: number) {
+  return Math.min(140, width * 0.34, height * 0.26);
+}
+export function touchViewLimit(width: number, height: number) {
+  return Math.max(0.25, Math.min(0.78, 1 - (2 * (touchTravel(width, height) + 24)) / height));
+}

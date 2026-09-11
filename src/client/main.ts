@@ -27,7 +27,7 @@ $('app').innerHTML = `
 
    <div class="match-status" id="match-status" role="status" aria-live="polite" hidden></div>
    <div id="scene" class="scene"><button id="desktop-view-toggle" class="secondary camera-toggle" aria-pressed="false" hidden>出手视角</button><span id="camera-hint" class="camera-hint" role="status" hidden>当前方向有遮挡，已切回全景</span></div>
-   <div id="mobile-play" class="mobile-play" hidden><div class="mobile-actions"><span id="mobile-timer" class="mobile-timer"></span><button id="view-toggle" class="secondary" aria-pressed="false">放大瞄准</button><button id="mobile-cancel" class="text-button">取消蓄力</button><button id="mobile-sound" class="text-button" aria-label="切换音效">声音开</button><button id="mobile-leave" class="text-button">离开</button></div><div id="aim-pad" class="aim-pad" role="group" aria-label="瞄准区：按住向后拖动，松手发射"><span id="pad-label">按住这里向后拉 · 松手发射</span><div class="pad-power"><i id="pad-power"></i></div></div><div id="mobile-serve"></div><div id="mobile-wait"></div></div>
+   <div id="mobile-play" class="mobile-play" hidden><div class="mobile-actions"><span id="mobile-timer" class="mobile-timer"></span><button id="view-toggle" class="secondary" aria-pressed="false" hidden>出手视角</button><details id="mobile-menu"><summary aria-label="游戏菜单">菜单</summary><div class="mobile-menu-items"><button id="mobile-sound" class="text-button" aria-label="切换音效">声音开</button><button id="mobile-help" class="text-button">操作提示</button><button id="mobile-leave" class="text-button">离开对局</button></div></details></div><div class="mobile-feedback"><span id="drag-hint" hidden>在场地内向后拖动，松手发射</span><div id="drag-feedback" hidden><span id="drag-label"></span><div class="drag-power"><i id="drag-power"></i></div><button id="mobile-cancel" class="secondary">取消</button></div></div><div id="mobile-serve" hidden></div></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
    <div class="board-bottom"><span><i class="live-dot"></i><span id="connection">准备好，把第一颗球弹出去。</span></span><span id="round-label">01 / 土地场</span></div>
    <div id="result" class="result-overlay" role="status" aria-live="polite" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><p id="rematch-message" class="rematch-message" aria-live="polite" hidden></p><button id="rematch" class="primary"><span id="rematch-label">再来一局</span><span id="rematch-arrow" aria-hidden="true">↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
@@ -37,7 +37,8 @@ $('app').innerHTML = `
  <footer><span>玻璃里藏着的，是整个夏天。</span><span>GROUND RULES. GOOD TIMES.</span></footer>
 </main>
 <div id="toast" class="toast" role="status" hidden></div>
-<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>每局一块新场地。</strong>起伏、浅凹和石子每局随机，双方共享同一场地，对局中保持不变。</li><li><strong>先手高位发球。</strong>从发球线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>拖住自己的球向后拉，松手发射；也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p><p class="muted audio-credit">音效：<a href="https://freesound.org/people/D43thsilence/sounds/755084/" target="_blank" rel="noopener">D43thsilence</a>（CC BY 4.0，已剪辑与加工）；<a href="https://www.zapsplat.com" target="_blank" rel="noopener">Sound effects obtained from ZapSplat</a>；Sheyvan、Anthousai、renne100（CC0）。<a href="audio/CREDITS.txt" target="_blank" rel="noopener">完整音效来源</a></p></dialog>`;
+<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>每局一块新场地。</strong>起伏、浅凹和石子每局随机，双方共享同一场地，对局中保持不变。</li><li><strong>先手高位发球。</strong>从发球线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>手机可从场地任意位置向后拖动，松手发射，拖回起点取消。电脑拖住自己的球，也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p><p class="muted audio-credit">音效：<a href="https://freesound.org/people/D43thsilence/sounds/755084/" target="_blank" rel="noopener">D43thsilence</a>（CC BY 4.0，已剪辑与加工）；<a href="https://www.zapsplat.com" target="_blank" rel="noopener">Sound effects obtained from ZapSplat</a>；Sheyvan、Anthousai、renne100（CC0）。<a href="audio/CREDITS.txt" target="_blank" rel="noopener">完整音效来源</a></p></dialog>`;
+$('scene').append($('mobile-play'));
 const audio = new GameAudio();
 function refreshAudio() {
   const state = audio.state;
@@ -91,7 +92,26 @@ let serveX = 0,
   lastTurn = '',
   toastTimer: ReturnType<typeof setTimeout>,
   pendingTimer: ReturnType<typeof setTimeout>;
+let gestureActive = false,
+  aimHintSeen = false;
+try {
+  aimHintSeen = localStorage.getItem('danzhu-direct-aim-seen') === '1';
+} catch {
+  /* Storage may be disabled. */
+}
 let scene: MarbleScene;
+function refreshMobileAim() {
+  const active = canAct(),
+    menuOpen = $<HTMLDetailsElement>('mobile-menu').open;
+  $('drag-hint').hidden = !active || gestureActive || aimHintSeen || menuOpen;
+  $('drag-feedback').hidden = !active || !gestureActive;
+  $('mobile-serve').hidden =
+    mode === 'lobby' ||
+    gestureActive ||
+    menuOpen ||
+    ['room-share', 'ready', 'serve-control'].every((id) => $(id).hidden);
+}
+
 try {
   scene = new MarbleScene($('scene'), (d, p, x) => sendShot(d, p, x), snapshot.terrainSeed);
 } catch (error) {
@@ -123,13 +143,15 @@ function updatePower(p: number) {
   power = p;
   $('power-text').textContent = `${Math.round(p * 100)}%`;
   $('power-bar').style.width = `${p * 100}%`;
-  $('pad-power').style.width = `${p * 100}%`;
-  $('pad-label').textContent =
-    p > 0 ? `力度 ${Math.round(p * 100)}% · 松手发射` : '按住这里向后拉 · 松手发射';
+  $('drag-power').style.width = `${p * 100}%`;
+  $('drag-label').textContent =
+    p > 0 ? `力度 ${Math.round(p * 100)}% · 松手发射` : '拖回起点可取消';
   $<HTMLInputElement>('power').value = String(Math.round(p * 100));
 }
 scene.onPower = updatePower;
 scene.onCharge = (phase, p) => {
+  gestureActive = phase !== 'end' && canAct();
+  refreshMobileAim();
   if (phase === 'end' || !canAct()) audio.endCharge();
   else if (phase === 'start') audio.beginCharge(p);
   else audio.chargeTo(p);
@@ -144,6 +166,14 @@ scene.onAim = (d, p) => {
 function sendShot(d = direction, p = power, x = serveX) {
   if (!canAct() || !transport) return;
   pending = true;
+  if (mobileQuery.matches) {
+    aimHintSeen = true;
+    try {
+      localStorage.setItem('danzhu-direct-aim-seen', '1');
+    } catch {
+      /* Optional preference. */
+    }
+  }
   scene.holdShotView();
   scene.clearAim();
   const shot: Shot = {
@@ -305,11 +335,7 @@ function refresh() {
   if (statusNode.textContent !== status) statusNode.textContent = status;
   statusNode.dataset.player = String(snapshot.active);
   statusNode.classList.toggle('my-turn', canAct());
-  $('aim-pad').setAttribute('aria-disabled', String(!canAct()));
-  $('aim-pad').hidden = !canAct();
-  $('mobile-cancel').hidden = !canAct();
-  $('mobile-wait').hidden = canAct();
-  $('mobile-wait').textContent = title;
+  refreshMobileAim();
   scene.setPlayerLabels(
     isLobby
       ? null
@@ -531,7 +557,6 @@ inviteDialog.id = 'invite-dialog';
 inviteDialog.innerHTML =
   '<h2>邀请朋友</h2><p>复制下方链接，打开即可加入房间。</p><input id="invite-link" readonly aria-label="邀请链接"/><form method="dialog"><button class="secondary">关闭</button></form>';
 document.body.append(inviteDialog);
-scene.attachAimPad($('aim-pad'));
 scene.onZoom = (zoomed) => {
   for (const id of ['view-toggle', 'desktop-view-toggle']) {
     const button = $<HTMLButtonElement>(id);
@@ -548,11 +573,35 @@ $('mobile-cancel').onpointerdown = (e) => {
   e.preventDefault();
   scene.clearAim();
 };
-$('mobile-leave').onclick = home;
+$('mobile-leave').onclick = () => {
+  $<HTMLDetailsElement>('mobile-menu').open = false;
+  home();
+};
 $('mobile-sound').onclick = () => audio.setMuted(!audio.state.muted);
+$('mobile-help').onclick = () => {
+  aimHintSeen = false;
+  $<HTMLDetailsElement>('mobile-menu').open = false;
+  refreshMobileAim();
+};
+$('mobile-menu').addEventListener('toggle', () => {
+  if ($<HTMLDetailsElement>('mobile-menu').open) scene.clearAim();
+  refreshMobileAim();
+});
+$('scene').addEventListener(
+  'pointerdown',
+  (event) => {
+    if (event.target instanceof HTMLCanvasElement && $<HTMLDetailsElement>('mobile-menu').open) {
+      $<HTMLDetailsElement>('mobile-menu').open = false;
+      event.stopImmediatePropagation();
+    }
+  },
+  true,
+);
+
 // Move existing controls rather than duplicating state and input handlers.
 const mobileQuery = matchMedia('(max-width: 720px), (max-height: 500px) and (pointer: coarse)');
 function placeControls() {
+  scene.clearAim();
   const mobile = mobileQuery.matches && mode !== 'lobby';
   const destination = mobile ? $('mobile-serve') : $('controls');
   for (const id of ['room-share', 'ready', 'serve-control'])

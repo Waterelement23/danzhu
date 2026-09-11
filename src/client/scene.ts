@@ -8,7 +8,7 @@ import {
   type CameraPose,
 } from './turn-camera';
 import { BallLabels } from './ball-labels';
-import { touchAim } from './match-ui';
+import { touchAim, touchTravel, touchViewLimit } from './match-ui';
 import type { AudioFrame } from './audio';
 import { startupStage } from './startup';
 import { makeSoilMaterial } from './soil-material';
@@ -91,7 +91,6 @@ export class MarbleScene {
   private dragPixels = { x: 0, y: 0 };
   private screenDrag = false;
   private dragSurface?: HTMLElement;
-  private aimPad?: HTMLElement;
   public onPower?: (power: number) => void;
   public onCharge?: (phase: 'start' | 'move' | 'end', power: number) => void;
   public onAim?: (direction: Direction, power: number) => void;
@@ -285,6 +284,9 @@ export class MarbleScene {
     canvas.addEventListener('lostpointercapture', this.cancel);
     canvas.addEventListener('contextmenu', this.contextMenu);
     window.addEventListener('keydown', this.keyDown);
+    window.addEventListener('pointerdown', this.secondaryTouch, true);
+    window.addEventListener('blur', this.cancel);
+    document.addEventListener('visibilitychange', this.visibilityChanged);
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(container);
     this.resize();
@@ -699,8 +701,13 @@ export class MarbleScene {
     const own = s.balls.find((b) => b.player === s.active)?.position;
     const other = s.balls.find((b) => b.player !== s.active)?.position;
     if (!own || !other) return;
-    for (const weight of [0.55, 0.7, 0.85, 1]) {
-      const pose = pairPose(own, other, this.camera.aspect, weight);
+    for (const weight of this.quality.mobile
+      ? [0.35, 0.45, 0.55, 0.7, 0.85, 1]
+      : [0.55, 0.7, 0.85, 1]) {
+      const limit = this.quality.mobile
+        ? touchViewLimit(this.container.clientWidth, this.container.clientHeight)
+        : 0.78;
+      const pose = pairPose(own, other, this.camera.aspect, weight, limit);
       if (!pose) return;
       const eye = cameraPosition(pose);
       this.viewProbe.position.set(eye.x, eye.y, eye.z);
@@ -718,16 +725,6 @@ export class MarbleScene {
     }
     this.viewBlocked = true;
   }
-  attachAimPad(pad: HTMLElement) {
-    this.aimPad = pad;
-    pad.addEventListener('pointerdown', this.padDown);
-    pad.addEventListener('pointermove', this.pointerMove);
-    pad.addEventListener('pointerup', this.pointerUp);
-    pad.addEventListener('pointercancel', this.cancel);
-    pad.addEventListener('lostpointercapture', this.cancel);
-    pad.addEventListener('contextmenu', this.contextMenu);
-  }
-  private padDown = (event: PointerEvent) => this.beginDrag(event, true);
   private updateCamera(dt: number, immediate = false) {
     // During a gesture even an unfinished transition stops, so aim cannot drift.
     if ((this.dragging || this.power > 0) && !immediate) return;
@@ -808,9 +805,9 @@ export class MarbleScene {
     this.raycaster.setFromCamera(this.pointer, this.camera);
     return this.raycaster.ray.intersectPlane(this.plane, this.groundPoint);
   }
-  private pointerDown = (event: PointerEvent) => this.beginDrag(event, false);
-  private beginDrag(event: PointerEvent, pad: boolean) {
-    if (event.button !== 0 || !this.canAct || this.dragging) return;
+  private pointerDown = (event: PointerEvent) => this.beginDrag(event);
+  private beginDrag(event: PointerEvent) {
+    if (event.button !== 0 || !event.isPrimary || !this.canAct || this.dragging) return;
     const active = this.snapshot?.active ?? 0,
       origin = this.preview.visible ? this.preview.position : this.balls[active].position;
     const rect = this.renderer.domElement.getBoundingClientRect();
@@ -821,7 +818,7 @@ export class MarbleScene {
     const hx = rect.left + ((this.scratch.x + 1) * rect.width) / 2,
       hy = rect.top + ((1 - this.scratch.y) * rect.height) / 2;
     if (
-      !pad &&
+      event.pointerType !== 'touch' &&
       Math.hypot(event.clientX - x, event.clientY - y) > 42 &&
       Math.hypot(event.clientX - hx, event.clientY - hy) > 30
     )
@@ -829,7 +826,7 @@ export class MarbleScene {
     if (!this.eventGround(event)) return;
     this.dragStart.copy(this.groundPoint);
     this.dragPixels = { x: event.clientX, y: event.clientY };
-    this.screenDrag = pad || event.pointerType === 'touch';
+    this.screenDrag = event.pointerType === 'touch';
     // A new gesture starts at zero; a click must not launch a preset shot.
     this.clearAim();
     this.dragging = true;
@@ -854,7 +851,7 @@ export class MarbleScene {
       const { direction, power } = touchAim(
         event.clientX - this.dragPixels.x,
         event.clientY - this.dragPixels.y,
-        Math.min(140, this.container.clientWidth * 0.34),
+        touchTravel(this.container.clientWidth, this.container.clientHeight),
         this.yaw,
       );
       this.setAim(direction, power);
@@ -895,6 +892,12 @@ export class MarbleScene {
   private cancel = () => {
     this.clearAim();
     this.renderer.domElement.style.cursor = this.canAct ? 'grab' : 'default';
+  };
+  private secondaryTouch = (event: PointerEvent) => {
+    if (event.pointerType === 'touch' && !event.isPrimary) this.cancel();
+  };
+  private visibilityChanged = () => {
+    if (document.hidden) this.cancel();
   };
   private contextMenu = (event: MouseEvent) => {
     event.preventDefault();
@@ -971,12 +974,6 @@ export class MarbleScene {
     this.resizeObserver.disconnect();
     this.serveGuide.dispose();
     this.ballLabels.dispose();
-    this.aimPad?.removeEventListener('pointerdown', this.padDown);
-    this.aimPad?.removeEventListener('pointermove', this.pointerMove);
-    this.aimPad?.removeEventListener('pointerup', this.pointerUp);
-    this.aimPad?.removeEventListener('pointercancel', this.cancel);
-    this.aimPad?.removeEventListener('lostpointercapture', this.cancel);
-    this.aimPad?.removeEventListener('contextmenu', this.contextMenu);
     this.caustics.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.pointerDown);
@@ -986,6 +983,9 @@ export class MarbleScene {
     canvas.removeEventListener('lostpointercapture', this.cancel);
     canvas.removeEventListener('contextmenu', this.contextMenu);
     window.removeEventListener('keydown', this.keyDown);
+    window.removeEventListener('pointerdown', this.secondaryTouch, true);
+    window.removeEventListener('blur', this.cancel);
+    document.removeEventListener('visibilitychange', this.visibilityChanged);
     const geometries = new Set<THREE.BufferGeometry>(),
       materials = new Set<THREE.Material>();
     this.scene.traverse((object) => {
