@@ -12,7 +12,7 @@ async (page) => {
   });
   await page.goto('http://localhost:5173/');
   await page.locator('#create').click();
-  await page.waitForFunction(() => !!sessionStorage.getItem('danzhu-room') && new URL(location.href).searchParams.get('room') === sessionStorage.getItem('danzhu-room')); 
+  await page.waitForFunction(() => !!sessionStorage.getItem('danzhu-room') && new URL(location.href).searchParams.get('room') === sessionStorage.getItem('danzhu-room'));
   const code = await page.evaluate(() => sessionStorage.getItem('danzhu-room'));
   const ctx = await page.context().browser().newContext(),
     b = await ctx.newPage();
