@@ -94,6 +94,7 @@ export class MarbleScene {
   private dragPixels = { x: 0, y: 0 };
   private screenDrag = false;
   private readonly returnCancel = new ReturnCancel();
+  private dragMarble = { x: 0, y: 0, radius: 0 };
   public onGesture?: (feedback: DragFeedback | null) => void;
   private dragSurface?: HTMLElement;
   public onPower?: (power: number) => void;
@@ -860,6 +861,18 @@ export class MarbleScene {
     // A new gesture starts at zero; a click must not launch a preset shot.
     this.clearAim();
     this.serveTap.begin(candidate);
+    this.scratch.copy(origin).applyMatrix4(this.camera.matrixWorldInverse);
+    this.dragMarble = {
+      x: x - rect.left,
+      y: y - rect.top,
+      radius:
+        (CONFIG.radius * rect.height) /
+        (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * -this.scratch.z),
+    };
+    this.returnCancel.begin(
+      Math.hypot(event.clientX - x, event.clientY - y),
+      Math.max(18, this.dragMarble.radius + 5),
+    );
     this.dragging = true;
     this.onZoom?.(this.zoomed);
     if (candidate === null) this.onCharge?.('start', 0);
@@ -895,15 +908,19 @@ export class MarbleScene {
         event.clientX - this.dragPixels.x,
         event.clientY - this.dragPixels.y,
       );
-      const cancelled = this.returnCancel.update(distance);
-      const power = cancelled ? 0 : rawPower;
       const rect = this.container.getBoundingClientRect();
+      const cancelled = this.returnCancel.update(
+        Math.hypot(
+          event.clientX - rect.left - this.dragMarble.x,
+          event.clientY - rect.top - this.dragMarble.y,
+        ),
+        Math.max(18, this.dragMarble.radius + 5),
+      );
+      const power = cancelled ? 0 : rawPower;
       this.onGesture?.(
-        distance >= 5 || this.returnCancel.armed
+        distance >= 5 || cancelled
           ? {
-              origin: { x: this.dragPixels.x - rect.left, y: this.dragPixels.y - rect.top },
-              pointer: { x: event.clientX - rect.left, y: event.clientY - rect.top },
-              armed: this.returnCancel.armed,
+              marble: this.dragMarble,
               cancelled,
             }
           : null,
