@@ -1,4 +1,5 @@
 import './style.css';
+import { FramePacer } from './render-budget';
 import { invitationCode, invitationUrl, playerName, rematchView } from './match-ui';
 import { GameAudio } from './audio';
 import { MarbleScene } from './scene';
@@ -556,21 +557,27 @@ if (invited) {
 } else if (new URL(location.href).searchParams.has('room'))
   notify('邀请链接无效，请向朋友获取新的链接。');
 
-let previous = performance.now();
+const framePacer = new FramePacer(scene.quality.fps, scene.quality.idleFps);
+const resetFramePacer = () => framePacer.reset();
+document.addEventListener('visibilitychange', resetFramePacer);
+let animationFrame = 0;
 function animate(now: number) {
-  const dt = Math.min((now - previous) / 1000, 0.1);
-  previous = now;
+  animationFrame = requestAnimationFrame(animate);
+  const elapsed = framePacer.take(now, scene.renderActive, document.hidden);
+  if (elapsed === null) return;
+  const dt = Math.min(elapsed, 0.1);
   transport?.tick(dt);
   scene.render(dt);
   audio.update(scene.audioFrame, mode !== 'lobby' && connected);
   if (import.meta.env.DEV) $('scene').dataset.audio = JSON.stringify(audio.state);
   updateResult();
-  requestAnimationFrame(animate);
 }
-requestAnimationFrame(animate);
+animationFrame = requestAnimationFrame(animate);
 window.addEventListener('pagehide', (event) => {
   audio.reset();
   if (!event.persisted) {
+    cancelAnimationFrame(animationFrame);
+    document.removeEventListener('visibilitychange', resetFramePacer);
     audio.dispose();
     scene.dispose();
     document.removeEventListener('pointerdown', unlockAudio);

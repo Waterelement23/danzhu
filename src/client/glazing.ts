@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 
 /** One shared reflection plane behind the four frames: one extra view, not four. */
-export function makeDoorReflection() {
+export function makeDoorReflection(size = 768) {
   const reflection = new Reflector(new THREE.PlaneGeometry(3.905, 1.82), {
-    textureWidth: 768,
-    textureHeight: 768,
+    textureWidth: size,
+    textureHeight: size,
     multisample: 0,
     clipBias: 0.001,
     color: 0xffffff,
@@ -39,5 +39,35 @@ export function makeDoorReflection() {
   material.transparent = true;
   material.depthWrite = false;
   reflection.renderOrder = 2;
-  return reflection;
+  // The garden is static. Reuse its projection until the camera changes, and
+  // refresh small moving reflections at 10 Hz. Never recursively update during
+  // transmission or cube-probe passes through a different camera.
+  const drawReflection = reflection.onBeforeRender;
+  let cameraKey = '',
+    lastUpdate = -Infinity,
+    dirty = true,
+    dynamic = false;
+  let mainCamera: THREE.Camera | undefined;
+  reflection.onBeforeRender = function (renderer, scene, camera, ...args) {
+    if (mainCamera && mainCamera !== camera) return;
+    mainCamera = camera;
+    const key = [...camera.matrixWorld.elements, ...camera.projectionMatrix.elements]
+      .map((v) => v.toFixed(5))
+      .join(',');
+    const now = performance.now();
+    if (!dirty && key === cameraKey && (!dynamic || now - lastUpdate < 100)) return;
+    dirty = false;
+    cameraKey = key;
+    lastUpdate = now;
+    drawReflection.call(this, renderer, scene, camera, ...args);
+  };
+  return Object.assign(reflection, {
+    invalidate() {
+      dirty = true;
+    },
+    setDynamic(value: boolean) {
+      if (dynamic && !value) dirty = true;
+      dynamic = value;
+    },
+  });
 }

@@ -1,3 +1,4 @@
+import { pixelRatioFor, renderProfile } from './render-budget';
 import { BallLabels } from './ball-labels';
 import { touchAim } from './match-ui';
 import type { AudioFrame } from './audio';
@@ -33,6 +34,23 @@ const BLUE = 0x2389b9,
 /** Display and input only. The shared map and server snapshots own every physical surface and ball. */
 export class MarbleScene {
   public readonly ready: Promise<void>;
+  public readonly quality = renderProfile(matchMedia('(pointer: coarse)').matches);
+  private get marblesMoving() {
+    return !!this.snapshot?.balls.some(
+      (b) => Math.hypot(b.velocity.x, b.velocity.y, b.velocity.z) > 0.015,
+    );
+  }
+  get renderActive() {
+    const target = this.matchMode && this.mobileQuery.matches && this.zoomed ? 1.5 : 1;
+    return (
+      this.dragging ||
+      this.power > 0 ||
+      Math.abs(this.zoomAmount - target) > 0.001 ||
+      this.focus.distanceToSquared(target > 1 ? this.focusTarget : this.overviewFocus) > 0.000001 ||
+      this.marblesMoving
+    );
+  }
+  private readonly overviewFocus = new THREE.Vector3(0, 0.05, 0);
   public onZoom?: (zoomed: boolean) => void;
   public zoomed = false;
   private matchMode = false;
@@ -123,7 +141,18 @@ export class MarbleScene {
     terrainSeed = 0,
   ) {
     this.terrain = createTerrain(terrainSeed);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(
+      pixelRatioFor(
+        this.quality,
+        container.clientWidth,
+        container.clientHeight,
+        window.devicePixelRatio,
+      ),
+    );
+    this.renderer.transmissionResolutionScale = this.quality.transmissionScale;
+    // Every ordinary shadow caster is static; moving glass has its own optical shadow.
+    this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.shadowMap.needsUpdate = true;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -142,7 +171,7 @@ export class MarbleScene {
     const sun = new THREE.DirectionalLight(0xfff3d9, 3.5);
     sun.position.copy(SUN_DIRECTION).multiplyScalar(Math.sqrt(50));
     sun.castShadow = true;
-    const shadowSize = Math.min(4096, this.renderer.capabilities.maxTextureSize);
+    const shadowSize = Math.min(this.quality.shadowSize, this.renderer.capabilities.maxTextureSize);
     sun.shadow.mapSize.set(shadowSize, shadowSize);
     sun.shadow.normalBias = 0.005;
     sun.shadow.bias = -0.0004;
@@ -175,7 +204,7 @@ export class MarbleScene {
           )
             object.material.envMap = this.reflection!.texture;
         });
-        this.doorReflection = makeDoorReflection();
+        this.doorReflection = makeDoorReflection(this.quality.reflectionSize);
         const glazing = new THREE.Group();
         glazing.scale.set(COURT_SCALE, 1, COURT_SCALE);
         glazing.add(this.doorReflection);
@@ -197,12 +226,15 @@ export class MarbleScene {
         throw error;
       });
     for (let p = 0; p < 2; p++) {
-      const ball = makeMarble(p);
+      const ball = makeMarble(p, this.quality.sphereSegments);
       ball.visible = false;
       this.balls.push(ball);
       this.scene.add(ball);
     }
-    this.preview.add(makeMarble(0), makeMarble(1));
+    this.preview.add(
+      makeMarble(0, this.quality.sphereSegments),
+      makeMarble(1, this.quality.sphereSegments),
+    );
     this.scene.add(this.preview, this.boundary, this.nextBoundary);
     this.halo = new THREE.Mesh(
       new THREE.RingGeometry(CONFIG.radius * 1.05, CONFIG.radius * 1.27, 64),
@@ -232,7 +264,10 @@ export class MarbleScene {
     this.resizeObserver.observe(container);
     this.resize();
     this.serveGuide = new ServeGuide(container, this.terrain);
-    this.caustics = new MarbleCaustics(this.balls[0].children[0] as THREE.Mesh);
+    this.caustics = new MarbleCaustics(this.balls[0].children[0] as THREE.Mesh, {
+      size: this.quality.causticSize,
+      photons: this.quality.photons,
+    });
   }
 
   private fitShadow(sun: THREE.DirectionalLight) {
@@ -247,6 +282,7 @@ export class MarbleScene {
         shadowBounds.union(bounds);
       }
     });
+    this.renderer.shadowMap.needsUpdate = true;
     const shadowCamera = sun.shadow.camera;
     shadowCamera.left = Math.floor(shadowBounds.min.x - 0.5);
     shadowCamera.right = Math.ceil(shadowBounds.max.x + 0.5);
@@ -258,6 +294,8 @@ export class MarbleScene {
   }
 
   private buildGround() {
+    this.renderer.shadowMap.needsUpdate = true;
+    this.doorReflection?.invalidate();
     disposeCourtyard(this.ground);
     this.ground.clear();
     this.ground.name = 'match-terrain';
@@ -513,6 +551,7 @@ export class MarbleScene {
   }
 
   setServeX(x: number) {
+    this.doorReflection?.invalidate();
     this.serveX = THREE.MathUtils.clamp(x, -SERVE_RANGE, SERVE_RANGE);
     this.syncPreview();
     if (this.power > 0) this.setAim(this.aimDirection, this.power);
@@ -615,7 +654,7 @@ export class MarbleScene {
     const targetZoom = this.matchMode && mobile && this.zoomed ? 1.5 : 1;
     const alpha = immediate ? 1 : 1 - Math.exp(-dt * 12);
     this.zoomAmount = THREE.MathUtils.lerp(this.zoomAmount, targetZoom, alpha);
-    this.focus.lerp(targetZoom > 1 ? this.focusTarget : new THREE.Vector3(0, 0.05, 0), alpha);
+    this.focus.lerp(targetZoom > 1 ? this.focusTarget : this.overviewFocus, alpha);
     const tilt = THREE.MathUtils.degToRad(58),
       d = this.cameraDistance / this.zoomAmount;
     this.camera.position.set(
@@ -651,6 +690,8 @@ export class MarbleScene {
     this.cameraDistance = distance;
     this.updateCamera(0, true);
     this.camera.updateProjectionMatrix();
+    const ratio = pixelRatioFor(this.quality, width, height, window.devicePixelRatio);
+    if (this.renderer.getPixelRatio() !== ratio) this.renderer.setPixelRatio(ratio);
     this.renderer.setSize(width, height, false);
   };
   private eventGround(event: PointerEvent) {
@@ -812,6 +853,7 @@ export class MarbleScene {
       this.camera,
       this.container.clientHeight,
     );
+    this.doorReflection?.setDynamic(this.marblesMoving);
     this.renderer.render(this.scene, this.camera);
     this.aim.visible = oldVisible;
   }

@@ -4,7 +4,7 @@ import { CONFIG } from '../shared/map';
 import { GLASS_IOR, GLASS_ABSORPTION_DISTANCE, glassTint, SUN_DIRECTION } from './glass-optics';
 
 /** Blender-authored inner ribbon; the optical outer surface matches Rapier's sphere. */
-export function makeMarble(player: number) {
+export function makeMarble(player: number, segments = 96) {
   const group = new THREE.Group();
   group.name = `glass-marble-${player}`;
   const geometry = new THREE.BufferGeometry();
@@ -46,7 +46,10 @@ export function makeMarble(player: number) {
     attenuationDistance: GLASS_ABSORPTION_DISTANCE,
     envMapIntensity: 1.05,
   });
-  const shell = new THREE.Mesh(new THREE.SphereGeometry(CONFIG.radius, 96, 64), glass);
+  const shell = new THREE.Mesh(
+    new THREE.SphereGeometry(CONFIG.radius, segments, Math.round((segments * 2) / 3)),
+    glass,
+  );
   shell.name = 'transmissive-glass-shell';
   shell.castShadow = false;
   // Direct-light occlusion and refracted flux are handled together by MarbleCaustics.

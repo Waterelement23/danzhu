@@ -109,15 +109,13 @@ export function depositPhotons(
   return data;
 }
 
-export class MarbleCaustics {
-  private world?: OpticalScene;
-  private ribbon: OpticalScene;
-  private fields = [0, 1].map((player) => {
+function makeFields(size: number, compactCount: number) {
+  return [0, 1].map((player) => {
     const tint = glassTint(player);
     const texture = new THREE.DataTexture(
-      new Float32Array(SIZE * SIZE * 4),
-      SIZE,
-      SIZE,
+      new Float32Array(size * size * 4),
+      size,
+      size,
       THREE.RGBAFormat,
       THREE.FloatType,
     );
@@ -135,7 +133,7 @@ export class MarbleCaustics {
         GLASS_IOR,
         new THREE.Vector3(tint.r, tint.g, tint.b),
         GLASS_ABSORPTION_DISTANCE,
-        1536,
+        compactCount * 3,
       ),
       compactPhotons: sampleGlassPhotons(
         SUN_DIRECTION,
@@ -143,20 +141,30 @@ export class MarbleCaustics {
         GLASS_IOR,
         new THREE.Vector3(tint.r, tint.g, tint.b),
         GLASS_ABSORPTION_DISTANCE,
-        512,
+        compactCount,
       ),
     };
   });
+}
+
+export class MarbleCaustics {
+  private world?: OpticalScene;
+  private ribbon: OpticalScene;
+  private fields: ReturnType<typeof makeFields>;
+  private size: number;
   private materials = new WeakSet<THREE.MeshStandardMaterial>();
   private heightAt = terrainHeight;
   private uniforms: Record<string, { value: unknown }>;
   readonly stats = { photons: 0, deposits: 0, updateMs: 0 };
-  constructor(ribbon: THREE.Mesh) {
+  constructor(ribbon: THREE.Mesh, budget?: { size: number; photons: number }) {
+    this.size = budget?.size ?? SIZE;
+    this.fields = makeFields(this.size, budget?.photons ?? 512);
     // The ribbon is authored in unit-ball coordinates. Rotation is applied to rays at runtime.
     const copy = new THREE.Mesh(ribbon.geometry);
     this.ribbon = new OpticalScene(copy, () => true);
     this.uniforms = {
       opticalSun: { value: SUN_DIRECTION },
+      opticalTexel: { value: 1 / this.size },
       opticalBalls: { value: this.fields.map((f) => f.center) },
       opticalMap0: { value: this.fields[0].texture },
       opticalMap1: { value: this.fields[1].texture },
@@ -293,7 +301,12 @@ export class MarbleCaustics {
         Math.max(0.04, box.max.x - box.min.x),
         Math.max(0.04, box.max.z - box.min.z),
       );
-      field.texture.image.data = depositPhotons(localDeposits, field.bounds, SIZE, this.heightAt);
+      field.texture.image.data = depositPhotons(
+        localDeposits,
+        field.bounds,
+        this.size,
+        this.heightAt,
+      );
       field.texture.needsUpdate = true;
     }
     if (updated) this.stats.updateMs = performance.now() - started;
@@ -308,6 +321,7 @@ export class MarbleCaustics {
 const GLSL = `
 varying vec3 vOpticalWorld;
 uniform vec3 opticalSun;
+uniform float opticalTexel;
 uniform vec4 opticalBalls[2];
 uniform sampler2D opticalMap0, opticalMap1;
 uniform vec4 opticalBounds0, opticalBounds1;
@@ -329,7 +343,7 @@ vec3 opticalIrradiance(sampler2D map, vec4 bounds, vec4 ball) {
   if (ball.w == 0.0 || any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) return vec3(0.0);
   vec4 sampleEnergy = texture2D(map, uv);
   // Reject photons landing on a different height (e.g. stone top versus soil below).
-  float tolerance = max(0.003, max(bounds.z, bounds.w) / 128.0 * 2.0);
+  float tolerance = max(0.003, max(bounds.z, bounds.w) * opticalTexel * 2.0);
   float surface = 1.0 - smoothstep(tolerance, tolerance * 2.0, abs(vOpticalWorld.y - sampleEnergy.a));
   return sampleEnergy.rgb * surface;
 }

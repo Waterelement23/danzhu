@@ -106,25 +106,28 @@ it('light hits the raised receiver first and opaque geometry blocks incoming sun
 
 import { makeMarble } from '../src/client/marble';
 import { MarbleCaustics } from '../src/client/marble-caustics';
-it('does not create a glowing caustic when the marble is shaded by a roof', () => {
-  const scene = new Scene();
-  const floor = new Mesh(new PlaneGeometry(6, 6), new MeshBasicMaterial());
-  floor.rotation.x = -Math.PI / 2;
-  floor.castShadow = true;
-  scene.add(floor);
-  const ball = makeMarble(0);
-  ball.position.y = 0.062;
-  scene.add(ball);
-  const caustics = new MarbleCaustics(ball.children[0] as Mesh);
-  caustics.setScene(scene);
-  caustics.update([ball, undefined]);
-  expect(caustics.stats.deposits).toBeGreaterThan(100);
-  const roof = new Mesh(new BoxGeometry(3, 0.05, 3), new MeshBasicMaterial());
-  roof.position.y = 0.4;
-  roof.castShadow = true;
-  scene.add(roof);
-  caustics.setScene(scene);
-  caustics.update([ball, undefined]);
-  expect(caustics.stats.deposits).toBe(0);
-  caustics.dispose();
-});
+it.each([undefined, { size: 64, photons: 256 }])(
+  'roof occlusion is preserved with optical budget %j',
+  (budget) => {
+    const scene = new Scene();
+    const floor = new Mesh(new PlaneGeometry(6, 6), new MeshBasicMaterial());
+    floor.rotation.x = -Math.PI / 2;
+    floor.castShadow = true;
+    scene.add(floor);
+    const ball = makeMarble(0);
+    ball.position.y = 0.062;
+    scene.add(ball);
+    const caustics = new MarbleCaustics(ball.children[0] as Mesh, budget);
+    caustics.setScene(scene);
+    caustics.update([ball, undefined]);
+    expect(caustics.stats.deposits).toBeGreaterThan(100);
+    const roof = new Mesh(new BoxGeometry(3, 0.05, 3), new MeshBasicMaterial());
+    roof.position.y = 0.4;
+    roof.castShadow = true;
+    scene.add(roof);
+    caustics.setScene(scene);
+    caustics.update([ball, undefined]);
+    expect(caustics.stats.deposits).toBe(0);
+    caustics.dispose();
+  },
+);
