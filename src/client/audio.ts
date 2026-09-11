@@ -31,6 +31,7 @@ export class GameAudio {
   private charge?: ChargeAudio;
   private rolls = new Map<number, Voice>();
   private impacts = new Set<Voice>();
+  private countdownVoice?: { source: OscillatorNode; gain: GainNode };
   private variants = new Map<string, number>();
   private disposed = false;
   private hidden = document.hidden;
@@ -38,7 +39,7 @@ export class GameAudio {
   private volume = 0.7;
   private ready = false;
   private error = false;
-  private played = { earth: 0, marble: 0, stone: 0, launch: 0 };
+  private played = { earth: 0, marble: 0, stone: 0, launch: 0, countdown: 0 };
   public onChange?: () => void;
   constructor() {
     try {
@@ -78,6 +79,7 @@ export class GameAudio {
   setMuted(value: boolean) {
     this.muted = value;
     if (value) {
+      this.stopCountdown();
       this.stopVoices();
       this.timeline.discard();
     }
@@ -161,8 +163,50 @@ export class GameAudio {
     this.charge?.stop();
   }
   reset() {
+    this.stopCountdown();
     this.stopVoices();
     this.timeline.reset();
+  }
+  countdown(seconds: number) {
+    const ctx = this.context;
+    if (
+      this.disposed ||
+      this.hidden ||
+      this.muted ||
+      this.volume <= 0 ||
+      ctx?.state !== 'running' ||
+      !this.master
+    )
+      return;
+    this.stopCountdown();
+    const source = ctx.createOscillator(),
+      gain = ctx.createGain(),
+      now = ctx.currentTime;
+    const urgent = seconds <= 3;
+    source.type = 'sine';
+    source.frequency.setValueAtTime(urgent ? 880 : 660, now);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(urgent ? 0.18 : 0.12, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (urgent ? 0.15 : 0.1));
+    source.connect(gain).connect(this.master);
+    const voice = { source, gain };
+    this.countdownVoice = voice;
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+      if (this.countdownVoice === voice) this.countdownVoice = undefined;
+    };
+    source.start(now);
+    source.stop(now + (urgent ? 0.17 : 0.12));
+    this.played.countdown++;
+  }
+  stopCountdown() {
+    const voice = this.countdownVoice;
+    if (!voice) return;
+    this.countdownVoice = undefined;
+    voice.gain.gain.cancelScheduledValues(this.context!.currentTime);
+    voice.gain.gain.setTargetAtTime(0, this.context!.currentTime, 0.005);
+    voice.source.stop(this.context!.currentTime + 0.02);
   }
   private makeVoice(buffer: AudioBuffer, loop: boolean): Voice {
     const ctx = this.context!;
@@ -306,6 +350,7 @@ export class GameAudio {
     }
   }
   private visibility = () => {
+    this.stopCountdown();
     this.hidden = document.hidden;
     this.timeline.discard();
     this.stopVoices();

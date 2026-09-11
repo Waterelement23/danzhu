@@ -1,4 +1,5 @@
 async (page) => {
+  await page.setViewportSize({width:1440,height:1000});
   await page.addInitScript(() => {
     const Native = window.WebSocket;
     window.__duelSockets = [];
@@ -11,16 +12,13 @@ async (page) => {
   });
   await page.goto('http://localhost:5173/');
   await page.locator('#create').click();
-  await page.waitForFunction(() =>
-    /^[A-F0-9]{8}$/.test(document.querySelector('#copy-code')?.textContent || ''),
-  );
-  const code = await page.locator('#copy-code').textContent();
+  await page.waitForFunction(() => !!sessionStorage.getItem('danzhu-room') && new URL(location.href).searchParams.get('room') === sessionStorage.getItem('danzhu-room')); 
+  const code = await page.evaluate(() => sessionStorage.getItem('danzhu-room'));
   const ctx = await page.context().browser().newContext(),
     b = await ctx.newPage();
   try {
-    await b.goto('http://localhost:5173/');
-    await b.locator('#room-code').fill(code);
-    await b.locator('#join').click();
+    await b.goto('http://localhost:5173/?room=' + code);
+    await b.locator('#ready').waitFor({state:'visible'});
     await page.locator('#ready').click();
     await b.locator('#ready').click();
     await page.waitForFunction(() => document.querySelector('#ready')?.hasAttribute('hidden'));
@@ -41,7 +39,7 @@ async (page) => {
       {},
       { timeout: 10000 },
     );
-    if ((await page.locator('#copy-code').textContent()) !== code)
+    if ((await page.evaluate(() => sessionStorage.getItem('danzhu-room'))) !== code)
       throw new Error('Reconnected to wrong room');
     if ((await page.locator('#scene').getAttribute('data-terrain-seed')) !== terrainSeed)
       throw new Error('Reconnect changed terrain');

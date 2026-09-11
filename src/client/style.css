@@ -401,44 +401,7 @@ h2 {
 .secondary:hover:not(:disabled) {
   background: #ecefdf;
 }
-.join-label {
-  font-size: 14px;
-  color: #989d90;
-  margin: 21px 0 9px;
-}
-.join-form {
-  display: flex;
-  border: 1px solid #dfdfd3;
-  border-radius: 6px;
-  background: #fafaf5;
-  overflow: hidden;
-}
-.join-form input {
-  min-width: 0;
-  width: 100%;
-  border: 0;
-  background: none;
-  padding: 11px 12px;
-  font-family: monospace;
-  font-size: 16px;
-  color: #4b6553;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.join-form input::placeholder {
-  font-family: 'Noto Sans SC', sans-serif;
-  font-size: 14px;
-  letter-spacing: 0;
-  color: #a2a693;
-}
-.join-form button {
-  width: 40px;
-  border: 0;
-  border-left: 1px solid #e3e4d9;
-  background: none;
-  color: #68825a;
-  font-size: 20px;
-}
+
 .divider {
   display: flex;
   align-items: center;
@@ -1174,7 +1137,6 @@ footer {
 .lobby > .section-number,
 .lobby > h2,
 .lobby > .muted,
-.lobby > .join-label,
 .lobby > .divider {
   display: none;
 }
@@ -1184,19 +1146,7 @@ footer {
   gap: 20px;
   white-space: nowrap;
 }
-.lobby .join-form {
-  width: 220px;
-  height: 49px;
-  background: #fffef9;
-}
-.lobby .join-form input,
-.lobby .join-form input::placeholder {
-  font-size: 14px;
-}
-.lobby .join-form button {
-  flex-shrink: 0;
-  width: 42px;
-}
+
 .lobby .resume {
   margin: 0;
 }
@@ -1309,11 +1259,7 @@ footer {
     padding: 12px;
     gap: 8px;
   }
-  .lobby .join-form {
-    width: 100%;
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
+
   .lobby .resume {
     grid-column: 1 / -1;
     text-align: left;
@@ -2093,4 +2039,24 @@ footer {
 }
 .serve-line .serve-line-selected {
   stroke-width: 3;
+}
+
+#turn-countdown {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  pointer-events: none;
+  user-select: none;
+  font-family: ui-monospace, monospace;
+  font-size: clamp(56px, 9vmin, 88px);
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #284f40cc;
+  text-shadow: 0 1px 2px #fff9;
+}
+#turn-countdown.urgent {
+  color: #a33323e0;
 }

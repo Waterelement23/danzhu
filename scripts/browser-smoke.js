@@ -33,7 +33,7 @@ async (page) => {
   await page.locator('#leave').click();
   await page.locator('#create').click();
   await page.waitForFunction(() =>
-    /^[A-F0-9]{8}$/.test(sessionStorage.getItem('danzhu-room') || ''),
+    /^[A-F0-9]{8}$/.test(sessionStorage.getItem('danzhu-room') || '') && new URL(location.href).searchParams.get('room') === sessionStorage.getItem('danzhu-room'),
   );
   const code = await page.evaluate(() => sessionStorage.getItem('danzhu-room'));
   const ctx = await page
@@ -43,9 +43,8 @@ async (page) => {
   const other = await ctx.newPage();
   other.on('pageerror', (e) => errors.push(e.message));
   try {
-    await other.goto('http://localhost:5173/');
-    await other.getByRole('textbox', { name: '房间码' }).fill(code);
-    await other.getByRole('button', { name: '加入房间', exact: true }).click();
+    await other.goto('http://localhost:5173/?room=' + code);
+    await other.locator('#ready').waitFor({state:'visible'});
     await page.locator('#ready').click();
     await other.locator('#ready').click();
     await page.waitForFunction(() => document.querySelector('#ready')?.hasAttribute('hidden'));
