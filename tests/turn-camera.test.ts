@@ -1,6 +1,8 @@
 import { expect, it } from 'vitest';
 import {
   TurnView,
+  OVERVIEW_TILT,
+  overviewDistance,
   pairPose,
   cameraPosition,
   angleDelta,
@@ -108,11 +110,44 @@ it.each([
   expect(touchAim(0, 0, travel).power).toBe(0);
 });
 
-it('supports a lower 50-degree overview without changing the 58-degree aiming view', () => {
-  const pose = { yaw: 0, distance: 6, focus: { x: 0, y: 0, z: 0 } };
-  const lower = cameraPosition({ ...pose, tilt: (50 * Math.PI) / 180 });
-  const aim = cameraPosition(pose);
-  expect(lower.y).toBeLessThan(aim.y);
-  expect(lower.z).toBeGreaterThan(aim.z);
-  expect((Math.atan2(aim.y, aim.z) * 180) / Math.PI).toBeCloseTo(58);
-});
+it.each([390 / 770, 844 / 316, 1440 / 850])(
+  'moves the overview closer at 58 degrees while keeping the court and serve visible (%s)',
+  (aspect) => {
+    const focus = { x: 0, y: 0.05, z: 0 };
+    const distance = overviewDistance(aspect, focus);
+    const eye = cameraPosition({ yaw: 0, distance, focus, tilt: OVERVIEW_TILT });
+    const camera = new PerspectiveCamera(42, aspect, 0.1, 60);
+    camera.position.set(eye.x, eye.y, eye.z);
+    camera.lookAt(focus.x, focus.y, focus.z);
+    camera.updateMatrixWorld();
+    expect((Math.atan2(eye.y - focus.y, eye.z) * 180) / Math.PI).toBeCloseTo(58);
+    // Compare with the previous conservative high box using the original 58-degree angle.
+    let previous = 0;
+    const tan = Math.tan((42 * Math.PI) / 360),
+      sin = Math.sin(OVERVIEW_TILT),
+      cos = Math.cos(OVERVIEW_TILT);
+    for (const x of [-1.81, 1.81])
+      for (const z of [-1.81, 1.81])
+        for (const y of [0, 0.88]) {
+          const depth = (y - focus.y) * sin + z * cos;
+          previous = Math.max(
+            previous,
+            depth + Math.abs((y - focus.y) * cos - z * sin) / (tan * 0.94),
+            depth + Math.abs(x) / (tan * aspect * 0.94),
+          );
+        }
+    expect(distance).toBeLessThan(previous * 0.95);
+    for (const x of [-1.65, 0, 1.65])
+      for (const z of [-1.65, 0, 1.65])
+        for (const y of [0, 0.15]) {
+          const p = new Vector3(x, y, z).project(camera);
+          expect(Math.abs(p.x)).toBeLessThan(0.94);
+          expect(Math.abs(p.y)).toBeLessThan(0.94);
+        }
+    for (const x of [-1.04, 0, 1.04]) {
+      const p = new Vector3(x, 0.88, 1.7).project(camera);
+      expect(Math.abs(p.x)).toBeLessThanOrEqual(0.940001);
+      expect(Math.abs(p.y)).toBeLessThanOrEqual(0.940001);
+    }
+  },
+);

@@ -1,7 +1,8 @@
+import { CONFIG, SERVE_RANGE, SERVE_Z } from '../shared/map';
 import type { Vec3 } from '../shared/types';
 
 export const CAMERA_TILT = (58 * Math.PI) / 180;
-export const OVERVIEW_TILT = (50 * Math.PI) / 180;
+export const OVERVIEW_TILT = CAMERA_TILT;
 const FOV_TAN = Math.tan((42 * Math.PI) / 360);
 export type CameraPose = { yaw: number; distance: number; focus: Vec3; tilt?: number };
 type ViewFrame = {
@@ -89,6 +90,32 @@ export function fitDistance(
   }
   return distance;
 }
+/** Fit the low court surface and the actual serve line, not a tall box over every corner. */
+export function overviewDistance(aspect: number, focus: Vec3, fov = 42) {
+  const edge = CONFIG.half + 0.06;
+  const points = [-edge, edge].flatMap((x) =>
+    [-edge, edge].flatMap((z) => [-0.04, 0.18].map((y) => ({ x, y, z }))),
+  );
+  for (const x of [-SERVE_RANGE - CONFIG.radius, SERVE_RANGE + CONFIG.radius])
+    points.push({ x, y: CONFIG.serveHeight + 0.08, z: SERVE_Z + CONFIG.radius });
+  const tan = Math.tan((fov * Math.PI) / 360);
+  const sin = Math.sin(OVERVIEW_TILT),
+    cos = Math.cos(OVERVIEW_TILT);
+  let distance = 0;
+  for (const p of points) {
+    const dy = p.y - focus.y,
+      dz = p.z - focus.z;
+    const depth = dy * sin + dz * cos,
+      vertical = dy * cos - dz * sin;
+    distance = Math.max(
+      distance,
+      depth + Math.abs(vertical) / (tan * 0.94),
+      depth + Math.abs(p.x - focus.x) / (tan * Math.max(0.1, aspect) * 0.94),
+    );
+  }
+  return distance;
+}
+
 export function pairPose(
   own: Vec3,
   other: Vec3,

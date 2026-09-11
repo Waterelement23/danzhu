@@ -3,6 +3,7 @@ import {
   TurnView,
   CAMERA_TILT,
   OVERVIEW_TILT,
+  overviewDistance,
   pairPose,
   cameraPosition,
   angleDelta,
@@ -816,25 +817,8 @@ export class MarbleScene {
     const width = Math.max(1, this.container.clientWidth),
       height = Math.max(1, this.container.clientHeight),
       aspect = width / height;
-    // Fit the actual 3D court envelope inside a symmetric 50-degree perspective overview.
-    const tilt = OVERVIEW_TILT,
-      sin = Math.sin(tilt),
-      cos = Math.cos(tilt);
-    const tan = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
-    let distance = 0;
-    for (const x of [-CONFIG.half - 0.16, CONFIG.half + 0.16])
-      for (const z of [-CONFIG.half - 0.16, CONFIG.half + 0.16])
-        for (const y of [0, 0.88]) {
-          const depth = (y - 0.05) * sin + z * cos;
-          const vertical = (y - 0.05) * cos - z * sin;
-          distance = Math.max(
-            distance,
-            depth + Math.abs(vertical) / (tan * 0.94),
-            depth + Math.abs(x) / (tan * aspect * 0.94),
-          );
-        }
     this.camera.aspect = aspect;
-    this.cameraDistance = distance;
+    this.cameraDistance = overviewDistance(aspect, this.overviewFocus, this.camera.fov);
     this.planKey = '';
     this.planCamera();
     this.updateCamera(0, true);
