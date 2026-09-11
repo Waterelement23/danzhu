@@ -1,4 +1,5 @@
 import RAPIER from '@dimforge/rapier3d-compat';
+import { courtyardCollision } from './courtyard-collision';
 import {
   CONFIG,
   DEFAULT_TERRAIN,
@@ -62,6 +63,21 @@ export class MarblePhysics {
     return impacts;
   }
   readonly terrain: TerrainData;
+  /** Build at world creation, so the decisive frame never pauses to prepare collision geometry. */
+  private buildCourtyard() {
+    for (const mesh of courtyardCollision()) {
+      const collider = this.world.createCollider(
+        RAPIER.ColliderDesc.trimesh(
+          mesh.vertices,
+          mesh.indices,
+          RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES,
+        )
+          .setFriction(mesh.stone ? 0.45 : 0.55)
+          .setRestitution(mesh.stone ? 0.5 : 0.32),
+      );
+      if (mesh.stone) this.stones.add(collider.handle);
+    }
+  }
   constructor(options: { flat?: boolean; restitution?: number; terrain?: TerrainData } = {}) {
     this.flat = !!options.flat;
     this.terrain = options.terrain ?? DEFAULT_TERRAIN;
@@ -95,6 +111,7 @@ export class MarblePhysics {
             ).handle,
           );
       }
+      this.buildCourtyard();
     }
   }
   addBall(player: Player, position: Vec3, velocity: Vec3 = { x: 0, y: 0, z: 0 }) {

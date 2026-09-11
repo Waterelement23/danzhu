@@ -833,7 +833,9 @@ export class MarbleScene {
       this.container.clientWidth,
       this.container.clientHeight,
       this.playerLabels,
-      points,
+      points.map((point) =>
+        point && this.caustics.isBallVisible(point, this.camera) ? point : null,
+      ),
       active,
       this.showActivePlayer && this.snapshot?.phase === 'aiming',
       arrow,

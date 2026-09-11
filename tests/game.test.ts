@@ -1,5 +1,5 @@
 import { beforeAll, it, expect } from 'vitest';
-import { initPhysics } from '../src/shared/physics';
+import { initPhysics, MarblePhysics } from '../src/shared/physics';
 import { MarbleGame } from '../src/shared/game';
 import { CONFIG } from '../src/shared/map';
 import type { Shot } from '../src/shared/types';
@@ -125,6 +125,9 @@ it('new match rejects old match commands even at same turn number', () => {
 });
 it('keeps the decisive motion playing beyond two seconds without changing the result', () => {
   const g = new MarbleGame(0, 1, 0);
+  // An unobstructed floor isolates the time limit from the yard's real stopping obstacles.
+  g.physics.dispose();
+  g.physics = new MarblePhysics({ flat: true });
   g.shoot(0, shot(g, { power: 1 }));
   finishMotion(g);
   expect(g.snapshot().phase).toBe('finished');
@@ -134,5 +137,32 @@ it('keeps the decisive motion playing beyond two seconds without changing the re
   for (let i = 0; i < 12; i++) g.tick(1 / 120);
   expect(g.snapshot().balls[0].position).not.toEqual(before);
   expect(g.snapshot().result).toEqual(result);
+  g.dispose();
+});
+
+it.each([
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+])('keeps an outgoing marble above the courtyard until the result overlay (%s, %s)', (x, z) => {
+  const g = new MarbleGame(0, 1, 123);
+  g.shoot(0, shot(g));
+  const body = g.physics.bodies.get(0)!;
+  body.setTranslation({ x: x * (CONFIG.half - 0.01), y: 0.07, z: z * (CONFIG.half - 0.01) }, true);
+  body.setLinvel({ x: x * 2.5, y: 0, z: z * 2.5 }, true);
+  finishMotion(g);
+  const result = g.snapshot().result;
+  expect(result?.reason).toBe('out');
+  const start = { ...body.translation() };
+  let travelled = 0;
+  for (let i = 0; i < 216; i++) {
+    g.tick(CONFIG.dt);
+    const p = body.translation();
+    expect(p.y).toBeGreaterThan(0.02);
+    travelled = Math.max(travelled, Math.hypot(p.x - start.x, p.z - start.z));
+    expect(g.snapshot().result).toEqual(result);
+  }
+  expect(travelled).toBeGreaterThan(0.05);
   g.dispose();
 });

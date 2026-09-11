@@ -71,6 +71,20 @@ it('rotating the incident sun rotates the optical paths, without inventing extra
 
 import { BoxGeometry, Mesh, MeshBasicMaterial, PlaneGeometry, Ray, Scene, Vector4 } from 'three';
 import { OpticalScene, depositPhotons } from '../src/client/marble-caustics';
+it('hides labels behind solid scenery but keeps a partly visible marble labelled', () => {
+  const scene = new Scene();
+  const wall = new Mesh(new BoxGeometry(1, 1, 0.1), new MeshBasicMaterial());
+  wall.castShadow = true;
+  scene.add(wall);
+  const optical = new OpticalScene(scene);
+  const eye = new Vector3(0, 0, 3);
+  expect(optical.sphereVisible(eye, new Vector3(0, 0, -0.2), 0.05)).toBe(false);
+  expect(optical.sphereVisible(eye, new Vector3(0, 0, 0.2), 0.05)).toBe(true);
+  expect(optical.sphereVisible(eye, new Vector3(0.51, 0, -0.1), 0.05)).toBe(true);
+  optical.dispose();
+  wall.geometry.dispose();
+  wall.material.dispose();
+});
 it('deposits conserve transmitted flux when a focus is filtered into a texture', () => {
   const flux = new Vector3(0.001, 0.002, 0.003),
     bounds = new Vector4(-0.1, -0.1, 0.2, 0.2);

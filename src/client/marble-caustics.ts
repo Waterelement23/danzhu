@@ -44,6 +44,30 @@ export class OpticalScene {
   intersect(ray: THREE.Ray, maxDistance = Infinity, anyHit = false) {
     return this.tree.intersect(ray, maxDistance, anyHit);
   }
+  sphereVisible(eye: THREE.Vector3, center: THREE.Vector3, radius: number) {
+    const forward = center.clone().sub(eye).normalize();
+    const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0));
+    if (right.lengthSq() < 1e-8) right.set(1, 0, 0);
+    right.normalize().multiplyScalar(radius * 0.8);
+    const up = new THREE.Vector3()
+      .crossVectors(right, forward)
+      .normalize()
+      .multiplyScalar(radius * 0.8);
+    // Keep the label while any sampled part of the ball is visible over a stone/board edge.
+    for (const offset of [
+      new THREE.Vector3(),
+      right,
+      right.clone().negate(),
+      up,
+      up.clone().negate(),
+    ]) {
+      const direction = center.clone().add(offset).sub(eye);
+      const distance = direction.length();
+      if (!this.intersect(new THREE.Ray(eye, direction.normalize()), distance - radius * 0.5, true))
+        return true;
+    }
+    return false;
+  }
   dispose() {
     this.tree.dispose();
   }
@@ -156,6 +180,15 @@ export class MarbleCaustics {
   private heightAt = terrainHeight;
   private uniforms: Record<string, { value: unknown }>;
   readonly stats = { photons: 0, deposits: 0, updateMs: 0 };
+  isBallVisible(center: THREE.Vector3, camera: THREE.Camera) {
+    return (
+      this.world?.sphereVisible(
+        camera.getWorldPosition(new THREE.Vector3()),
+        center,
+        CONFIG.radius,
+      ) ?? true
+    );
+  }
   constructor(ribbon: THREE.Mesh, budget?: { size: number; photons: number }) {
     this.size = budget?.size ?? SIZE;
     this.fields = makeFields(this.size, budget?.photons ?? 512);
