@@ -15,6 +15,7 @@ import { makeSoilMaterial } from './soil-material';
 import { ServeGuide } from './serve-guide';
 import { ServeLine } from './serve-line';
 import { ServeTap } from './serve-selection';
+import { ReturnCancel, type DragFeedback } from './return-cancel';
 import { makeDoorReflection } from './glazing';
 import { makeMarble, captureCourtyardReflection } from './marble';
 import { MarbleCaustics } from './marble-caustics';
@@ -92,6 +93,8 @@ export class MarbleScene {
   private readonly ballLabels: BallLabels;
   private dragPixels = { x: 0, y: 0 };
   private screenDrag = false;
+  private readonly returnCancel = new ReturnCancel();
+  public onGesture?: (feedback: DragFeedback | null) => void;
   private dragSurface?: HTMLElement;
   public onPower?: (power: number) => void;
   public onCharge?: (phase: 'start' | 'move' | 'end', power: number) => void;
@@ -652,6 +655,8 @@ export class MarbleScene {
     const changed = this.dragging || this.power > 0;
     this.dragging = false;
     this.serveTap.clear();
+    this.returnCancel.clear();
+    this.onGesture?.(null);
     if (this.dragSurface?.hasPointerCapture(this.pointerId))
       this.dragSurface.releasePointerCapture(this.pointerId);
     this.power = 0;
@@ -870,7 +875,7 @@ export class MarbleScene {
       !this.dragging ||
       event.pointerId !== this.pointerId ||
       !this.canAct ||
-      !this.eventGround(event)
+      (!this.screenDrag && !this.eventGround(event))
     )
       return;
     const wasPending = this.serveTap.pending;
@@ -880,13 +885,31 @@ export class MarbleScene {
     if (this.serveTap.pending) return;
     if (wasPending) this.onCharge?.('start', 0);
     if (this.screenDrag) {
-      const { direction, power } = touchAim(
+      const { direction, power: rawPower } = touchAim(
         event.clientX - this.dragPixels.x,
         event.clientY - this.dragPixels.y,
         touchTravel(this.container.clientWidth, this.container.clientHeight),
         this.yaw,
       );
+      const distance = Math.hypot(
+        event.clientX - this.dragPixels.x,
+        event.clientY - this.dragPixels.y,
+      );
+      const cancelled = this.returnCancel.update(distance);
+      const power = cancelled ? 0 : rawPower;
+      const rect = this.container.getBoundingClientRect();
+      this.onGesture?.(
+        distance >= 5 || this.returnCancel.armed
+          ? {
+              origin: { x: this.dragPixels.x - rect.left, y: this.dragPixels.y - rect.top },
+              pointer: { x: event.clientX - rect.left, y: event.clientY - rect.top },
+              armed: this.returnCancel.armed,
+              cancelled,
+            }
+          : null,
+      );
       this.setAim(direction, power);
+      if (power === 0) this.serveGuide.clearAim();
       this.onPower?.(power);
       this.onAim?.(direction, power);
       this.onCharge?.('move', power);
@@ -912,6 +935,7 @@ export class MarbleScene {
   };
   private pointerUp = (event: PointerEvent) => {
     if (!this.dragging || event.pointerId !== this.pointerId) return;
+    if (this.screenDrag) this.pointerMove(event);
     this.serveTap.move(
       Math.hypot(event.clientX - this.dragPixels.x, event.clientY - this.dragPixels.y),
     );

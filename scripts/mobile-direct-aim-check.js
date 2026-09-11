@@ -24,7 +24,7 @@ async (page) => {
       check(await p.locator('#drag-hint').isVisible(),'Initial hint');
       await p.screenshot({path:`/tmp/danzhu-direct-serve-${viewport.width}.png`});
       const cdp=await ctx.newCDPSession(p), x=Math.round(box.x+box.width*.27),y=Math.round(box.y+box.height*.45);
-      const touch=(type,points)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points.map(([x,y,id=0])=>({x,y,id}))});
+      const touch=async(type,points)=>{await cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points.map(([x,y,id=0])=>({x,y,id}))});await p.waitForTimeout(60);};
       async function chooseServe(wanted) {
         const point=await p.evaluate(wanted=>{
           const s=window.cameraTest,r=s.renderer.domElement.getBoundingClientRect();
@@ -61,9 +61,28 @@ async (page) => {
       check((await state()).shots===0,'Tap must not shoot');
       await touch('touchStart',[[x,y]]);await touch('touchMove',[[x,y+45]]);
       check((await state()).power>.1,'Blank scene starts aiming');
-      check(await p.locator('#mobile-cancel').isVisible(),'Cancel while aiming');
+      check(await p.locator('#mobile-cancel').count()===0,'No unreachable cancel button');
+      check(await p.locator('#drag-origin').isVisible(),'Visible gesture origin');
+      const bubble=await p.locator('#drag-feedback').boundingBox();
+      check(Math.abs(bubble.y-(y+45))<100,'Feedback follows finger');
+      await touch('touchMove',[[x,y+12]]);
+      check((await state()).power===0,'Return zone zeros power');
+      check(await p.locator('#drag-feedback.is-cancelling').isVisible(),'Cancellation feedback');
+      check(await p.evaluate(()=>!window.cameraTest.aim.visible),'No arrow when cancelling');
+      await touch('touchMove',[[x,y+20]]);
+      check((await state()).power===0,'Hysteresis preserves cancellation');
+      await p.screenshot({path:`/tmp/danzhu-cancel-${viewport.width}.png`});
+      await touch('touchMove',[[x,y+24]]);
+      check((await state()).power>0,'Pull away restores charge');
+      check(await p.locator('#drag-feedback.is-cancelling').count()===0,'Feedback restored');
       await touch('touchMove',[[x,y]]);await touch('touchEnd',[]);
       check((await state()).shots===0,'Return to origin cancels');
+      check(await p.locator('#drag-origin').isHidden(),'Feedback cleared');
+      await touch('touchStart',[[x,y]]);await touch('touchMove',[[x,y+45]]);
+      await p.evaluate(({x,y})=>{const s=window.cameraTest;s.renderer.domElement.dispatchEvent(new PointerEvent('pointerup',{pointerId:s.pointerId,pointerType:'touch',clientX:x,clientY:y+12,bubbles:true}));},{x,y});
+      await touch('touchEnd',[]);
+      check((await state()).shots===0,'Release coordinates checked without final move');
+
       await touch('touchStart',[[x,y]]);await touch('touchMove',[[x,y+45]]);
       await touch('touchStart',[[x,y+45],[x+60,y,1]]);await touch('touchEnd',[]);
       check(!(await state()).drag&&(await state()).shots===0,'Second finger cancels');
@@ -92,7 +111,10 @@ async (page) => {
       await touch('touchStart',[[x,y]]);await touch('touchMove',[[x,y+45]]);
       const aim=await p.evaluate(()=>({yaw:window.cameraTest.viewYaw,d:window.cameraTest.aimDirection}));
       check(Math.abs(aim.yaw-yaw)<.001&&Math.abs(aim.d.x+Math.sin(yaw))<.001,'Camera-relative touch');
-      await touch('touchCancel',[]);
+      await touch('touchMove',[[x,y+12]]);
+      await touch('touchMove',[[x,y+24]]);
+      await touch('touchEnd',[]);
+      check((await state()).shots===3,'Restored charge fires exactly once');
       reports.push({viewport,scene:box,render,shots:(await state()).shots});
     } finally {await ctx.close();}
   }

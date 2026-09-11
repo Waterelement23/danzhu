@@ -3,6 +3,7 @@ import { FramePacer } from './render-budget';
 import { invitationCode, invitationUrl, playerName, rematchView } from './match-ui';
 import { GameAudio } from './audio';
 import { MarbleScene } from './scene';
+import type { DragFeedback } from './return-cancel';
 import { CONFIG, MAP_VERSION, PROTOCOL_VERSION, nextTerrainSeed } from '../shared/map';
 import type { GameSnapshot, Presence, Shot, Result } from '../shared/types';
 import {
@@ -27,7 +28,7 @@ $('app').innerHTML = `
 
    <div class="match-status" id="match-status" role="status" aria-live="polite" hidden></div>
    <div id="scene" class="scene"><button id="desktop-view-toggle" class="secondary camera-toggle" aria-pressed="false" hidden>出手视角</button><span id="camera-hint" class="camera-hint" role="status" hidden>当前方向有遮挡，已切回全景</span></div>
-   <div id="mobile-play" class="mobile-play" hidden><div class="mobile-actions"><span id="mobile-timer" class="mobile-timer"></span><button id="view-toggle" class="secondary" aria-pressed="false" hidden>出手视角</button><details id="mobile-menu"><summary aria-label="游戏菜单">菜单</summary><div class="mobile-menu-items"><button id="mobile-sound" class="text-button" aria-label="切换音效">声音开</button><button id="mobile-help" class="text-button">操作提示</button><button id="mobile-leave" class="text-button">离开对局</button></div></details></div><div class="mobile-feedback"><span id="drag-hint" hidden>在场地内向后拖动，松手发射</span><div id="drag-feedback" hidden><span id="drag-label"></span><div class="drag-power"><i id="drag-power"></i></div><button id="mobile-cancel" class="secondary">取消</button></div></div><div id="mobile-serve" hidden></div></div>
+   <div id="mobile-play" class="mobile-play" hidden><div class="mobile-actions"><span id="mobile-timer" class="mobile-timer"></span><button id="view-toggle" class="secondary" aria-pressed="false" hidden>出手视角</button><details id="mobile-menu"><summary aria-label="游戏菜单">菜单</summary><div class="mobile-menu-items"><button id="mobile-sound" class="text-button" aria-label="切换音效">声音开</button><button id="mobile-help" class="text-button">操作提示</button><button id="mobile-leave" class="text-button">离开对局</button></div></details></div><div class="mobile-feedback"><span id="drag-hint" hidden>在场地内向后拖动，松手发射</span></div><div id="drag-origin" hidden><span></span></div><div id="drag-feedback" hidden><span id="drag-label"></span><div class="drag-power"><i id="drag-power"></i></div></div><div id="mobile-serve" hidden></div></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
    <div class="board-bottom"><span><i class="live-dot"></i><span id="connection">准备好，把第一颗球弹出去。</span></span><span id="round-label">01 / 土地场</span></div>
    <div id="result" class="result-overlay" role="status" aria-live="polite" hidden><div class="result-card"><span class="eyebrow">这一局，记住了</span><div id="result-ball" class="result-ball"></div><h2 id="result-title"></h2><p id="result-reason"></p><p id="rematch-message" class="rematch-message" aria-live="polite" hidden></p><button id="rematch" class="primary"><span id="rematch-label">再来一局</span><span id="rematch-arrow" aria-hidden="true">↗</span></button><button id="result-home" class="text-button">回到院子</button></div></div>
@@ -102,16 +103,19 @@ try {
   /* Storage may be disabled. */
 }
 let scene: MarbleScene;
+let lastGesture: DragFeedback | null = null;
+let chargeCancelled = false;
 function refreshMobileAim() {
   const active = canAct(),
     menuOpen = $<HTMLDetailsElement>('mobile-menu').open;
   const serving = !snapshot.served[snapshot.active];
   $('drag-hint').textContent = serving
     ? '点发球线选位置，拖动场地发射'
-    : '在场地内向后拖动，松手发射';
+    : '向后拖动发射，退回起点取消';
   $('drag-hint').hidden =
     !active || gestureActive || (serving ? serveHintSeen : aimHintSeen) || menuOpen;
-  $('drag-feedback').hidden = !active || !gestureActive;
+  $('drag-feedback').hidden = !active || !gestureActive || !lastGesture;
+  $('drag-origin').hidden = $('drag-feedback').hidden;
   $('mobile-serve').hidden =
     mode === 'lobby' ||
     gestureActive ||
@@ -151,17 +155,43 @@ function updatePower(p: number) {
   $('power-text').textContent = `${Math.round(p * 100)}%`;
   $('power-bar').style.width = `${p * 100}%`;
   $('drag-power').style.width = `${p * 100}%`;
-  $('drag-label').textContent =
-    p > 0 ? `力度 ${Math.round(p * 100)}% · 松手发射` : '拖回起点可取消';
+  $('drag-label').textContent = lastGesture?.cancelled
+    ? '松手取消'
+    : p > 0
+      ? `力度 ${Math.round(p * 100)}% · 松手发射`
+      : '松手取消';
   $<HTMLInputElement>('power').value = String(Math.round(p * 100));
 }
 scene.onPower = updatePower;
+scene.onGesture = (feedback) => {
+  lastGesture = feedback;
+  if (feedback) {
+    const origin = $('drag-origin'),
+      bubble = $('drag-feedback');
+    origin.style.left = `${feedback.origin.x}px`;
+    origin.style.top = `${feedback.origin.y}px`;
+    origin.querySelector('span')!.textContent = feedback.armed ? '退回取消' : '起点';
+    for (const element of [origin, bubble])
+      element.classList.toggle('is-cancelling', feedback.cancelled);
+    bubble.style.left = `${Math.max(8, Math.min($('scene').clientWidth - 188, feedback.pointer.x - 90))}px`;
+    bubble.style.top = `${Math.max(8, Math.min($('scene').clientHeight - 58, feedback.pointer.y - 86))}px`;
+  }
+  refreshMobileAim();
+};
 scene.onCharge = (phase, p) => {
   gestureActive = phase !== 'end' && canAct();
   refreshMobileAim();
-  if (phase === 'end' || !canAct()) audio.endCharge();
-  else if (phase === 'start') audio.beginCharge(p);
-  else audio.chargeTo(p);
+  if (phase === 'end' || !canAct()) {
+    audio.endCharge();
+    chargeCancelled = false;
+  } else if (lastGesture?.cancelled) {
+    audio.endCharge();
+    chargeCancelled = true;
+  } else {
+    if (phase === 'start' || chargeCancelled) audio.beginCharge(p);
+    else audio.chargeTo(p);
+    chargeCancelled = false;
+  }
 };
 scene.onAim = (d, p) => {
   direction = d;
@@ -570,10 +600,6 @@ scene.onZoom = (zoomed) => {
 };
 $('view-toggle').onclick = () => scene.setZoom(!scene.zoomed);
 $('desktop-view-toggle').onclick = () => scene.setZoom(!scene.zoomed);
-$('mobile-cancel').onpointerdown = (e) => {
-  e.preventDefault();
-  scene.clearAim();
-};
 $('mobile-leave').onclick = () => {
   $<HTMLDetailsElement>('mobile-menu').open = false;
   home();
