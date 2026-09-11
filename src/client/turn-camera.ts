@@ -1,8 +1,9 @@
 import type { Vec3 } from '../shared/types';
 
 export const CAMERA_TILT = (58 * Math.PI) / 180;
+export const OVERVIEW_TILT = (50 * Math.PI) / 180;
 const FOV_TAN = Math.tan((42 * Math.PI) / 360);
-export type CameraPose = { yaw: number; distance: number; focus: Vec3 };
+export type CameraPose = { yaw: number; distance: number; focus: Vec3; tilt?: number };
 type ViewFrame = {
   key: string;
   phase: string;
@@ -52,10 +53,11 @@ export function angleDelta(from: number, to: number) {
   return Math.abs(d + Math.PI) < 1e-10 ? Math.PI : d;
 }
 export function cameraPosition(pose: CameraPose): Vec3 {
-  const horizontal = pose.distance * Math.cos(CAMERA_TILT);
+  const tilt = pose.tilt ?? CAMERA_TILT;
+  const horizontal = pose.distance * Math.cos(tilt);
   return {
     x: pose.focus.x + Math.sin(pose.yaw) * horizontal,
-    y: pose.focus.y + pose.distance * Math.sin(CAMERA_TILT),
+    y: pose.focus.y + pose.distance * Math.sin(tilt),
     z: pose.focus.z + Math.cos(pose.yaw) * horizontal,
   };
 }

@@ -92,7 +92,7 @@ it('two real clients join, ready, serve and receive same authoritative state', a
   actor.send('shot', { id: 'invalid', power: Infinity });
   expect((await invalid).ok).toBe(false);
 }, 15000);
-it('ready consensus is reevaluated after reconnect', async () => {
+it('a started match preserves the seat and terrain after reconnect', async () => {
   const c = new Client(`http://127.0.0.1:${port}`),
     a = await c.create('marble', version);
   rooms.push(a);
@@ -106,15 +106,15 @@ it('ready consensus is reevaluated after reconnect', async () => {
   const readyA = waitMessage<Presence>(b, 'presence', (p) => p.ready[0]);
   a.send('ready');
   await readyA;
+  const initialStart = waitMessage<Presence>(b, 'presence', (p) => p.started);
+  b.send('ready');
+  await initialStart;
   const dropped = waitMessage<Presence>(b, 'presence', (p) => !p.connected[0]);
   a.reconnection.enabled = false;
   const token = a.reconnectionToken;
   a.connection.close(1000);
   await dropped;
-  const readyB = waitMessage<Presence>(b, 'presence', (p) => p.ready[1]);
-  b.send('ready');
-  await readyB;
-  const started = waitMessage<Presence>(b, 'presence', (p) => p.started);
+  const started = waitMessage<Presence>(b, 'presence', (p) => p.started && p.connected.every(Boolean));
   const restored = await c.reconnect(token);
   rooms.push(restored);
   restored.onMessage('*', () => {});
@@ -207,3 +207,38 @@ it('broadcasts an oblique physical hit and the same winner to both online client
   expect(sa.result).toEqual(sb.result);
   expect(sa.sounds?.some((e) => e.kind === 'marble')).toBe(true);
 }, 15000);
+
+it.each([
+  [0, false],
+  [1, false],
+  [0, true],
+  [1, true],
+] as const)('a waiting room reopens seat %s (explicit leave: %s)', async (leaver, consented) => {
+  const c = new Client(`http://127.0.0.1:${port}`);
+  const a = await c.create('marble', version);
+  rooms.push(a);
+  a.onMessage('*', () => {});
+  const b = await c.joinById(a.roomId, version);
+  rooms.push(b);
+  b.onMessage('*', () => {});
+  const pair = [a, b],
+    stay = pair[1 - leaver];
+  const ready = waitMessage<Presence>(stay, 'presence', (p) => p.ready[leaver]);
+  pair[leaver].send('ready');
+  await ready;
+  const gone = waitMessage<Presence>(stay, 'presence', (p) => !p.connected[leaver]);
+  pair[leaver].reconnection.enabled = false;
+  if (consented) await pair[leaver].leave();
+  else pair[leaver].connection.close(1000);
+  await gone;
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const replacement = await c.joinById(a.roomId, version);
+  rooms.push(replacement);
+  replacement.onMessage('*', () => {});
+  const state = waitMessage<Presence>(replacement, 'presence');
+  replacement.send('sync');
+  expect(await state).toMatchObject({ player: leaver, connected: [true, true], started: false });
+  const fresh = waitMessage<Presence>(replacement, 'presence');
+  replacement.send('sync');
+  expect((await fresh).ready[leaver]).toBe(false);
+});

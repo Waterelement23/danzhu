@@ -87,6 +87,9 @@ export class MarbleRoom extends Room {
   async onDrop(client: Client) {
     const p = this.seats.get(client.sessionId);
     if (p === undefined) return;
+    // Before play starts, a closed tab must not reserve the last invitation slot.
+    // Colyseus calls onLeave and releases its capacity after this returns.
+    if (!this.started) return;
     this.connected[p] = false;
     this.sendAll();
     try {

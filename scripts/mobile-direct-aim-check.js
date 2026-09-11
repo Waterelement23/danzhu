@@ -14,7 +14,7 @@ async (page) => {
       });
       await p.waitForFunction(()=>!!window.cameraTest);
       await p.locator('#practice').click();
-      await p.waitForFunction(()=>window.cameraTest.canAct);
+      await p.waitForFunction(()=>window.cameraTest.canAct && !document.querySelector('.entering-scene'));
       await p.evaluate(()=>{const s=window.cameraTest,shoot=s.onShoot;window.testShots=[];s.onShoot=(...args)=>{window.testShots.push(args);shoot(...args);};});
       const check=(v,m)=>{if(!v)throw Error(m);};
       const state=()=>p.evaluate(()=>({shots:window.testShots.length,power:window.cameraTest.power,drag:window.cameraTest.dragging,turn:window.cameraTest.snapshot.turn}));

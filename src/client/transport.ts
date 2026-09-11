@@ -103,6 +103,7 @@ export async function online(
   }
   let disposed = false;
   let verified = false;
+  let started = false;
   let reconnecting = false;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
   let deadline = 0;
@@ -122,7 +123,13 @@ export async function online(
       return;
     }
     try {
-      const restored = await client.reconnect(room.reconnectionToken);
+      const restored = await client.reconnect(room.reconnectionToken).catch((error) => {
+        if (started) throw error;
+        return client.joinById(room.roomId, {
+          mapVersion: MAP_VERSION,
+          protocolVersion: PROTOCOL_VERSION,
+        });
+      });
       if (disposed) {
         restored.reconnection.enabled = false;
         void restored.leave();
@@ -163,7 +170,10 @@ export async function online(
       h.snapshot(s);
     });
     current.onMessage('presence', (p: Presence) => {
-      if (alive()) h.presence(p);
+      if (alive()) {
+        started = p.started;
+        h.presence(p);
+      }
     });
     current.onMessage('action', (a: ActionResult) => {
       if (!alive()) return;

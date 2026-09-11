@@ -107,3 +107,12 @@ it.each([
   expect(touchAim(2, 2, travel).power).toBe(0);
   expect(touchAim(0, 0, travel).power).toBe(0);
 });
+
+it('supports a lower 50-degree overview without changing the 58-degree aiming view', () => {
+  const pose = { yaw: 0, distance: 6, focus: { x: 0, y: 0, z: 0 } };
+  const lower = cameraPosition({ ...pose, tilt: (50 * Math.PI) / 180 });
+  const aim = cameraPosition(pose);
+  expect(lower.y).toBeLessThan(aim.y);
+  expect(lower.z).toBeGreaterThan(aim.z);
+  expect((Math.atan2(aim.y, aim.z) * 180) / Math.PI).toBeCloseTo(58);
+});

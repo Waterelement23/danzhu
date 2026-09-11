@@ -2060,3 +2060,11 @@ footer {
 #turn-countdown.urgent {
   color: #a33323e0;
 }
+
+.scene {
+  transform-origin: top left;
+}
+.entering-scene,
+.entering-scene * {
+  pointer-events: none !important;
+}

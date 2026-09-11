@@ -1,4 +1,5 @@
 import './style.css';
+import { EntryTransition } from './entry-transition';
 import { TurnCountdown } from './turn-countdown';
 import { FramePacer } from './render-budget';
 import { invitationCode, invitationUrl, playerName, rematchView } from './match-ui';
@@ -43,6 +44,8 @@ $('app').innerHTML = `
 $('scene').append($('mobile-play'));
 const audio = new GameAudio();
 const countdown = new TurnCountdown();
+const entryTransition = new EntryTransition($('scene'));
+window.addEventListener('resize', entryTransition.cancel);
 function refreshAudio() {
   const state = audio.state;
   $('mobile-sound').textContent = state.muted ? '声音关' : '声音开';
@@ -272,6 +275,11 @@ function refresh() {
     onlineMode = mode === 'online',
     isServing = !snapshot.served[snapshot.active],
     isFirst = isServing && snapshot.active === snapshot.first;
+  const entryRect =
+    !isLobby && !document.body.classList.contains('in-match')
+      ? $('scene').getBoundingClientRect()
+      : null;
+  if (isLobby) entryTransition.cancel();
   if (document.body.classList.contains('in-match') === isLobby)
     document.body.classList.toggle('in-match', !isLobby);
   $('mobile-play').hidden = isLobby;
@@ -388,6 +396,7 @@ function refresh() {
         : null;
   scene.update(snapshot, canAct(), viewPlayer);
   updateResult();
+  if (entryRect) entryTransition.play(entryRect);
 }
 const reasons: Record<Result['reason'], string> = {
   hit: '先碰到对方的弹珠，这一击赢了。',
@@ -687,6 +696,8 @@ window.addEventListener('pagehide', (event) => {
     cancelAnimationFrame(animationFrame);
     document.removeEventListener('visibilitychange', resetFramePacer);
     document.removeEventListener('visibilitychange', refreshCountdown);
+    entryTransition.cancel();
+    window.removeEventListener('resize', entryTransition.cancel);
     audio.dispose();
     scene.dispose();
     document.removeEventListener('pointerdown', unlockAudio);

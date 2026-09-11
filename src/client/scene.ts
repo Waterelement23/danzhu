@@ -1,6 +1,8 @@
 import { pixelRatioFor, renderProfile } from './render-budget';
 import {
   TurnView,
+  CAMERA_TILT,
+  OVERVIEW_TILT,
   pairPose,
   cameraPosition,
   angleDelta,
@@ -57,6 +59,7 @@ export class MarbleScene {
       this.power > 0 ||
       Math.abs(this.viewDistance - this.cameraGoal.distance) > 0.001 ||
       Math.abs(angleDelta(this.yaw, this.cameraGoal.yaw)) > 0.001 ||
+      Math.abs(this.viewTilt - (this.cameraGoal.tilt ?? CAMERA_TILT)) > 0.001 ||
       this.focus.distanceToSquared(this.cameraGoal.focus) > 0.000001 ||
       this.marblesMoving
     );
@@ -70,6 +73,7 @@ export class MarbleScene {
   private viewPlayer: number | null = null;
   private shotPending = false;
   private yaw = 0;
+  private viewTilt = OVERVIEW_TILT;
   private viewDistance = 6;
   private cameraGoal: CameraPose = { yaw: 0, distance: 6, focus: { x: 0, y: 0.05, z: 0 } };
   private transitionFrom: CameraPose = { yaw: 0, distance: 6, focus: { x: 0, y: 0.05, z: 0 } };
@@ -680,7 +684,12 @@ export class MarbleScene {
     if (!enabled) {
       this.planKey = '';
       this.zoomed = false;
-      this.cameraGoal = { yaw: 0, distance: this.cameraDistance, focus: { ...this.overviewFocus } };
+      this.cameraGoal = {
+        yaw: 0,
+        distance: this.cameraDistance,
+        focus: { ...this.overviewFocus },
+        tilt: OVERVIEW_TILT,
+      };
     }
   }
   setZoom(zoomed: boolean) {
@@ -692,7 +701,12 @@ export class MarbleScene {
   }
   holdShotView() {
     this.shotPending = true;
-    this.cameraGoal = { yaw: this.yaw, distance: this.viewDistance, focus: { ...this.focus } };
+    this.cameraGoal = {
+      yaw: this.yaw,
+      distance: this.viewDistance,
+      focus: { ...this.focus },
+      tilt: this.viewTilt,
+    };
     this.transitionFrom = this.cameraGoal;
     this.transitionElapsed = 0.5;
   }
@@ -701,15 +715,30 @@ export class MarbleScene {
     const key = `${s?.terrainSeed}:${s?.match}:${s?.turn}:${this.viewPlayer}:${this.turnView.mode}:${this.camera.aspect}:${this.cameraDistance}`;
     if (key === this.planKey) return;
     this.planKey = key;
-    this.transitionFrom = { yaw: this.yaw, distance: this.viewDistance, focus: { ...this.focus } };
+    this.transitionFrom = {
+      yaw: this.yaw,
+      distance: this.viewDistance,
+      focus: { ...this.focus },
+      tilt: this.viewTilt,
+    };
     this.transitionElapsed = 0;
     if (this.turnView.mode === 'shot' && this.matchMode) {
-      this.cameraGoal = { yaw: this.yaw, distance: this.viewDistance, focus: { ...this.focus } };
+      this.cameraGoal = {
+        yaw: this.yaw,
+        distance: this.viewDistance,
+        focus: { ...this.focus },
+        tilt: this.viewTilt,
+      };
       return;
     }
     this.viewBlocked = false;
     this.zoomed = false;
-    this.cameraGoal = { yaw: 0, distance: this.cameraDistance, focus: { ...this.overviewFocus } };
+    this.cameraGoal = {
+      yaw: 0,
+      distance: this.cameraDistance,
+      focus: { ...this.overviewFocus },
+      tilt: OVERVIEW_TILT,
+    };
     if (!s || !this.matchMode || this.turnView.mode !== 'aim') return;
     const own = s.balls.find((b) => b.player === s.active)?.position;
     const other = s.balls.find((b) => b.player !== s.active)?.position;
@@ -767,7 +796,12 @@ export class MarbleScene {
           )
         : THREE.MathUtils.lerp(this.transitionFrom.distance, this.cameraGoal.distance, alpha);
     this.focus.copy(this.transitionFrom.focus).lerp(this.cameraGoal.focus, alpha);
-    const tilt = THREE.MathUtils.degToRad(58),
+    this.viewTilt = THREE.MathUtils.lerp(
+      this.transitionFrom.tilt ?? CAMERA_TILT,
+      this.cameraGoal.tilt ?? CAMERA_TILT,
+      alpha,
+    );
+    const tilt = this.viewTilt,
       d = this.viewDistance;
     this.camera.position.set(
       this.focus.x + d * Math.cos(tilt) * Math.sin(this.yaw),
@@ -782,8 +816,8 @@ export class MarbleScene {
     const width = Math.max(1, this.container.clientWidth),
       height = Math.max(1, this.container.clientHeight),
       aspect = width / height;
-    // Fit the actual 3D court envelope inside a symmetric 58-degree perspective view.
-    const tilt = THREE.MathUtils.degToRad(58),
+    // Fit the actual 3D court envelope inside a symmetric 50-degree perspective overview.
+    const tilt = OVERVIEW_TILT,
       sin = Math.sin(tilt),
       cos = Math.cos(tilt);
     const tan = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
