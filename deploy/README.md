@@ -80,3 +80,11 @@ node --import tsx scripts/deployment-smoke.ts https://www.learntaskrevise.asia/d
 当前发布目录 `/opt/danzhu/releases/20260910-hit-fix`，镜像 `danzhu:20260910-hit-fix`，代码提交 `f978689`。镜像 digest：`sha256:4aef7bc36b595030975e7c69ac8d5a1df748dc0a17014cd3399cbae13f581a7d`。保留 `20260910-mobile` 作为回滚版本。
 
 修复 Rapier 已产生接触响应但斜向碰撞未被胜负逻辑识别的问题。77 项测试及生产构建通过。公网用两名临时客户端执行合法发球和命中，双方收到完全一致的 `reason: hit`、获胜方与判定时间；容器健康，Nginx 检查及热重载成功。
+
+## 2026-09-11 手机持续渲染负载优化
+
+当前发布目录 `/opt/danzhu/releases/20260911-thermal`，镜像 `danzhu:20260911-thermal`，代码提交 `9c661af`。镜像 digest：`sha256:dfe6fb557e85fd8ee13700e71a217827f8a9ddcee1af0688d029b7e105e46eab`。保留 `20260910-hit-fix` 目录与镜像用于回滚。
+
+移动设备采用活动 30 fps、静止 15 fps、DPR 上限 1.25 及独立光学预算；普通静态阴影和固定视角反射缓存，页面隐藏停止渲染。物理步长及胜负规则不变。83 项测试和生产构建通过，详细测量见 `docs/superpowers/plans/2026-09-11-mobile-render-budget.md`。
+
+容器健康，Nginx 配置检查与热重载成功。公网七项冒烟检查和双客户端实际命中判胜通过；同域名 `/exam`、`/health` 保持 200。线上 Chromium 手机视口模拟（390×844、DPR=3）确认主画布 487×660，静止 6 秒 29778 次绘制调用，页面无 JavaScript 错误。未测量实际 iPhone 温度或功耗，微信及 Safari 的长时间体验仍需真机复测。
