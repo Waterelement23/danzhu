@@ -39,14 +39,17 @@ export function rematchView(presence: Presence | null) {
   return { label: '再来一局', message: '', disabled: false };
 }
 /** Pixel travel owns power; compensate the forward-facing camera tilt only for direction. */
-export function touchAim(dx: number, dy: number, fullPowerPixels: number) {
+export function touchAim(dx: number, dy: number, fullPowerPixels: number, yaw = 0) {
   const travel = Math.hypot(dx, dy);
   const x = -dx,
     z = -dy / Math.sin((58 * Math.PI) / 180);
   const length = Math.hypot(x, z);
   return {
     direction: length
-      ? { x: x === 0 ? 0 : x / length, z: z === 0 ? 0 : z / length }
+      ? {
+          x: (x * Math.cos(yaw) + z * Math.sin(yaw)) / length || 0,
+          z: (-x * Math.sin(yaw) + z * Math.cos(yaw)) / length || 0,
+        }
       : { x: 0, z: -1 },
     power: travel < 5 ? 0 : Math.min(1, travel / fullPowerPixels),
   };

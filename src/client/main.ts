@@ -26,7 +26,7 @@ $('app').innerHTML = `
    <div class="board-top"><div><span class="terrain-dot"></span><strong>老院子的土地</strong><span class="board-meta">每局随机 · 起伏 · 石子</span></div><div class="players" id="players"><div id="player0" class="player blue"><i></i><span id="name0">PLAYER 01</span></div><div class="versus">VS</div><div id="player1" class="player amber"><i></i><span id="name1">PLAYER 02</span></div></div><span id="mode-tag" class="mode-tag">练习 / 1V1 联网</span></div>
 
    <div class="match-status" id="match-status" role="status" aria-live="polite" hidden></div>
-   <div id="scene" class="scene"></div>
+   <div id="scene" class="scene"><button id="desktop-view-toggle" class="secondary camera-toggle" aria-pressed="false" hidden>出手视角</button><span id="camera-hint" class="camera-hint" role="status" hidden>当前方向有遮挡，已切回全景</span></div>
    <div id="mobile-play" class="mobile-play" hidden><div class="mobile-actions"><span id="mobile-timer" class="mobile-timer"></span><button id="view-toggle" class="secondary" aria-pressed="false">放大瞄准</button><button id="mobile-cancel" class="text-button">取消蓄力</button><button id="mobile-sound" class="text-button" aria-label="切换音效">声音开</button><button id="mobile-leave" class="text-button">离开</button></div><div id="aim-pad" class="aim-pad" role="group" aria-label="瞄准区：按住向后拖动，松手发射"><span id="pad-label">按住这里向后拉 · 松手发射</span><div class="pad-power"><i id="pad-power"></i></div></div><div id="mobile-serve"></div><div id="mobile-wait"></div></div>
    <div class="board-note"><span class="note-line"></span><span id="board-hint">从发球线开始，落点由你决定。</span></div>
    <div class="board-bottom"><span><i class="live-dot"></i><span id="connection">准备好，把第一颗球弹出去。</span></span><span id="round-label">01 / 土地场</span></div>
@@ -136,11 +136,15 @@ scene.onCharge = (phase, p) => {
 };
 scene.onAim = (d, p) => {
   direction = d;
+  const angle = ((((Math.atan2(d.x, -d.z) + scene.viewYaw) * 180) / Math.PI + 540) % 360) - 180;
+  $<HTMLInputElement>('angle').value = String(Math.round(angle));
+  $('angle-value').textContent = `${Math.round(angle)}°`;
   updatePower(p);
 };
 function sendShot(d = direction, p = power, x = serveX) {
   if (!canAct() || !transport) return;
   pending = true;
+  scene.holdShotView();
   scene.clearAim();
   const shot: Shot = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -304,7 +308,6 @@ function refresh() {
   $('aim-pad').setAttribute('aria-disabled', String(!canAct()));
   $('aim-pad').hidden = !canAct();
   $('mobile-cancel').hidden = !canAct();
-  $<HTMLButtonElement>('view-toggle').disabled = snapshot.phase !== 'aiming';
   $('mobile-wait').hidden = canAct();
   $('mobile-wait').textContent = title;
   scene.setPlayerLabels(
@@ -314,7 +317,13 @@ function refresh() {
     mode === 'practice' || !!presence?.started,
   );
   // Snapshot refreshes are not user aiming input.
-  scene.update(snapshot, canAct());
+  const viewPlayer =
+    mode === 'practice'
+      ? snapshot.active
+      : mode === 'online' && presence?.started && presence.connected.every(Boolean)
+        ? presence.player
+        : null;
+  scene.update(snapshot, canAct(), viewPlayer);
   updateResult();
 }
 const reasons: Record<Result['reason'], string> = {
@@ -488,7 +497,8 @@ $('serve-position').oninput = () => {
 };
 function fineAim() {
   const degrees = Number($<HTMLInputElement>('angle').value);
-  direction = { x: Math.sin((degrees * Math.PI) / 180), z: -Math.cos((degrees * Math.PI) / 180) };
+  const angle = (degrees * Math.PI) / 180 - scene.viewYaw;
+  direction = { x: Math.sin(angle), z: -Math.cos(angle) };
   $('angle-value').textContent = `${degrees}°`;
   updatePower(Number($<HTMLInputElement>('power').value) / 100);
   if (canAct()) scene.setAim(direction, power);
@@ -506,7 +516,10 @@ $('power').onkeydown = (event) => {
 };
 for (const event of ['pointerup', 'pointercancel', 'keyup', 'blur'])
   $('power').addEventListener(event, () => audio.endCharge());
-$('shoot').onclick = () => sendShot();
+$('shoot').onclick = () => {
+  fineAim();
+  sendShot();
+};
 $('rules-open').onclick = () => $<HTMLDialogElement>('rules').showModal();
 $('rules-close').onclick = () => $<HTMLDialogElement>('rules').close();
 $('rules').onclick = (e) => {
@@ -520,10 +533,17 @@ inviteDialog.innerHTML =
 document.body.append(inviteDialog);
 scene.attachAimPad($('aim-pad'));
 scene.onZoom = (zoomed) => {
-  $('view-toggle').textContent = zoomed ? '返回全景' : '放大瞄准';
-  $('view-toggle').setAttribute('aria-pressed', String(zoomed));
+  for (const id of ['view-toggle', 'desktop-view-toggle']) {
+    const button = $<HTMLButtonElement>(id);
+    button.textContent = zoomed ? '返回全景' : '出手视角';
+    button.setAttribute('aria-pressed', String(zoomed));
+    button.hidden = !scene.viewEligible;
+    button.disabled = !scene.viewAvailable;
+  }
+  $('camera-hint').hidden = !scene.viewBlocked;
 };
 $('view-toggle').onclick = () => scene.setZoom(!scene.zoomed);
+$('desktop-view-toggle').onclick = () => scene.setZoom(!scene.zoomed);
 $('mobile-cancel').onpointerdown = (e) => {
   e.preventDefault();
   scene.clearAim();

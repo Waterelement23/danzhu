@@ -1,4 +1,12 @@
 import { pixelRatioFor, renderProfile } from './render-budget';
+import {
+  TurnView,
+  pairPose,
+  cameraPosition,
+  angleDelta,
+  fitDistance,
+  type CameraPose,
+} from './turn-camera';
 import { BallLabels } from './ball-labels';
 import { touchAim } from './match-ui';
 import type { AudioFrame } from './audio';
@@ -41,12 +49,12 @@ export class MarbleScene {
     );
   }
   get renderActive() {
-    const target = this.matchMode && this.mobileQuery.matches && this.zoomed ? 1.5 : 1;
     return (
       this.dragging ||
       this.power > 0 ||
-      Math.abs(this.zoomAmount - target) > 0.001 ||
-      this.focus.distanceToSquared(target > 1 ? this.focusTarget : this.overviewFocus) > 0.000001 ||
+      Math.abs(this.viewDistance - this.cameraGoal.distance) > 0.001 ||
+      Math.abs(angleDelta(this.yaw, this.cameraGoal.yaw)) > 0.001 ||
+      this.focus.distanceToSquared(this.cameraGoal.focus) > 0.000001 ||
       this.marblesMoving
     );
   }
@@ -54,14 +62,29 @@ export class MarbleScene {
   public onZoom?: (zoomed: boolean) => void;
   public zoomed = false;
   private matchMode = false;
-  private mobileFocusTurn = '';
-  private readonly mobileQuery = matchMedia(
-    '(max-width: 720px), (max-height: 500px) and (pointer: coarse)',
-  );
+  private readonly turnView = new TurnView();
+  private planKey = '';
+  private viewPlayer: number | null = null;
+  private shotPending = false;
+  private yaw = 0;
+  private viewDistance = 6;
+  private cameraGoal: CameraPose = { yaw: 0, distance: 6, focus: { x: 0, y: 0.05, z: 0 } };
+  private transitionFrom: CameraPose = { yaw: 0, distance: 6, focus: { x: 0, y: 0.05, z: 0 } };
+  private transitionElapsed = 0.5;
+  private readonly viewProbe = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
+  private readonly reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  public viewBlocked = false;
+  get viewEligible() {
+    return this.turnView.eligible;
+  }
+  get viewAvailable() {
+    return this.turnView.eligible && this.canAct && !this.dragging && this.power === 0;
+  }
+  get viewYaw() {
+    return this.yaw;
+  }
   private cameraDistance = 6;
-  private zoomAmount = 1;
   private focus = new THREE.Vector3(0, 0.05, 0);
-  private focusTarget = new THREE.Vector3(0, 0.05, 0);
   private showActivePlayer = false;
   private playerLabels: [string, string] | null = null;
   private readonly ballLabels: BallLabels;
@@ -210,6 +233,8 @@ export class MarbleScene {
         glazing.add(this.doorReflection);
         this.scene.add(glazing);
         this.caustics.setScene(this.scene, (x, z) => terrainHeight(x, z, this.terrain));
+        this.planKey = '';
+        this.planCamera();
         await this.renderer.compileAsync(this.scene, this.camera);
         if (this.disposed) return;
         this.render(0);
@@ -423,7 +448,11 @@ export class MarbleScene {
     }
   }
 
-  update(snapshot: GameSnapshot, canAct: boolean) {
+  update(snapshot: GameSnapshot, canAct: boolean, viewPlayer: number | null = null) {
+    if (this.shotPending && (canAct || snapshot.phase !== 'aiming' || viewPlayer === null)) {
+      this.shotPending = false;
+      this.planKey = '';
+    }
     if (snapshot.terrainSeed !== this.terrain.seed) {
       this.clearAim();
       this.terrain = createTerrain(snapshot.terrainSeed);
@@ -451,8 +480,8 @@ export class MarbleScene {
       this.snapshot.terrainSeed !== snapshot.terrainSeed ||
       (this.snapshot.balls.length === 0 && snapshot.balls.length > 0);
     if (this.snapshot?.turn !== snapshot.turn || !canAct) this.clearAim();
-    if (this.snapshot?.turn !== snapshot.turn || snapshot.phase !== 'aiming') this.setZoom(false);
     this.snapshot = snapshot;
+    this.viewPlayer = viewPlayer;
     this.canAct = canAct && snapshot.phase === 'aiming';
     this.renderer.domElement.style.cursor = this.canAct ? 'grab' : 'default';
     this.bufferSnapshot(snapshot, reset);
@@ -470,11 +499,18 @@ export class MarbleScene {
     this.nextBoundary.visible =
       snapshot.nextBoundary < snapshot.boundary && snapshot.phase !== 'finished';
     this.syncPreview();
-    const focusTurn = `${snapshot.terrainSeed}:${snapshot.match}:${snapshot.turn}`;
-    if (this.canAct && this.mobileQuery.matches && focusTurn !== this.mobileFocusTurn) {
-      this.mobileFocusTurn = focusTurn;
-      this.setZoom(true);
-    }
+    this.turnView.update(
+      {
+        key: `${snapshot.terrainSeed}:${snapshot.match}:${snapshot.turn}`,
+        phase: snapshot.phase,
+        active: snapshot.active,
+        served: snapshot.served,
+        hasPair: snapshot.balls.length === 2,
+      },
+      this.matchMode ? viewPlayer : null,
+    );
+    this.planCamera();
+    this.onZoom?.(this.zoomed);
   }
 
   private bufferSnapshot(snapshot: GameSnapshot, reset: boolean) {
@@ -602,6 +638,7 @@ export class MarbleScene {
       this.canAct &&
       this.power > 0.01 &&
       !(this.preview.visible && this.snapshot?.active === this.snapshot?.first);
+    this.onZoom?.(this.zoomed);
   }
   clearAim() {
     const changed = this.dragging || this.power > 0;
@@ -615,6 +652,7 @@ export class MarbleScene {
       this.serveGuide.clearAim();
     }
     this.onCharge?.('end', 0);
+    this.onZoom?.(this.zoomed);
   }
 
   setPlayerLabels(names: [string, string] | null, showActive = true) {
@@ -625,17 +663,60 @@ export class MarbleScene {
     if (enabled === this.matchMode) return;
     this.matchMode = enabled;
     if (!enabled) {
-      this.mobileFocusTurn = '';
-      this.setZoom(false);
+      this.planKey = '';
+      this.zoomed = false;
+      this.cameraGoal = { yaw: 0, distance: this.cameraDistance, focus: { ...this.overviewFocus } };
     }
   }
   setZoom(zoomed: boolean) {
-    if (this.dragging || (zoomed && this.snapshot?.phase !== 'aiming')) return;
-    this.zoomed = zoomed;
-    const active = this.snapshot?.active ?? 0;
-    const origin = this.preview.visible ? this.preview.position : this.targets[active];
-    this.focusTarget.set(zoomed ? origin.x * 0.7 : 0, 0.05, zoomed ? origin.z * 0.3 : 0);
-    this.onZoom?.(zoomed);
+    if (!this.viewAvailable) return;
+    this.turnView.choose(zoomed);
+    this.planKey = '';
+    this.planCamera();
+    this.onZoom?.(this.zoomed);
+  }
+  holdShotView() {
+    this.shotPending = true;
+    this.cameraGoal = { yaw: this.yaw, distance: this.viewDistance, focus: { ...this.focus } };
+    this.transitionFrom = this.cameraGoal;
+    this.transitionElapsed = 0.5;
+  }
+  private planCamera() {
+    const s = this.snapshot;
+    const key = `${s?.terrainSeed}:${s?.match}:${s?.turn}:${this.viewPlayer}:${this.turnView.mode}:${this.camera.aspect}:${this.cameraDistance}`;
+    if (key === this.planKey) return;
+    this.planKey = key;
+    this.transitionFrom = { yaw: this.yaw, distance: this.viewDistance, focus: { ...this.focus } };
+    this.transitionElapsed = 0;
+    if (this.turnView.mode === 'shot' && this.matchMode) {
+      this.cameraGoal = { yaw: this.yaw, distance: this.viewDistance, focus: { ...this.focus } };
+      return;
+    }
+    this.viewBlocked = false;
+    this.zoomed = false;
+    this.cameraGoal = { yaw: 0, distance: this.cameraDistance, focus: { ...this.overviewFocus } };
+    if (!s || !this.matchMode || this.turnView.mode !== 'aim') return;
+    const own = s.balls.find((b) => b.player === s.active)?.position;
+    const other = s.balls.find((b) => b.player !== s.active)?.position;
+    if (!own || !other) return;
+    for (const weight of [0.55, 0.7, 0.85, 1]) {
+      const pose = pairPose(own, other, this.camera.aspect, weight);
+      if (!pose) return;
+      const eye = cameraPosition(pose);
+      this.viewProbe.position.set(eye.x, eye.y, eye.z);
+      this.viewProbe.lookAt(pose.focus.x, pose.focus.y, pose.focus.z);
+      this.viewProbe.updateMatrixWorld();
+      if (
+        ![own, other].every((p) =>
+          this.caustics.isBallVisible(new THREE.Vector3(p.x, p.y, p.z), this.viewProbe),
+        )
+      )
+        continue;
+      this.cameraGoal = pose;
+      this.zoomed = true;
+      return;
+    }
+    this.viewBlocked = true;
   }
   attachAimPad(pad: HTMLElement) {
     this.aimPad = pad;
@@ -649,23 +730,45 @@ export class MarbleScene {
   private padDown = (event: PointerEvent) => this.beginDrag(event, true);
   private updateCamera(dt: number, immediate = false) {
     // During a gesture even an unfinished transition stops, so aim cannot drift.
-    if (this.dragging && !immediate) return;
-    const mobile = this.mobileQuery.matches;
-    const targetZoom = this.matchMode && mobile && this.zoomed ? 1.5 : 1;
-    const alpha = immediate ? 1 : 1 - Math.exp(-dt * 12);
-    this.zoomAmount = THREE.MathUtils.lerp(this.zoomAmount, targetZoom, alpha);
-    this.focus.lerp(targetZoom > 1 ? this.focusTarget : this.overviewFocus, alpha);
+    if ((this.dragging || this.power > 0) && !immediate) return;
+    if (this.turnView.mode === 'shot' && this.zoomed && this.marblesMoving) {
+      const points = this.presentedBalls.map((b) => b.position);
+      this.cameraGoal.distance = Math.max(
+        this.cameraGoal.distance,
+        Math.min(
+          this.cameraDistance * 1.2,
+          fitDistance(points, this.cameraGoal.focus, this.cameraGoal.yaw, this.camera.aspect),
+        ),
+      );
+    }
+    this.transitionElapsed =
+      immediate || this.reducedMotion.matches ? 0.5 : this.transitionElapsed + dt;
+    const t =
+      immediate || this.reducedMotion.matches ? 1 : Math.min(1, this.transitionElapsed / 0.5);
+    const alpha = t * t * (3 - 2 * t);
+    this.yaw =
+      this.transitionFrom.yaw + angleDelta(this.transitionFrom.yaw, this.cameraGoal.yaw) * alpha;
+    this.viewDistance =
+      this.turnView.mode === 'shot'
+        ? THREE.MathUtils.lerp(
+            this.viewDistance,
+            this.cameraGoal.distance,
+            immediate || this.reducedMotion.matches ? 1 : 1 - Math.exp(-dt * 12),
+          )
+        : THREE.MathUtils.lerp(this.transitionFrom.distance, this.cameraGoal.distance, alpha);
+    this.focus.copy(this.transitionFrom.focus).lerp(this.cameraGoal.focus, alpha);
     const tilt = THREE.MathUtils.degToRad(58),
-      d = this.cameraDistance / this.zoomAmount;
+      d = this.viewDistance;
     this.camera.position.set(
-      this.focus.x,
+      this.focus.x + d * Math.cos(tilt) * Math.sin(this.yaw),
       this.focus.y + d * Math.sin(tilt),
-      this.focus.z + d * Math.cos(tilt),
+      this.focus.z + d * Math.cos(tilt) * Math.cos(this.yaw),
     );
     this.camera.lookAt(this.focus);
     this.camera.updateMatrixWorld();
   }
   private resize = () => {
+    if (this.dragging || this.power > 0) this.clearAim();
     const width = Math.max(1, this.container.clientWidth),
       height = Math.max(1, this.container.clientHeight),
       aspect = width / height;
@@ -688,6 +791,8 @@ export class MarbleScene {
         }
     this.camera.aspect = aspect;
     this.cameraDistance = distance;
+    this.planKey = '';
+    this.planCamera();
     this.updateCamera(0, true);
     this.camera.updateProjectionMatrix();
     const ratio = pixelRatioFor(this.quality, width, height, window.devicePixelRatio);
@@ -728,6 +833,7 @@ export class MarbleScene {
     // A new gesture starts at zero; a click must not launch a preset shot.
     this.clearAim();
     this.dragging = true;
+    this.onZoom?.(this.zoomed);
     this.onCharge?.('start', 0);
     this.pointerId = event.pointerId;
     this.dragSurface = event.currentTarget as HTMLElement;
@@ -749,6 +855,7 @@ export class MarbleScene {
         event.clientX - this.dragPixels.x,
         event.clientY - this.dragPixels.y,
         Math.min(140, this.container.clientWidth * 0.34),
+        this.yaw,
       );
       this.setAim(direction, power);
       this.onPower?.(power);
