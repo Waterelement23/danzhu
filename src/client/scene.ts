@@ -13,6 +13,8 @@ import type { AudioFrame } from './audio';
 import { startupStage } from './startup';
 import { makeSoilMaterial } from './soil-material';
 import { ServeGuide } from './serve-guide';
+import { ServeLine } from './serve-line';
+import { ServeTap } from './serve-selection';
 import { makeDoorReflection } from './glazing';
 import { makeMarble, captureCourtyardReflection } from './marble';
 import { MarbleCaustics } from './marble-caustics';
@@ -126,6 +128,9 @@ export class MarbleScene {
   private readonly preview = new THREE.Group();
   private readonly halo: THREE.Mesh;
   private readonly serveGuide: ServeGuide;
+  private readonly serveLine: ServeLine;
+  private readonly serveTap = new ServeTap();
+  public onServePosition?: (x: number) => void;
   private readonly caustics: MarbleCaustics;
   private readonly aim = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, -1),
@@ -291,6 +296,7 @@ export class MarbleScene {
     this.resizeObserver.observe(container);
     this.resize();
     this.serveGuide = new ServeGuide(container, this.terrain);
+    this.serveLine = new ServeLine(container);
     this.caustics = new MarbleCaustics(this.balls[0].children[0] as THREE.Mesh, {
       size: this.quality.causticSize,
       photons: this.quality.photons,
@@ -645,6 +651,7 @@ export class MarbleScene {
   clearAim() {
     const changed = this.dragging || this.power > 0;
     this.dragging = false;
+    this.serveTap.clear();
     if (this.dragSurface?.hasPointerCapture(this.pointerId))
       this.dragSurface.releasePointerCapture(this.pointerId);
     this.power = 0;
@@ -805,12 +812,29 @@ export class MarbleScene {
     this.raycaster.setFromCamera(this.pointer, this.camera);
     return this.raycaster.ray.intersectPlane(this.plane, this.groundPoint);
   }
+  private updateServeLine() {
+    this.serveLine.update(
+      this.camera,
+      this.container.clientWidth,
+      this.container.clientHeight,
+      this.terrain,
+      this.canAct && this.preview.visible,
+      this.snapshot?.active ?? 0,
+      this.serveX,
+    );
+  }
   private pointerDown = (event: PointerEvent) => this.beginDrag(event);
   private beginDrag(event: PointerEvent) {
     if (event.button !== 0 || !event.isPrimary || !this.canAct || this.dragging) return;
     const active = this.snapshot?.active ?? 0,
       origin = this.preview.visible ? this.preview.position : this.balls[active].position;
     const rect = this.renderer.domElement.getBoundingClientRect();
+    this.updateServeLine();
+    const candidate = this.serveLine.pick(
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+      event.pointerType === 'touch',
+    );
     this.scratch.copy(origin).project(this.camera);
     const x = rect.left + ((this.scratch.x + 1) * rect.width) / 2,
       y = rect.top + ((1 - this.scratch.y) * rect.height) / 2;
@@ -819,6 +843,7 @@ export class MarbleScene {
       hy = rect.top + ((1 - this.scratch.y) * rect.height) / 2;
     if (
       event.pointerType !== 'touch' &&
+      candidate === null &&
       Math.hypot(event.clientX - x, event.clientY - y) > 42 &&
       Math.hypot(event.clientX - hx, event.clientY - hy) > 30
     )
@@ -829,9 +854,10 @@ export class MarbleScene {
     this.screenDrag = event.pointerType === 'touch';
     // A new gesture starts at zero; a click must not launch a preset shot.
     this.clearAim();
+    this.serveTap.begin(candidate);
     this.dragging = true;
     this.onZoom?.(this.zoomed);
-    this.onCharge?.('start', 0);
+    if (candidate === null) this.onCharge?.('start', 0);
     this.pointerId = event.pointerId;
     this.dragSurface = event.currentTarget as HTMLElement;
     this.dragSurface.setPointerCapture(event.pointerId);
@@ -847,6 +873,12 @@ export class MarbleScene {
       !this.eventGround(event)
     )
       return;
+    const wasPending = this.serveTap.pending;
+    this.serveTap.move(
+      Math.hypot(event.clientX - this.dragPixels.x, event.clientY - this.dragPixels.y),
+    );
+    if (this.serveTap.pending) return;
+    if (wasPending) this.onCharge?.('start', 0);
     if (this.screenDrag) {
       const { direction, power } = touchAim(
         event.clientX - this.dragPixels.x,
@@ -880,6 +912,10 @@ export class MarbleScene {
   };
   private pointerUp = (event: PointerEvent) => {
     if (!this.dragging || event.pointerId !== this.pointerId) return;
+    this.serveTap.move(
+      Math.hypot(event.clientX - this.dragPixels.x, event.clientY - this.dragPixels.y),
+    );
+    const selected = this.canAct && this.preview.visible ? this.serveTap.finish() : null;
     const power = this.power,
       direction = { x: this.aimDirection.x, z: this.aimDirection.z },
       valid = this.canAct && power >= 0.045;
@@ -887,7 +923,10 @@ export class MarbleScene {
     if (this.renderer.domElement.hasPointerCapture(event.pointerId))
       this.renderer.domElement.releasePointerCapture(event.pointerId);
     this.renderer.domElement.style.cursor = this.canAct ? 'grab' : 'default';
-    if (valid) this.onShoot(direction, power, this.serveX);
+    if (selected !== null) {
+      this.setServeX(selected);
+      this.onServePosition?.(this.serveX);
+    } else if (valid) this.onShoot(direction, power, this.serveX);
   };
   private cancel = () => {
     this.clearAim();
@@ -912,6 +951,7 @@ export class MarbleScene {
     this.time += Math.min(dt, 0.1);
     this.sampleFrames();
     this.updateCamera(dt);
+    this.updateServeLine();
     const scale = 1 + Math.sin(this.time * 2.8) * 0.045;
     this.halo.scale.setScalar(scale);
     this.serveGuide.update(this.camera, this.container.clientWidth, this.container.clientHeight, {
@@ -973,6 +1013,7 @@ export class MarbleScene {
     this.disposed = true;
     this.resizeObserver.disconnect();
     this.serveGuide.dispose();
+    this.serveLine.dispose();
     this.ballLabels.dispose();
     this.caustics.dispose();
     const canvas = this.renderer.domElement;

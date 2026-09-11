@@ -3,7 +3,7 @@ import { FramePacer } from './render-budget';
 import { invitationCode, invitationUrl, playerName, rematchView } from './match-ui';
 import { GameAudio } from './audio';
 import { MarbleScene } from './scene';
-import { CONFIG, SERVE_RANGE, MAP_VERSION, PROTOCOL_VERSION, nextTerrainSeed } from '../shared/map';
+import { CONFIG, MAP_VERSION, PROTOCOL_VERSION, nextTerrainSeed } from '../shared/map';
 import type { GameSnapshot, Presence, Shot, Result } from '../shared/types';
 import {
   practice,
@@ -20,7 +20,7 @@ $('app').innerHTML = `
 <header class="site-header"><a class="brand" href="${import.meta.env.BASE_URL}">${marbleIcon}<span>弹珠<small>MARBLE CLUB</small></span></a><nav><span class="edition">童年游乐计划 · 001</span><div class="sound-controls"><button id="sound-toggle" class="text-button" aria-label="静音" aria-pressed="false">声音 开</button><input id="sound-volume" type="range" min="0" max="100" value="70" aria-label="音效音量" /></div><button id="rules-open" class="text-button">玩法说明 <span>↗</span></button></nav></header>
 <main>
  <section class="intro"><div><p class="eyebrow"><span></span> 一颗玻璃珠，一整个下午</p><h1>再玩一个下午<span>。</span></h1><p class="intro-copy">圈一块地，约一个朋友。把童年的手感，弹回来。</p></div>   <div class="session-panels"><section id="lobby" class="panel lobby"><span class="section-number">01 — LET’S PLAY</span><h2>约一场弹珠</h2><p class="muted">不用下载，不用注册。<br>一个邀请链接，就能一起玩。</p><button id="create" class="primary">创建双人房间 <span>↗</span></button><div class="join-label">朋友已经开好房间？</div><form id="join-form" class="join-form"><input id="room-code" aria-label="房间码" autocomplete="off" maxlength="8" placeholder="输入 8 位房间码"/><button id="join" type="submit" aria-label="加入房间">→</button></form><div class="divider"><span>也可以先找找手感</span></div><button id="practice" class="secondary">本机双人练习 <span>↗</span></button><button id="resume" class="text-button resume" hidden>恢复上一局连接 →</button></section>
-   <section id="controls" class="panel controls" hidden><div class="control-heading"><span id="turn-eyebrow" class="section-number">轮到你了</span><span id="timer" class="timer">30s</span></div><h2 id="turn-title">准备入场</h2><p id="turn-description" class="muted">从发球线弹入第一颗球。</p><div id="room-share" class="room-share" hidden><small>邀请朋友 · 打开链接直接加入</small><button id="copy-code" aria-label="复制邀请链接"></button></div><button id="ready" class="primary" hidden>我准备好了 <span>✓</span></button><div id="serve-control"><label for="serve-position">发球位置 <span id="serve-value">中间</span></label><input id="serve-position" type="range" min="-900" max="900" value="0"/><div class="range-captions"><span>左侧</span><span>沿发球线移动</span><span>右侧</span></div></div><div class="power-display"><label>击球力度 <span id="power-text">25%</span></label><div class="power-track"><i id="power-bar"></i></div><p>按住自己的弹珠，向后拖动蓄力<br>松手弹出 · Esc 取消</p></div><details id="fine-aim"><summary>精细瞄准 <span>＋</span></summary><div class="fine-settings"><label for="angle">方向 <span id="angle-value">0°</span></label><input id="angle" type="range" min="-180" max="180" value="0"/><label for="power">力度</label><input id="power" type="range" min="1" max="100" value="25"/><button id="shoot" class="secondary">按当前方向弹出 →</button></div></details><div class="shrink-info"><span>◎</span><span id="shrink-label">前 3 轮不缩圈</span></div><button id="leave" class="text-button leave">← 返回大厅</button></section></div></section>
+   <section id="controls" class="panel controls" hidden><div class="control-heading"><span id="turn-eyebrow" class="section-number">轮到你了</span><span id="timer" class="timer">30s</span></div><h2 id="turn-title">准备入场</h2><p id="turn-description" class="muted">从发球线弹入第一颗球。</p><div id="room-share" class="room-share" hidden><small>邀请朋友 · 打开链接直接加入</small><button id="copy-code" aria-label="复制邀请链接"></button></div><button id="ready" class="primary" hidden>我准备好了 <span>✓</span></button><div class="power-display"><label>击球力度 <span id="power-text">25%</span></label><div class="power-track"><i id="power-bar"></i></div><p>按住自己的弹珠，向后拖动蓄力<br>松手弹出 · Esc 取消</p></div><details id="fine-aim"><summary>精细瞄准 <span>＋</span></summary><div class="fine-settings"><label for="angle">方向 <span id="angle-value">0°</span></label><input id="angle" type="range" min="-180" max="180" value="0"/><label for="power">力度</label><input id="power" type="range" min="1" max="100" value="25"/><button id="shoot" class="secondary">按当前方向弹出 →</button></div></details><div class="shrink-info"><span>◎</span><span id="shrink-label">前 3 轮不缩圈</span></div><button id="leave" class="text-button leave">← 返回大厅</button></section></div></section>
  <div class="game-layout">
   <section class="board-card" aria-label="弹珠场地">
    <div class="board-top"><div><span class="terrain-dot"></span><strong>老院子的土地</strong><span class="board-meta">每局随机 · 起伏 · 石子</span></div><div class="players" id="players"><div id="player0" class="player blue"><i></i><span id="name0">PLAYER 01</span></div><div class="versus">VS</div><div id="player1" class="player amber"><i></i><span id="name1">PLAYER 02</span></div></div><span id="mode-tag" class="mode-tag">练习 / 1V1 联网</span></div>
@@ -37,7 +37,7 @@ $('app').innerHTML = `
  <footer><span>玻璃里藏着的，是整个夏天。</span><span>GROUND RULES. GOOD TIMES.</span></footer>
 </main>
 <div id="toast" class="toast" role="status" hidden></div>
-<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>每局一块新场地。</strong>起伏、浅凹和石子每局随机，双方共享同一场地，对局中保持不变。</li><li><strong>先手高位发球。</strong>从发球线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>手机可从场地任意位置向后拖动，松手发射，拖回起点取消。电脑拖住自己的球，也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p><p class="muted audio-credit">音效：<a href="https://freesound.org/people/D43thsilence/sounds/755084/" target="_blank" rel="noopener">D43thsilence</a>（CC BY 4.0，已剪辑与加工）；<a href="https://www.zapsplat.com" target="_blank" rel="noopener">Sound effects obtained from ZapSplat</a>；Sheyvan、Anthousai、renne100（CC0）。<a href="audio/CREDITS.txt" target="_blank" rel="noopener">完整音效来源</a></p></dialog>`;
+<dialog id="rules"><button id="rules-close" class="dialog-close" aria-label="关闭说明">×</button><p class="eyebrow">HOW TO PLAY</p><h2>还是小时候的规则。</h2><ol><li><strong>每局一块新场地。</strong>起伏、浅凹和石子每局随机，双方共享同一场地，对局中保持不变。</li><li><strong>先手高位发球。</strong>轻点发球线附近选位置，默认在中间；向后拖动发射。先手从线上方弹入，落地后可能弹跳，等球停稳。</li><li><strong>后手贴地入场。</strong>可以直接瞄准先手的弹珠，命中就赢。</li><li><strong>之后原地轮流弹。</strong>手机可从场地任意位置向后拖动，松手发射，拖回起点取消。电脑拖住自己的球，也可展开精细瞄准。</li><li><strong>哪个先发生，就按哪个判。</strong>先命中获胜，先出界失败。飞过对方头顶不算击中。</li><li><strong>边界看球心。</strong>空中越线也算出界。第 4 轮起双方各弹一次后缩圈；两球同时被圈外淘汰为平局。</li></ol><p class="muted">每次瞄准 30 秒；发球超时直接判负，普通回合连续两次超时判负。第 20 轮仍未分胜负为平局。联网断线保留席位 30 秒。</p><p class="muted audio-credit">音效：<a href="https://freesound.org/people/D43thsilence/sounds/755084/" target="_blank" rel="noopener">D43thsilence</a>（CC BY 4.0，已剪辑与加工）；<a href="https://www.zapsplat.com" target="_blank" rel="noopener">Sound effects obtained from ZapSplat</a>；Sheyvan、Anthousai、renne100（CC0）。<a href="audio/CREDITS.txt" target="_blank" rel="noopener">完整音效来源</a></p></dialog>`;
 $('scene').append($('mobile-play'));
 const audio = new GameAudio();
 function refreshAudio() {
@@ -93,9 +93,11 @@ let serveX = 0,
   toastTimer: ReturnType<typeof setTimeout>,
   pendingTimer: ReturnType<typeof setTimeout>;
 let gestureActive = false,
-  aimHintSeen = false;
+  aimHintSeen = false,
+  serveHintSeen = false;
 try {
   aimHintSeen = localStorage.getItem('danzhu-direct-aim-seen') === '1';
+  serveHintSeen = localStorage.getItem('danzhu-serve-line-seen') === '1';
 } catch {
   /* Storage may be disabled. */
 }
@@ -103,13 +105,18 @@ let scene: MarbleScene;
 function refreshMobileAim() {
   const active = canAct(),
     menuOpen = $<HTMLDetailsElement>('mobile-menu').open;
-  $('drag-hint').hidden = !active || gestureActive || aimHintSeen || menuOpen;
+  const serving = !snapshot.served[snapshot.active];
+  $('drag-hint').textContent = serving
+    ? '点发球线选位置，拖动场地发射'
+    : '在场地内向后拖动，松手发射';
+  $('drag-hint').hidden =
+    !active || gestureActive || (serving ? serveHintSeen : aimHintSeen) || menuOpen;
   $('drag-feedback').hidden = !active || !gestureActive;
   $('mobile-serve').hidden =
     mode === 'lobby' ||
     gestureActive ||
     menuOpen ||
-    ['room-share', 'ready', 'serve-control'].every((id) => $(id).hidden);
+    ['room-share', 'ready'].every((id) => $(id).hidden);
 }
 
 try {
@@ -168,8 +175,10 @@ function sendShot(d = direction, p = power, x = serveX) {
   pending = true;
   if (mobileQuery.matches) {
     aimHintSeen = true;
+    if (!snapshot.served[snapshot.active]) serveHintSeen = true;
     try {
       localStorage.setItem('danzhu-direct-aim-seen', '1');
+      if (!snapshot.served[snapshot.active]) localStorage.setItem('danzhu-serve-line-seen', '1');
     } catch {
       /* Optional preference. */
     }
@@ -200,8 +209,6 @@ const hooks: Hooks = {
     if (turn !== lastTurn) {
       lastTurn = turn;
       serveX = 0;
-      $<HTMLInputElement>('serve-position').value = '0';
-      $('serve-value').textContent = '中间';
       scene.setServeX(0);
       direction = { x: 0, z: -1 };
       $<HTMLInputElement>('angle').value = '0';
@@ -273,9 +280,9 @@ function refresh() {
     playerName(snapshot.active, onlineMode ? presence : null) + (isServing ? '发球' : '的回合');
   let title = isFirst ? '站着，弹第一颗。' : isServing ? '贴地，瞄准入场。' : '看准，再弹一下。';
   let description = isFirst
-    ? '从高处弹入，落地反弹后停稳。先选好你的发球位置。'
+    ? '从高处弹入，落地反弹后停稳。轻点发球线选择位置，再拖动发射。'
     : isServing
-      ? '从发球线贴地弹入，可以直接击中对方获胜。'
+      ? '轻点发球线选择位置，贴地弹入可直接击中对方获胜。'
       : '从弹珠停留的地方出手。地形会改变它的方向和速度。';
   if (snapshot.phase === 'finished') {
     title = '这一击，尘埃落定。';
@@ -308,10 +315,8 @@ function refresh() {
   $('ready').innerHTML = presence?.ready[presence.player]
     ? '已准备 · 等待对方'
     : '我准备好了 <span>✓</span>';
-  $('serve-control').hidden = !isServing || !canAct();
   $('power-text').parentElement!.parentElement!.classList.toggle('disabled', !canAct());
-  for (const id of ['angle', 'power', 'shoot', 'serve-position'])
-    $<HTMLInputElement>(id).disabled = !canAct();
+  for (const id of ['angle', 'power', 'shoot']) $<HTMLInputElement>(id).disabled = !canAct();
   $('shrink-label').textContent =
     snapshot.round < 4
       ? `距离首次缩圈还有 ${4 - snapshot.round} 轮`
@@ -514,12 +519,8 @@ $('copy-code').onclick = async () => {
     $<HTMLInputElement>('invite-link').select();
   }
 };
-$('serve-position').oninput = () => {
-  serveX = Number($<HTMLInputElement>('serve-position').value) / 1000;
-  serveX = Math.max(-SERVE_RANGE, Math.min(SERVE_RANGE, serveX));
-  $('serve-value').textContent =
-    serveX === 0 ? '中间' : `${serveX < 0 ? '左' : '右'} ${Math.round(Math.abs(serveX) * 100)} cm`;
-  scene.setServeX(serveX);
+scene.onServePosition = (x) => {
+  serveX = x;
 };
 function fineAim() {
   const degrees = Number($<HTMLInputElement>('angle').value);
@@ -580,6 +581,7 @@ $('mobile-leave').onclick = () => {
 $('mobile-sound').onclick = () => audio.setMuted(!audio.state.muted);
 $('mobile-help').onclick = () => {
   aimHintSeen = false;
+  serveHintSeen = false;
   $<HTMLDetailsElement>('mobile-menu').open = false;
   refreshMobileAim();
 };
@@ -604,7 +606,7 @@ function placeControls() {
   scene.clearAim();
   const mobile = mobileQuery.matches && mode !== 'lobby';
   const destination = mobile ? $('mobile-serve') : $('controls');
-  for (const id of ['room-share', 'ready', 'serve-control'])
+  for (const id of ['room-share', 'ready'])
     if ($(id).parentElement !== destination) destination.append($(id));
 }
 mobileQuery.addEventListener('change', placeControls);

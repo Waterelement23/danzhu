@@ -25,7 +25,39 @@ async (page) => {
       await p.screenshot({path:`/tmp/danzhu-direct-serve-${viewport.width}.png`});
       const cdp=await ctx.newCDPSession(p), x=Math.round(box.x+box.width*.27),y=Math.round(box.y+box.height*.45);
       const touch=(type,points)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points.map(([x,y,id=0])=>({x,y,id}))});
+      async function chooseServe(wanted) {
+        const point=await p.evaluate(wanted=>{
+          const s=window.cameraTest,r=s.renderer.domElement.getBoundingClientRect();
+          const points=s.serveLine.samples, a=points.reduce((a,b)=>Math.abs(b.worldX-wanted)<Math.abs(a.worldX-wanted)?b:a);
+          return {x:r.x+a.x,y:r.y+a.y,worldX:a.worldX};
+        },wanted);
+        await p.touchscreen.tap(point.x,point.y);
+        return point;
+      }
+
+      check(await p.locator('#serve-position').count()===0,'No serve slider');
+      check(await p.locator('#mobile-serve').isHidden(),'No empty bottom panel');
+      const line=await p.evaluate(()=>{const s=window.cameraTest,r=s.renderer.domElement.getBoundingClientRect();return s.serveLine.samples.map(v=>({...v,x:v.x+r.x,y:v.y+r.y}));});
+      const left=line[0],right=line[line.length-1],middle=line[8];
+      await touch('touchStart',[[left.x,left.y]]);
+      check(await p.evaluate(()=>window.cameraTest.serveX===0&&window.cameraTest.power===0),'Selection waits for release');
+      check(await p.locator('#drag-feedback').isHidden(),'Selection does not start charge');
+      await touch('touchEnd',[]);
+      check(Math.abs(await p.evaluate(()=>window.cameraTest.serveX)-left.worldX)<.001,'Left endpoint');
+      await p.touchscreen.tap(right.x+12,right.y);
+      check(Math.abs(await p.evaluate(()=>window.cameraTest.serveX)-right.worldX)<.001,'Endpoint touch tolerance');
+      await touch('touchStart',[[left.x,left.y]]);await touch('touchMove',[[left.x,left.y-25]]);
+      check(Math.abs(await p.evaluate(()=>window.cameraTest.serveX)-right.worldX)<.001,'Drag locks serve point');
+      await touch('touchMove',[[left.x,left.y]]);await touch('touchEnd',[]);
+      check(Math.abs(await p.evaluate(()=>window.cameraTest.serveX)-right.worldX)<.001,'Returning drag is not a tap');
+      await touch('touchStart',[[left.x,left.y]]);await touch('touchStart',[[left.x,left.y],[left.x+40,left.y-30,1]]);await touch('touchEnd',[]);
+      check(Math.abs(await p.evaluate(()=>window.cameraTest.serveX)-right.worldX)<.001,'Second finger discards selection');
+      await p.touchscreen.tap(middle.x,middle.y);
+      await p.waitForTimeout(100);
+      await p.screenshot({path:`/tmp/danzhu-serve-line-${viewport.width}.png`});
       await touch('touchStart',[[x,y]]);await touch('touchEnd',[]);
+      check(Math.abs(await p.evaluate(()=>window.cameraTest.serveX))<.001,'Field tap does not move the serve');
+
       check((await state()).shots===0,'Tap must not shoot');
       await touch('touchStart',[[x,y]]);await touch('touchMove',[[x,y+45]]);
       check((await state()).power>.1,'Blank scene starts aiming');
@@ -40,16 +72,18 @@ async (page) => {
       await p.locator('#mobile-menu summary').tap();await p.locator('#mobile-sound').tap();
       check((await state()).shots===0&&!(await state()).drag,'Menu isolated');
       await p.locator('#mobile-menu summary').tap();
-      await p.locator('#serve-position').evaluate(e=>{e.value='-800';e.dispatchEvent(new Event('input',{bubbles:true}));});
+      const firstPoint=await chooseServe(-.8);
       await touch('touchStart',[[x,y]]);await touch('touchMove',[[x,y+14]]);await touch('touchEnd',[]);
       await p.waitForFunction(()=>window.cameraTest.snapshot.turn===2&&window.cameraTest.canAct,null,{timeout:30000});
       check((await state()).shots===1,'Valid drag fires');
+      check(Math.abs(await p.evaluate(()=>window.testShots[0][2])-firstPoint.worldX)<.001,'Selected serve reaches shot');
       check(await p.locator('#drag-hint').isHidden(),'Successful shot dismisses hint');
-      await p.locator('#serve-position').evaluate(e=>{e.value='800';e.dispatchEvent(new Event('input',{bubbles:true}));});
+      await chooseServe(.8);
       await touch('touchStart',[[x,y]]);await touch('touchMove',[[x,y+14]]);await touch('touchEnd',[]);
       await p.waitForFunction(()=>window.cameraTest.snapshot.turn===3&&window.cameraTest.canAct,null,{timeout:30000});
       await p.waitForTimeout(700);
       check(await p.locator('#view-toggle').getAttribute('aria-pressed')==='true','Auto view after entries');
+      check(await p.locator('.serve-line').isHidden(),'Line selection ends after entry');
       const render=await p.evaluate(()=>{const s=window.cameraTest,c=s.renderer.domElement;return {width:c.width,height:c.height,fps:s.quality.fps,idle:s.quality.idleFps,ratio:s.renderer.getPixelRatio()};});
       check(render.width*render.height<=900000,'Mobile pixel budget');
       check(render.fps===30&&render.idle===15,'Frame budget');

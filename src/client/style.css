@@ -1222,7 +1222,6 @@ footer {
 .controls > .muted {
   display: none;
 }
-.controls #serve-control,
 .controls .power-display {
   width: 180px;
 }
@@ -1333,7 +1332,6 @@ footer {
   .controls .section-number {
     font-size: 11px;
   }
-  .controls #serve-control,
   .controls .power-display {
     width: 100%;
   }
@@ -1612,12 +1610,6 @@ footer {
   .session-panels > .panel[hidden] {
     display: grid !important;
   }
-}
-
-.session-panels #serve-control[hidden] {
-  display: block !important;
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .sound-controls {
@@ -1942,22 +1934,6 @@ footer {
     align-items: center;
     gap: 6px;
   }
-  #mobile-serve #serve-control {
-    width: 100%;
-  }
-  #mobile-serve #serve-control label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-  }
-  #mobile-serve input[type='range'] {
-    width: 100%;
-    height: 28px;
-    margin: 0;
-  }
-  #mobile-serve .range-captions {
-    display: none;
-  }
   #mobile-serve .room-share {
     margin: 0;
     display: flex;
@@ -2066,4 +2042,35 @@ footer {
   .mobile-actions button {
     padding: 7px 8px;
   }
+}
+
+.serve-line {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  color: #216e88;
+}
+.serve-line[data-player='1'] {
+  color: #875617;
+}
+.serve-line svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.serve-line path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.serve-line .serve-line-outline {
+  stroke: #fff6dd;
+  stroke-width: 4;
+  opacity: 0.8;
+}
+.serve-line .serve-line-selected {
+  stroke-width: 3;
 }

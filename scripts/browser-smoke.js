@@ -1,4 +1,12 @@
 async (page) => {
+  async function selectServe(p, fraction) {
+    const point = await p.locator('.serve-line-path').evaluate((line, f) => {
+      const q = line.getPointAtLength(line.getTotalLength() * f),
+        r = line.ownerSVGElement.getBoundingClientRect();
+      return { x: r.x + q.x, y: r.y + q.y };
+    }, fraction);
+    await p.mouse.click(point.x, point.y);
+  }
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('http://localhost:5173/');
@@ -7,10 +15,7 @@ async (page) => {
   );
   await page.getByRole('button', { name: '本机双人练习', exact: false }).click();
   await page.locator('#fine-aim summary').click();
-  await page.locator('#serve-position').evaluate((e) => {
-    e.value = '650';
-    e.dispatchEvent(new Event('input', { bubbles: true }));
-  });
+  await selectServe(page, 0.8);
   await page.locator('#power').evaluate((e) => {
     e.value = '14';
     e.dispatchEvent(new Event('input', { bubbles: true }));
@@ -28,9 +33,9 @@ async (page) => {
   await page.locator('#leave').click();
   await page.locator('#create').click();
   await page.waitForFunction(() =>
-    /^[A-F0-9]{8}$/.test(document.querySelector('#copy-code')?.textContent || ''),
+    /^[A-F0-9]{8}$/.test(sessionStorage.getItem('danzhu-room') || ''),
   );
-  const code = await page.locator('#copy-code').textContent();
+  const code = await page.evaluate(() => sessionStorage.getItem('danzhu-room'));
   const ctx = await page
     .context()
     .browser()
@@ -49,10 +54,7 @@ async (page) => {
       second = aFirst ? other : page;
     if ((await first.locator('#fine-aim').getAttribute('open')) === null)
       await first.locator('#fine-aim summary').click();
-    await first.locator('#serve-position').evaluate((e) => {
-      e.value = '650';
-      e.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    await selectServe(first, 0.8);
     await first.locator('#power').evaluate((e) => {
       e.value = '14';
       e.dispatchEvent(new Event('input', { bubbles: true }));
@@ -76,10 +78,7 @@ async (page) => {
     await other.screenshot({ path: 'output/playwright/online-b.png', fullPage: true });
     if ((await second.locator('#fine-aim').getAttribute('open')) === null)
       await second.locator('#fine-aim summary').click();
-    await second.locator('#serve-position').evaluate((e) => {
-      e.value = '-650';
-      e.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    await selectServe(second, 0.2);
     await second.locator('#power').evaluate((e) => {
       e.value = '14';
       e.dispatchEvent(new Event('input', { bubbles: true }));

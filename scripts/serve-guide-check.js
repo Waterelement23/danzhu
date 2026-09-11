@@ -6,7 +6,7 @@ async (page) => {
   page.on('console', listener);
   await page.reload();
   await page.waitForFunction(
-    () => document.querySelector('#scene').dataset.environment === 'ready',
+    () => document.querySelector('#scene')?.dataset.environment === 'ready',
   );
   await page.locator('#practice').click();
   const frame = () =>
@@ -74,10 +74,12 @@ async (page) => {
   );
   const path1 = await page.locator('.flight-path').getAttribute('d');
   await page.locator('#scene').screenshot({ path: 'output/playwright/serve-flight-guide.png' });
-  await page.locator('#serve-position').evaluate((el) => {
-    el.value = '900';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
+  const selectedPoint = await page.locator('.serve-line-path').evaluate((line) => {
+    const q = line.getPointAtLength(line.getTotalLength() * 0.95),
+      r = line.ownerSVGElement.getBoundingClientRect();
+    return { x: r.x + q.x, y: r.y + q.y };
   });
+  await page.mouse.click(selectedPoint.x, selectedPoint.y);
   await page.locator('#angle').evaluate((el) => {
     el.value = '60';
     el.dispatchEvent(new Event('input', { bubbles: true }));
