@@ -1,4 +1,4 @@
-import { CONFIG, SERVE_RANGE, SERVE_Z } from '../shared/map';
+import { CONFIG } from '../shared/map';
 import type { Vec3 } from '../shared/types';
 
 export const CAMERA_TILT = (58 * Math.PI) / 180;
@@ -90,14 +90,12 @@ export function fitDistance(
   }
   return distance;
 }
-/** Fit the low court surface and the actual serve line, not a tall box over every corner. */
+/** Preserve the full overview envelope and breathing room throughout the entry shot. */
 export function overviewDistance(aspect: number, focus: Vec3, fov = 42) {
-  const edge = CONFIG.half + 0.06;
+  const edge = CONFIG.half + 0.16;
   const points = [-edge, edge].flatMap((x) =>
-    [-edge, edge].flatMap((z) => [-0.04, 0.18].map((y) => ({ x, y, z }))),
+    [-edge, edge].flatMap((z) => [0, CONFIG.serveHeight + 0.08].map((y) => ({ x, y, z }))),
   );
-  for (const x of [-SERVE_RANGE - CONFIG.radius, SERVE_RANGE + CONFIG.radius])
-    points.push({ x, y: CONFIG.serveHeight + 0.08, z: SERVE_Z + CONFIG.radius });
   const tan = Math.tan((fov * Math.PI) / 360);
   const sin = Math.sin(OVERVIEW_TILT),
     cos = Math.cos(OVERVIEW_TILT);

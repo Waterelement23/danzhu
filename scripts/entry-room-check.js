@@ -14,7 +14,7 @@ async(page)=>{
    await p.waitForFunction(()=>!document.querySelector('.entering-scene'));
    const state=await p.evaluate(()=>{const s=window.sceneTest,d=s.camera.position.clone().sub(s.focus);return {sameCanvas:window.originalCanvas===s.renderer.domElement,distance:d.length(),eyeHeight:s.camera.position.y,tilt:Math.atan2(d.y,Math.hypot(d.x,d.z))*180/Math.PI,transform:getComputedStyle(document.querySelector('#scene')).transform};});
    check(state.sameCanvas&&state.transform==='none','Canvas preserved and transform cleaned');
-   check(Math.abs(state.tilt-58)<.01,'Original tilt with closer serving camera');
+   check(Math.abs(state.tilt-58)<.01,'Original overview tilt');
    await p.screenshot({path:`/tmp/danzhu-entry-${viewport.width}.png`});
    await p.evaluate(()=>document.querySelector('#leave').click());
    await p.locator('#create').click();await p.locator('.entering-scene').waitFor({state:'attached'});

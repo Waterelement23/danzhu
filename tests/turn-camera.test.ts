@@ -111,7 +111,7 @@ it.each([
 });
 
 it.each([390 / 770, 844 / 316, 1440 / 850])(
-  'moves the overview closer at 58 degrees while keeping the court and serve visible (%s)',
+  'retains the original overview distance at 58 degrees with court and serve visible (%s)',
   (aspect) => {
     const focus = { x: 0, y: 0.05, z: 0 };
     const distance = overviewDistance(aspect, focus);
@@ -136,7 +136,7 @@ it.each([390 / 770, 844 / 316, 1440 / 850])(
             depth + Math.abs(x) / (tan * aspect * 0.94),
           );
         }
-    expect(distance).toBeLessThan(previous * 0.95);
+    expect(distance).toBeCloseTo(previous);
     for (const x of [-1.65, 0, 1.65])
       for (const z of [-1.65, 0, 1.65])
         for (const y of [0, 0.15]) {
